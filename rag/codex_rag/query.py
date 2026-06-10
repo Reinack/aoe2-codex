@@ -7,11 +7,19 @@ from __future__ import annotations
 
 import argparse
 import json
+import sys
 
 from .pipeline import answer
 
 
 def main(argv: list[str] | None = None) -> None:
+    # La consola Windows (cp1252) rompe al imprimir caracteres no-ASCII (p.ej. el
+    # signo menos − de las respuestas). El JSON debe salir en UTF-8.
+    try:
+        sys.stdout.reconfigure(encoding="utf-8")
+    except Exception:  # noqa: BLE001
+        pass
+
     ap = argparse.ArgumentParser(prog="codex_rag.query")
     ap.add_argument("question")
     ap.add_argument("-k", type=int, default=6)

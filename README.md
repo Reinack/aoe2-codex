@@ -70,13 +70,18 @@ El dashboard cubre: centralidad (PageRank, betweenness), preguntas del meta
 **comunidades Louvain** (clústeres temáticos emergentes), conocimiento aislado
 (lint del vault), tier-lists y un explorador de vecindad por nodo (pyvis).
 
-## GraphRAG chat (Fase 4) — 100% local
+## GraphRAG chat (Fase 4)
 
-Embeddings con `bge-m3` (Ollama) → **vector index nativo de Neo4j** (los chunks
-viven en el mismo grafo). Retrieval híbrido: búsqueda vectorial + expansión por
-las aristas `LINKS_TO`. Generación con `gemma3:4b`, respuesta citada por fuente.
+Embeddings → **vector index nativo de Neo4j** (los chunks viven en el mismo grafo).
+Retrieval híbrido: búsqueda vectorial + léxico de alias ES/MX + expansión por las
+aristas `LINKS_TO`. Respuesta citada por fuente, con umbral de abstención.
 
-Requiere Ollama corriendo con los modelos: `ollama pull bge-m3 && ollama pull gemma3:4b`.
+El pipeline es **agnóstico al proveedor** vía `LLM_PROVIDER` en `.env`:
+
+| `LLM_PROVIDER` | Embeddings | Chat | Uso |
+|---|---|---|---|
+| `gemini` (**default**) | `gemini-embedding-001` (768d) | `gemini-2.5-flash` | cloud — deployable sin Ollama |
+| `ollama` | `bge-m3` (1024d) | `gemma3:4b` | 100% local, sin costo, sin datos afuera |
 
 ```bash
 cd rag
@@ -88,6 +93,31 @@ python -m streamlit run codex_rag/chat_app.py     # chat con UI
 
 Modelo de datos: `(:Chunk {text, embedding})-[:PART_OF]->(:Note)`, una sección
 H2 por chunk (~5100 chunks). El build es incremental por hash, igual que el sync.
+
+> **El índice se construye para UN proveedor** (las dimensiones difieren: 768 vs
+> 1024). Si cambiás de proveedor, reembebé con `--full`; el vector index se recrea
+> solo al detectar el cambio de dimensión.
+
+### Default: Gemini (cloud)
+
+API key en [aistudio.google.com/apikey](https://aistudio.google.com/apikey) — creá
+una **nueva** (nace como *auth key*, no le afectan los deadlines de las *standard
+keys* de jun/sep 2026). Para el re-embed inicial conviene **billing Tier 1** (el
+free tier no alcanza para el bulk; el re-embed completo cuesta ~US$0.30). Ponela en
+`.env` como `GEMINI_API_KEY` y corré `python -m codex_rag.build --full`.
+
+> Nota TLS: en máquinas con antivirus/proxy que interceptan HTTPS, el cliente usa
+> el almacén de certificados del SO vía `truststore` (verificación TLS activa).
+
+### Alternativa: Ollama (100% local, sin costo)
+
+Para correr todo localmente sin cuentas ni nube:
+
+```bash
+ollama pull bge-m3 && ollama pull gemma3:4b
+# en .env:  LLM_PROVIDER=ollama  y  EMBED_DIM=1024
+cd rag && python -m codex_rag.build --full      # reembebe el índice a 1024d (bge-m3)
+```
 
 ## Setup
 

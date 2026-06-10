@@ -7,7 +7,7 @@ from dataclasses import dataclass
 
 from codex.config import Config
 
-from .ollama_client import Ollama
+from .llm import make_llm
 from .store import RagStore
 
 # Umbral de similitud coseno (bge-m3). bge-m3 comprime el rango: buenas 0.76-0.84,
@@ -90,9 +90,9 @@ def _lexical_hits(store: RagStore, question: str, max_notes: int = 2) -> list[di
     return hits
 
 
-def retrieve(store: RagStore, ollama: Ollama, question: str,
+def retrieve(store: RagStore, llm, question: str,
              k: int = 6, min_score: float = MIN_SCORE) -> dict:
-    qvec = ollama.embed(question)
+    qvec = llm.embed(question)
     vector_hits = store.search(qvec, k=k, min_score=min_score)
     lexical = _lexical_hits(store, question)
 
@@ -114,9 +114,9 @@ def retrieve(store: RagStore, ollama: Ollama, question: str,
 def answer(question: str, cfg: Config | None = None, k: int = 6,
            min_score: float = MIN_SCORE) -> Answer:
     cfg = cfg or Config.load()
-    ollama = Ollama(cfg.ollama_host, cfg.ollama_embed_model, cfg.ollama_chat_model)
+    llm = make_llm(cfg)
     with RagStore(cfg.neo4j_uri, cfg.neo4j_user, cfg.neo4j_password) as store:
-        ctx = retrieve(store, ollama, question, k=k, min_score=min_score)
+        ctx = retrieve(store, llm, question, k=k, min_score=min_score)
 
     # Fix 1: sin chunks por encima del umbral -> abstención, sin llamar al LLM
     if not ctx["hits"]:
@@ -124,7 +124,7 @@ def answer(question: str, cfg: Config | None = None, k: int = 6,
                       abstained=True, max_score=0.0)
 
     prompt = _build_prompt(question, ctx["hits"], ctx["related"])
-    text = ollama.generate(prompt, system=SYSTEM)
+    text = llm.generate(prompt, system=SYSTEM)
     return Answer(
         text=text,
         sources=ctx["seed_notes"],

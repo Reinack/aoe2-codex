@@ -35,6 +35,13 @@ class Config:
     ollama_host: str = "http://localhost:11434"
     ollama_embed_model: str = "bge-m3"
     ollama_chat_model: str = "gemma3:4b"
+    # Proveedor LLM: 'gemini' (cloud, default) o 'ollama' (100% local).
+    llm_provider: str = "gemini"
+    gemini_api_key: str = ""
+    gemini_chat_model: str = "gemini-2.5-flash"
+    gemini_embed_model: str = "gemini-embedding-001"
+    # Dimensión del vector index: bge-m3=1024; gemini-embedding-001 truncado=768.
+    embed_dim: int = 1024
     manifest_path: Path = field(default=MANIFEST_PATH)
 
     @classmethod
@@ -50,6 +57,10 @@ class Config:
             for d in os.environ.get("EXCLUDE_DIRS", ".obsidian,.trash,raw").split(",")
             if d.strip()
         }
+        provider = os.environ.get("LLM_PROVIDER", "gemini").strip().lower()
+        # Dimensión por defecto según proveedor; override explícito con EMBED_DIM.
+        default_dim = 768 if provider == "gemini" else 1024
+        embed_dim = int(os.environ.get("EMBED_DIM", default_dim))
         return cls(
             vault_path=Path(vault),
             exclude_dirs=exclude,
@@ -59,4 +70,9 @@ class Config:
             ollama_host=os.environ.get("OLLAMA_HOST", "http://localhost:11434"),
             ollama_embed_model=os.environ.get("OLLAMA_EMBED_MODEL", "bge-m3"),
             ollama_chat_model=os.environ.get("OLLAMA_CHAT_MODEL", "gemma3:4b"),
+            llm_provider=provider,
+            gemini_api_key=os.environ.get("GEMINI_API_KEY", ""),
+            gemini_chat_model=os.environ.get("GEMINI_CHAT_MODEL", "gemini-2.5-flash"),
+            gemini_embed_model=os.environ.get("GEMINI_EMBED_MODEL", "gemini-embedding-001"),
+            embed_dim=embed_dim,
         )

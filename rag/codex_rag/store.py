@@ -20,12 +20,32 @@ class RagStore:
     def __exit__(self, *exc) -> None:
         self.close()
 
+    def _index_dim(self, s) -> int | None:
+        """Dimensión del vector index actual, o None si no existe."""
+        rec = s.run(
+            "SHOW VECTOR INDEXES YIELD name, options "
+            "WHERE name = $n RETURN options AS o",
+            n=INDEX_NAME,
+        ).single()
+        if not rec:
+            return None
+        try:
+            return int(rec["o"]["indexConfig"]["vector.dimensions"])
+        except (KeyError, TypeError, ValueError):
+            return None
+
     def ensure_index(self, dim: int = 1024) -> None:
         with self._driver.session() as s:
             s.run(
                 "CREATE CONSTRAINT chunk_id IF NOT EXISTS "
                 "FOR (c:Chunk) REQUIRE c.id IS UNIQUE"
             )
+            # Si la dimensión cambió (p.ej. al migrar de bge-m3 1024 a Gemini 768),
+            # el índice viejo es incompatible → dropear para recrearlo abajo.
+            existing = self._index_dim(s)
+            if existing is not None and existing != dim:
+                print(f"[index] dim {existing} -> {dim}: recreando '{INDEX_NAME}'")
+                s.run(f"DROP INDEX {INDEX_NAME} IF EXISTS")
             s.run(
                 f"""
                 CREATE VECTOR INDEX {INDEX_NAME} IF NOT EXISTS
@@ -138,6 +158,15 @@ class RagStore:
                 note=note, limit=limit,
             )
             return [dict(r) for r in rows]
+
+    def notes_with_chunks(self) -> set[str]:
+        """Rutas de notas que ya tienen al menos un chunk en el índice.
+
+        Permite reanudar un build interrumpido (p.ej. por la cuota del free tier
+        de Gemini): re-embeber solo lo que falta."""
+        with self._driver.session() as s:
+            rows = s.run("MATCH (c:Chunk) RETURN DISTINCT c.note AS note")
+            return {r["note"] for r in rows if r["note"]}
 
     def stats(self) -> dict:
         with self._driver.session() as s:

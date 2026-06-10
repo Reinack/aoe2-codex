@@ -7,6 +7,7 @@ dependencies = [
     "neo4j>=5.20",
     "python-frontmatter>=1.1",
     "streamlit>=1.30",
+    "truststore>=0.9",     # TLS vía almacén del SO (proxies/antivirus que interceptan HTTPS)
     "aoe2-codex-ingest",   # reutiliza codex.config y codex.scanner
 ]
 
