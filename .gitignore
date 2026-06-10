@@ -1,0 +1,28 @@
+# Estado local del sync (no versionar)
+.codex/
+
+# Backups del vault (copias de la base de conocimiento personal — NO versionar)
+.vault-backup-*/
+
+# Config local del harness (rutas absolutas de la máquina)
+.claude/
+
+# Secretos
+.env
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+build/
+dist/
+
+# Node
+node_modules/
+npm-debug.log*
+
+# OS
+Thumbs.db
+.DS_Store

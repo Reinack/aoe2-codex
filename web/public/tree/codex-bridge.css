@@ -1,0 +1,40 @@
+/* codex-bridge.css — bloque "Codex" dentro del panel de stats del tech-tree. */
+#sp-codex { margin-top: 12px; }
+#sp-codex:empty { display: none; }
+
+.cx-head {
+  font-weight: 700; font-size: 13px; color: #5a3410;
+  border-top: 1px solid #b8915a; padding-top: 8px; margin-bottom: 6px;
+}
+.cx-label { font-weight: 400; font-size: 11px; color: #8b5a2b; }
+
+.cx-badges { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 6px; }
+.cx-badge { font-size: 10px; padding: 1px 6px; border-radius: 8px; border: 1px solid; }
+.cx-ok { color: #2e6b2e; border-color: #2e6b2e; background: #e6f3e6; }
+.cx-patch { color: #8a4b00; border-color: #c47b1a; background: #fbeed0; }
+.cx-muted-badge { color: #777; border-color: #aaa; background: #efe7d6; }
+
+.cx-graphstats { font-size: 11px; color: #4a3210; margin-bottom: 6px; }
+.cx-graphstats b { color: #5a3410; }
+.cx-civ { font-size: 11px; color: #4a3210; margin-bottom: 6px; }
+.cx-civ-list { color: #6b4a1a; }
+
+.cx-excerpt {
+  font-size: 11.5px; line-height: 1.45; color: #3a2a14;
+  background: #f3e7cd; border-left: 3px solid #b8915a;
+  padding: 6px 8px; margin-bottom: 6px; border-radius: 2px;
+}
+.cx-link { font-size: 11px; color: #7a4a12; text-decoration: underline; display: inline-block; margin-bottom: 8px; }
+
+.cx-ask {
+  width: 100%; font-size: 11.5px; cursor: pointer;
+  background: #e6c89c; border: 1px solid #8b5a2b; color: #4a3210;
+  padding: 5px; border-radius: 3px;
+}
+.cx-ask:hover { background: #d9b885; }
+.cx-ask:disabled { opacity: .6; cursor: default; }
+
+.cx-answer { margin-top: 8px; }
+.cx-answer-text { font-size: 11.5px; line-height: 1.5; color: #2a2010; white-space: pre-wrap; }
+.cx-sources { font-size: 10px; color: #8b5a2b; margin-top: 6px; }
+.cx-loading, .cx-muted { font-size: 11px; color: #8b7355; font-style: italic; }

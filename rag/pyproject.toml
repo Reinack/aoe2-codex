@@ -1,0 +1,18 @@
+[project]
+name = "aoe2-codex-rag"
+version = "0.1.0"
+description = "GraphRAG local sobre el grafo AoE2 (Ollama + vector index de Neo4j)"
+requires-python = ">=3.11"
+dependencies = [
+    "neo4j>=5.20",
+    "python-frontmatter>=1.1",
+    "streamlit>=1.30",
+    "aoe2-codex-ingest",   # reutiliza codex.config y codex.scanner
+]
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["codex_rag*"]

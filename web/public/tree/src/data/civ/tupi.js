@@ -1,0 +1,188 @@
+﻿const TUPI = {
+  "bonuses": [
+    // Start with +25 of each resource (food, wood, gold, stone)
+    {
+      "type": "start_resources",
+      "resource": "all",
+      "op": "add",
+      "value": 25
+    },
+    // Villagers can garrison in Settlements for protection
+    {
+      "type": "garrison_in_building",
+      "scope": "villager",
+      "building": "tahsili"
+    },
+    // Fallen units return 15% of their cost as resources
+    {
+      "type": "stat_modifier",
+      "scope": "unit",
+      "stat": "death_refund",
+      "op": "multiply",
+      "value": 0.15
+    },
+    // Archery Range and Barracks upgrades cost -50% food
+    {
+      "type": "cost_modifier",
+      "scope": "archer",
+      "resource": "all",
+      "op": "multiply",
+      "value": 0.5
+    }
+  ],
+  // Team bonus: Towers and Castles provide +10 population space
+  "teamBonus": {
+    "type": "stat_modifier",
+    "scope": "castle_tower",
+    "stat": "pop",
+    "op": "add",
+    "value": 10
+  },
+  "available": [
+    "barracks",
+    "archery",
+    "siege",
+    "blacksmith",
+    "dock",
+    "university",
+    "monastery",
+    "castle",
+    "market",
+    "tc",
+    "tahsili",
+    "spearman",
+    "pikeman",
+    "halberdier",
+    "squires",
+    "arson",
+    "champiscout",
+    "champirunner",
+    "champiwarrior",
+    "elitechampi",
+    "xolotl_warrior",
+    "temple_guard",
+    "archer",
+    "crossbow",
+    "arbalester",
+    "skirmisher",
+    "eliteskirm",
+    "siegetower",
+    "batteringram",
+    "cappedram",
+    "siegeram",
+    "mangonel",
+    "onager",    "scorpion",
+    "heavyscorpion",
+    "forging",
+    "ironcasting",
+    "blastfurnace",
+    "scalemailarmor",
+    "chainmailarmor",
+    "platemailarmor",
+    "paddedarcharmor",
+    "leatherarcharmor",
+    "ringarcherarmor",
+    "scalebarding",
+    "chainbarding",
+    "fletching",
+    "bodkinarrow",
+    "bracer",
+    "fishingship",
+    "transportship",
+    "tradecog",
+    "galley",
+    "wargalley",
+    "firegalley",
+    "demoraft",
+    "demoship",
+    "drydock",
+    "shipwright",
+    "hulk",
+    "war_hulk",
+    "catapult_gall",
+    "masonry",
+    "ballistics",
+    "chemistry",
+    "guardtower",
+    "arrowslits",
+    "murderhole",
+    "treadmillcrane",
+    "stonewall",
+    "fortifiedwall",
+    "keep",
+    "heatedshot",
+    "monk",
+    "redemption",
+    "atonement",
+    "heresy",
+    "sanctity",
+    "fervor",
+    "herbalmedicine",
+    "devotion",
+    "illumination",
+    "blockprinting",
+    "theocracy",
+    "faith",
+    "trebuchet",
+    "petard",
+    "uniqueunit",
+    "eliteunique",
+    "hoardings",
+    "conscription",
+    "sappers",
+    "slinger",
+    "tradecart",
+    "caravan",
+    "coinage",
+    "banking",
+    "guilds",
+    "villager",
+    "loom",
+    "wheelbarrow",
+    "townwatch",
+    "handcart",
+    "townpatrol",
+    "horsecollar_t",
+    "heavyplow_t",
+    "doublebitaxe_t",
+    "bowsaw_t",
+    "twomansaw_t",
+    "goldmining_t",
+    "goldshaft_t",
+    "stonemining_t",
+    "stoneshaft_t",
+    "galleon",
+    "fireship",
+    "fishing_lines",
+    "gillnets",
+    "medium_warships",
+    "heavy_warships",
+    "careening",
+    "clinker_construction",
+    "watchtower",
+    "palisadewall",
+    "palisadegate",
+    "outpost",
+    "house"
+  ],
+  "uniqueUnits": [
+    {
+      "age": 2,
+      "imgPic": 549,
+      "eliteImgPic": 550
+    },
+    {
+      "age": 2
+    }
+  ],
+  "uniqueTechs": [
+    { research_cost: { food: 400, gold: 200 } },
+    { research_cost: { food: 650, gold: 600 } }
+  ]
+};
+
+
+window.TUPI = TUPI;
+export default TUPI;
+
+
