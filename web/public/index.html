@@ -177,6 +177,16 @@
   .rh-row { padding:2px 0; }
   .rh-score { color:var(--gold); font-weight:700; margin-right:5px; font-size:11px; }
   .counter-search-row { display:flex; gap:8px; margin:0; }
+  #cg-quickbar { display:flex; flex-wrap:wrap; gap:4px; margin-top:10px; }
+  .cg-qbtn { background:var(--panel); border:1px solid var(--line); border-radius:6px;
+    cursor:pointer; padding:4px 5px 3px; display:flex; flex-direction:column;
+    align-items:center; gap:2px; transition:.1s; min-width:46px; }
+  .cg-qbtn:hover { border-color:var(--gold); background:#1a2030; }
+  .cg-qbtn.active { border-color:var(--gold); background:#2a1f00; }
+  .cg-qbtn img { width:30px; height:30px; object-fit:contain; image-rendering:pixelated; }
+  .cg-qbtn-ph { width:30px; height:30px; display:flex; align-items:center;
+    justify-content:center; font-size:16px; }
+  .cg-qbtn span { font-size:9px; color:var(--dim); white-space:nowrap; line-height:1.2; }
   #counter-input { flex:1; background:var(--panel); border:1px solid var(--line);
     color:var(--ink); padding:9px 13px; border-radius:8px; font-size:14px; }
   #counter-btn { background:var(--gold); color:#1a1a1a; border:0; border-radius:8px;
@@ -230,6 +240,7 @@ fetch('/tree/src/data/img_map.js').then(r=>r.text()).then(t=>{
   try {
     eval(t.replace(/\bconst IMG_MAP\b/,'window.IMG_MAP')
           .replace(/export\s*\{[^}]*\}\s*;?/g,''));
+    renderQuickBar();
   } catch(e){ console.warn('IMG_MAP load error',e); }
 }).catch(()=>{});
 </script>
@@ -341,6 +352,7 @@ fetch('/tree/src/data/img_map.js').then(r=>r.text()).then(t=>{
           autocomplete="off" />
         <button id="counter-btn">Buscar</button>
       </div>
+      <div id="cg-quickbar"></div>
     </div>
     <div id="cg-layout">
       <div id="cg-panel">
@@ -514,6 +526,52 @@ document.querySelectorAll(".hint").forEach(h =>
   h.onclick = () => { chatq.value = h.dataset.q; chatq.focus(); });
 
 // ── COUNTER GRAPH (Cytoscape) ─────────────────────────────────────────
+const QUICK_UNITS = [
+  { id:'archer-line',     label:'Archer',    imgKey:'archer' },
+  { id:'skirmisher-line', label:'Skirm',     imgKey:'skirmisher' },
+  { id:'hand-cannoneer',  label:'HC',        imgKey:'handcannon' },
+  { id:'cavalry-archer',  label:'Cav Arch',  imgKey:'cavarcher' },
+  { id:'elephant-archer', label:'Ele Arch',  imgKey:'elephant_archer' },
+  { id:'militia-line',    label:'Militia',   imgKey:'champion' },
+  { id:'spearman-line',   label:'Halbs',     imgKey:'halberdier' },
+  { id:'eagle-warrior',   label:'Eagle',     imgKey:'eaglewarrior' },
+  { id:'scout-line',      label:'Scout',     imgKey:'hussar' },
+  { id:'knight-line',     label:'Knight',    imgKey:'paladin' },
+  { id:'camel-line',      label:'Camel',     imgKey:'camel' },
+  { id:'battle-elephant', label:'Bat Ele',   imgKey:'battleeleph' },
+  { id:'steppe-lancer',   label:'Steppe',    imgKey:'steppe_lancer' },
+  { id:'ram-line',        label:'Ram',       imgKey:'siegeram' },
+  { id:'siege-elephant',  label:'Siege Ele', imgKey:'siege_elephant' },
+  { id:'mangonel-line',   label:'Mangonel',  imgKey:'mangonel' },
+  { id:'scorpion-line',   label:'Scorpion',  imgKey:'scorpion' },
+  { id:'bombard-cannon',  label:'BBC',       imgKey:'bombcannon' },
+  { id:'monk',            label:'Monk',      imgKey:'monk' },
+  { id:'galley-line',     label:'Galley',    imgKey:'galley' },
+  { id:'fire-ship-line',  label:'Fire Ship', imgKey:'fireship' },
+  { id:'demo-ship',       label:'Demo Ship', imgKey:'demoship' },
+];
+
+function renderQuickBar() {
+  const bar = document.getElementById('cg-quickbar');
+  if (!bar) return;
+  const imap = (typeof IMG_MAP !== 'undefined' && IMG_MAP) || window.IMG_MAP;
+  bar.innerHTML = QUICK_UNITS.map(u => {
+    const src = imap?.[u.imgKey] ? '/tree/' + imap[u.imgKey] : '';
+    const icon = src
+      ? `<img src="${src}" alt="${u.label}">`
+      : `<span class="cg-qbtn-ph">⚔️</span>`;
+    return `<button class="cg-qbtn" data-uid="${u.id}" onclick="quickSearch('${u.id}')" title="${u.label}">${icon}<span>${u.label}</span></button>`;
+  }).join('');
+}
+
+function quickSearch(unitId) {
+  document.querySelectorAll('.cg-qbtn').forEach(b => b.classList.remove('active'));
+  const btn = document.querySelector(`.cg-qbtn[data-uid="${unitId}"]`);
+  if (btn) btn.classList.add('active');
+  document.getElementById('counter-input').value = unitId;
+  searchCounterGraph();
+}
+
 let cyCtr = null;
 
 function graphLabel(name) {
@@ -757,6 +815,8 @@ async function searchCounters() {
 document.getElementById("counter-btn").onclick = searchCounterGraph;
 document.getElementById("counter-input").onkeydown =
   e => { if (e.key === "Enter") searchCounterGraph(); };
+document.getElementById("counter-input").oninput =
+  () => document.querySelectorAll('.cg-qbtn').forEach(b => b.classList.remove('active'));
 
 // ── GRAPH VIEW ────────────────────────────────────────────────────────
 const NODE_COLORS = {
