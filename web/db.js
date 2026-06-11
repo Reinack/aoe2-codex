@@ -23,6 +23,10 @@ function loadEnv() {
 }
 loadEnv();
 
+// En Windows el antivirus/proxy intercepta TLS con un CA propio que Node rechaza.
+// En Render (Linux) los CAs públicos de Neo4j Aura son válidos — inofensivo allá.
+if (process.platform === "win32") process.env.NODE_TLS_REJECT_UNAUTHORIZED ??= "0";
+
 const URI = process.env.NEO4J_URI || "bolt://localhost:7687";
 // Aura entrega NEO4J_USERNAME (a veces el id de instancia, no 'neo4j').
 const USER = process.env.NEO4J_USER || process.env.NEO4J_USERNAME || "neo4j";

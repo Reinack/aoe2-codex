@@ -59,14 +59,17 @@
     letter-spacing:0; font-weight:400; }
 
   /* ── CIVS GRID ────────────────────────────────────────────────────── */
-  .grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:8px; }
+  .grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(120px,1fr)); gap:8px; }
   .card { background:var(--panel); border:1px solid var(--line); border-radius:8px;
-    padding:10px 12px; cursor:pointer; transition:.12s; }
+    padding:10px 10px 8px; cursor:pointer; transition:.12s; text-align:center; }
   .card:hover { border-color:var(--gold); transform:translateY(-1px); }
-  .card .t { font-weight:600; }
-  .card .a { color:var(--dim); font-size:12px; }
-  .tier { float:right; font-weight:700; font-size:13px;
-    border:1px solid var(--line); border-radius:5px; padding:0 6px; }
+  .civ-img { width:52px; height:52px; object-fit:contain; display:block;
+    margin:0 auto 6px; image-rendering:auto; }
+  .card .t { font-weight:600; font-size:13px; }
+  .card .a { color:var(--dim); font-size:11px; margin-top:2px; }
+  .tier { font-weight:700; font-size:12px;
+    border:1px solid var(--line); border-radius:5px; padding:0 6px;
+    display:inline-block; margin-top:3px; }
   .tier.A,.tier.S{color:#7ee787;border-color:#2ea043} .tier.B{color:var(--gold)}
   .tier.C{color:#d29922} .tier.D,.tier.E,.tier.F{color:#f85149}
 
@@ -110,9 +113,83 @@
     padding:4px 12px; font-size:12px; cursor:pointer; color:var(--dim); transition:.1s; }
   .hint:hover { border-color:var(--gold); color:var(--ink); }
 
-  /* ── COUNTER LOOKUP ──────────────────────────────────────────────── */
-  #view-counters { padding:18px 24px; }
-  .counter-search-row { display:flex; gap:8px; margin:10px 0 18px; }
+  /* ── GRAPH VIEW ─────────────────────────────────────────────────── */
+  #view-graph { position:relative; height:calc(100vh - 66px); background:var(--bg); }
+  #cy { width:100%; height:100%; }
+  #graph-toolbar {
+    position:absolute; top:12px; left:12px; right:12px; z-index:10;
+    display:flex; align-items:center; gap:10px; flex-wrap:wrap;
+    background:rgba(22,27,34,.92); backdrop-filter:blur(6px);
+    border:1px solid var(--line); border-radius:10px; padding:8px 14px;
+  }
+  #graph-title { color:var(--gold); font-weight:700; font-size:14px; margin-right:4px; }
+  .graph-btn {
+    background:var(--panel); border:1px solid var(--line); color:var(--dim);
+    border-radius:7px; padding:4px 12px; cursor:pointer; font-size:13px;
+    transition:.1s;
+  }
+  .graph-btn:hover { border-color:var(--gold); color:var(--ink); }
+  .graph-btn.primary { background:var(--gold); color:#1a1a1a; border-color:var(--gold); font-weight:700; }
+  #graph-hint { color:var(--dim); font-size:12px; margin-left:auto; }
+  #graph-legend { display:flex; gap:10px; flex-wrap:wrap; margin-left:auto; }
+  .leg { display:flex; align-items:center; gap:4px; font-size:11px; color:var(--dim); }
+  .leg-dot { width:10px; height:10px; border-radius:50%; flex-shrink:0; }
+  /* node details sidebar inside graph */
+  #graph-side {
+    position:absolute; top:60px; right:12px; width:260px; z-index:10;
+    background:rgba(22,27,34,.95); border:1px solid var(--line); border-radius:10px;
+    padding:14px; display:none;
+  }
+  #graph-side h4 { margin:0 0 6px; font-size:15px; }
+  #graph-side .gs-type { color:var(--dim); font-size:12px; margin-bottom:10px; }
+  #graph-side .gs-links { font-size:12px; color:var(--dim); }
+  #graph-side .gs-link { display:inline-block; background:#1f2630;
+    border:1px solid var(--line); border-radius:12px; padding:2px 9px;
+    margin:3px 3px 0 0; cursor:pointer; font-size:12px; }
+  #graph-side .gs-link:hover { border-color:var(--gold); color:var(--ink); }
+
+  /* ── COUNTER LOOKUP / GRAPH ──────────────────────────────────────── */
+  #view-counters { padding:0; height:calc(100vh - 66px); display:flex; flex-direction:column; }
+  .cg-top { padding:14px 24px 10px; border-bottom:1px solid var(--line); flex-shrink:0; }
+  .cg-top h2 { font-size:13px; text-transform:uppercase; letter-spacing:.5px;
+    color:var(--dim); margin:0 0 8px; }
+  #cg-layout { display:flex; flex:1; overflow:hidden; min-height:400px; }
+  #cg-panel { width:230px; flex-shrink:0; padding:14px; overflow-y:auto;
+    border-right:1px solid var(--line); display:flex; flex-direction:column; gap:10px; }
+  #cy-counters { flex:1; background:var(--bg); }
+  #cg-legend { display:flex; flex-direction:column; gap:5px; }
+  .cg-leg { display:flex; align-items:center; gap:8px; font-size:12px; color:var(--dim); }
+  .cg-dot { width:10px; height:10px; border-radius:50%; flex-shrink:0; }
+  #cg-detail { font-size:13px; line-height:1.4; border-top:1px solid var(--line); padding-top:10px; }
+  .cg-unit-name { font-size:15px; font-weight:700; margin-bottom:4px; }
+  .cg-tier-badge { display:inline-block; border-radius:10px; padding:2px 10px;
+    font-size:11px; font-weight:700; margin-bottom:8px; border:1px solid; }
+  .cg-nota-text { color:var(--dim); font-size:12px; font-style:italic; margin:4px 0 8px; }
+  .cg-weight { font-size:11px; color:var(--dim); }
+  #cg-notes { font-size:12px; color:var(--dim); border-top:1px solid var(--line); padding-top:10px; }
+  #cg-notes blockquote { margin:4px 0; padding:4px 8px;
+    border-left:2px solid var(--gold); font-style:italic; }
+  .cg-ph { color:var(--dim); font-size:13px; padding:4px 0; margin:0; }
+  /* ── REASONING PANEL (chat) ──────────────────────────────────────── */
+  .reasoning-toggle { background:none; border:none; color:var(--dim); font-size:12px;
+    cursor:pointer; padding:4px 0 0; display:flex; align-items:center; gap:4px; }
+  .reasoning-toggle:hover { color:var(--ink); }
+  .reasoning-panel { display:none; margin-top:6px; font-size:12px; color:var(--dim);
+    border-top:1px solid var(--line); padding-top:6px; }
+  .reasoning-panel.open { display:block; }
+  .rh-row { padding:2px 0; }
+  .rh-score { color:var(--gold); font-weight:700; margin-right:5px; font-size:11px; }
+  .counter-search-row { display:flex; gap:8px; margin:0; }
+  #cg-quickbar { display:flex; flex-wrap:wrap; gap:4px; margin-top:10px; }
+  .cg-qbtn { background:var(--panel); border:1px solid var(--line); border-radius:6px;
+    cursor:pointer; padding:4px 5px 3px; display:flex; flex-direction:column;
+    align-items:center; gap:2px; transition:.1s; min-width:46px; }
+  .cg-qbtn:hover { border-color:var(--gold); background:#1a2030; }
+  .cg-qbtn.active { border-color:var(--gold); background:#2a1f00; }
+  .cg-qbtn img { width:30px; height:30px; object-fit:contain; image-rendering:pixelated; }
+  .cg-qbtn-ph { width:30px; height:30px; display:flex; align-items:center;
+    justify-content:center; font-size:16px; }
+  .cg-qbtn span { font-size:9px; color:var(--dim); white-space:nowrap; line-height:1.2; }
   #counter-input { flex:1; background:var(--panel); border:1px solid var(--line);
     color:var(--ink); padding:9px 13px; border-radius:8px; font-size:14px; }
   #counter-btn { background:var(--gold); color:#1a1a1a; border:0; border-radius:8px;
@@ -158,8 +235,18 @@
 </head>
 <body>
 
-<!-- IMG_MAP del árbol: íconos de unidades / techs / edificios -->
-<script src="/tree/src/data/img_map.js"></script>
+<!-- Cytoscape.js para la visualización del grafo -->
+<script src="/cytoscape.min.js"></script>
+<!-- IMG_MAP del árbol: cargado dinámicamente (el módulo usa export, no es compatible con <script src>) -->
+<script>
+fetch('/tree/src/data/img_map.js').then(r=>r.text()).then(t=>{
+  try {
+    eval(t.replace(/\bconst IMG_MAP\b/,'window.IMG_MAP')
+          .replace(/export\s*\{[^}]*\}\s*;?/g,''));
+    renderQuickBar();
+  } catch(e){ console.warn('IMG_MAP load error',e); }
+}).catch(()=>{});
+</script>
 
 <!-- SIDEBAR -->
 <nav id="sidebar">
@@ -173,6 +260,9 @@
   <a class="sb-item" data-view="counters">
     <span class="sb-icon">🛡️</span><span class="sb-label">Counters</span>
   </a>
+  <a class="sb-item" data-view="graph">
+    <span class="sb-icon">🕸️</span><span class="sb-label">Grafo</span>
+  </a>
   <a class="sb-item sb-ext" href="/tree/" target="_blank">
     <span class="sb-icon">🌳</span><span class="sb-label">Tech Tree ↗</span>
   </a>
@@ -185,6 +275,9 @@
   </a>
   <a class="mn-item" data-view="counters">
     <span class="mn-icon">🛡️</span>Counters
+  </a>
+  <a class="mn-item" data-view="graph">
+    <span class="mn-icon">🕸️</span>Grafo
   </a>
   <a class="mn-item" href="/tree/" target="_blank">
     <span class="mn-icon">🌳</span>Tech Tree
@@ -224,19 +317,57 @@
     </div>
   </div>
 
+  <!-- VIEW: GRAFO ─────────────────────────────────────────────────── -->
+  <div id="view-graph" class="view" style="display:none">
+    <div id="graph-toolbar">
+      <button class="graph-btn" id="graph-back" style="display:none">← Atrás</button>
+      <span id="graph-title">Seleccioná una civilización o nodo para explorar</span>
+      <button class="graph-btn" id="graph-fit">⊞ Fit</button>
+      <div id="graph-legend">
+        <span class="leg"><span class="leg-dot" style="background:#e8b84b"></span>Civ</span>
+        <span class="leg"><span class="leg-dot" style="background:#6baed6"></span>Unit</span>
+        <span class="leg"><span class="leg-dot" style="background:#9e9ac8"></span>Strategy</span>
+        <span class="leg"><span class="leg-dot" style="background:#74c476"></span>Tech</span>
+        <span class="leg"><span class="leg-dot" style="background:#fd8d3c"></span>Building</span>
+        <span class="leg"><span class="leg-dot" style="background:#8b949e"></span>Otros</span>
+      </div>
+      <span id="graph-hint">Click en un nodo → explorar sus conexiones</span>
+    </div>
+    <div id="graph-side">
+      <h4 id="gs-title"></h4>
+      <div class="gs-type" id="gs-type"></div>
+      <div class="gs-links" id="gs-links"></div>
+      <div style="margin-top:10px;display:flex;gap:6px">
+        <button class="graph-btn primary" id="gs-explore">Explorar</button>
+        <button class="graph-btn" id="gs-detail">Ver detalle</button>
+      </div>
+    </div>
+    <div id="cy"></div>
+  </div>
+
   <!-- VIEW: COUNTERS ──────────────────────────────────────────────── -->
   <div id="view-counters" class="view" style="display:none">
-    <h2 style="font-size:13px;text-transform:uppercase;letter-spacing:.5px;color:var(--dim);margin:0 0 0">
-      🛡️ Counter Lookup
-    </h2>
-    <div class="counter-search-row">
-      <input id="counter-input"
-        placeholder="Buscar unidad: Paladin, Archer, Skirmisher, Mangonel, Monk…"
-        autocomplete="off" />
-      <button id="counter-btn">Buscar</button>
+    <div class="cg-top">
+      <h2>🛡️ Counter Graph</h2>
+      <div class="counter-search-row">
+        <input id="counter-input"
+          placeholder="Buscar unidad: Paladin, Archer, Skirmisher, Mangonel, Monk…"
+          autocomplete="off" />
+        <button id="counter-btn">Buscar</button>
+      </div>
+      <div id="cg-quickbar"></div>
     </div>
-    <div id="counter-result">
-      <div class="cx-empty">Buscá una unidad para ver sus counters.</div>
+    <div id="cg-layout">
+      <div id="cg-panel">
+        <div id="cg-legend">
+          <div class="cg-leg"><span class="cg-dot" style="background:#f85149"></span>Hard (Primario)</div>
+          <div class="cg-leg"><span class="cg-dot" style="background:#e8b84b"></span>Sólido</div>
+          <div class="cg-leg"><span class="cg-dot" style="background:#8b949e"></span>Situacional</div>
+        </div>
+        <div id="cg-detail"><p class="cg-ph">Buscá una unidad para ver el grafo de counters.</p></div>
+        <div id="cg-notes"></div>
+      </div>
+      <div id="cy-counters"></div>
     </div>
   </div>
 </div><!-- #main -->
@@ -271,7 +402,7 @@ async function init() {
     const al = c.aliases?.length ? `<div class="a">${c.aliases.join(" · ")}</div>` : "";
     const el = document.createElement("div");
     el.className = "card";
-    el.innerHTML = `${tier}<div class="t">${c.title}</div>${al}`;
+    el.innerHTML = `<img class="civ-img" src="/img/civs/${slug}.png" alt="" onerror="this.style.display='none'"><div class="t">${c.title}</div>${tier}${al}`;
     el.onclick = () => showCiv(slug);
     grid.appendChild(el);
   }
@@ -292,7 +423,10 @@ async function showCiv(slug) {
     <div class="sub">${d.aliases?.length ? "🌎 " + d.aliases.join(" / ") : ""}</div>
     <div class="sect"><b>Unidades únicas</b><br>${chips(d.uniqueUnits,"u")}</div>
     <div class="sect"><b>Tecnologías únicas</b><br>${chips(d.uniqueTechs,"t")}</div>
-    <div class="sect"><b>Tier por lista</b>${tiers}</div>`;
+    <div class="sect"><b>Tier por lista</b>${tiers}</div>
+    <div class="sect">
+      <button class="graph-btn" onclick="openInGraph('${path}')">🕸️ Ver en el grafo</button>
+    </div>`;
 }
 
 // ── BÚSQUEDA GLOBAL ───────────────────────────────────────────────────
@@ -331,7 +465,10 @@ async function showNote(path) {
   det.innerHTML = `
     <h3>${d.title}</h3>
     <div class="sub">${d.type}${d.aliases?.length ? " · 🌎 "+d.aliases.join(" / ") : ""}</div>
-    <div class="sect"><b>Conexiones en el grafo</b><br>${nb || "<span class='ph'>—</span>"}</div>`;
+    <div class="sect"><b>Conexiones en el grafo</b><br>${nb || "<span class='ph'>—</span>"}</div>
+    <div class="sect">
+      <button class="graph-btn" onclick="openInGraph('${path}')">🕸️ Ver en el grafo</button>
+    </div>`;
   det.querySelectorAll(".chip[data-p]").forEach(el => el.onclick = () => {
     el.dataset.ty === "civs"
       ? showCiv(el.dataset.p.replace("civs/","").replace(".md",""))
@@ -369,6 +506,15 @@ async function ask() {
     let html = esc(r.text).replace(/\n/g,"<br>");
     if (!r.abstained && r.sources?.length)
       html += `<div class="src">📚 ${r.sources.map(esc).join(", ")}</div>`;
+    if (r.hits_meta?.length) {
+      const rId = 'rs-' + tid;
+      const hitsHtml = r.hits_meta.map(h =>
+        `<div class="rh-row"><span class="rh-score">${h.score}</span><b>${esc(h.note)}</b>` +
+        (h.heading ? ` — ${esc(h.heading)}` : '') + '</div>'
+      ).join('');
+      html += `<button class="reasoning-toggle" onclick="toggleReasoning('${rId}',this)">🔍 Ver razonamiento</button>` +
+              `<div id="${rId}" class="reasoning-panel">${hitsHtml}</div>`;
+    }
     el.innerHTML = html;
   } catch(e) {
     document.getElementById(tid).innerHTML = "⚠️ " + esc(String(e));
@@ -382,7 +528,189 @@ chatq.onkeydown = e => { if (e.key === "Enter") ask(); };
 document.querySelectorAll(".hint").forEach(h =>
   h.onclick = () => { chatq.value = h.dataset.q; chatq.focus(); });
 
-// ── COUNTER LOOKUP ────────────────────────────────────────────────────
+// ── COUNTER GRAPH (Cytoscape) ─────────────────────────────────────────
+const QUICK_UNITS = [
+  { id:'archer-line',     label:'Archer',    imgKey:'archer' },
+  { id:'skirmisher-line', label:'Skirm',     imgKey:'skirmisher' },
+  { id:'hand-cannoneer',  label:'HC',        imgKey:'handcannon' },
+  { id:'cavalry-archer',  label:'Cav Arch',  imgKey:'cavarcher' },
+  { id:'elephant-archer', label:'Ele Arch',  imgKey:'elephant_archer' },
+  { id:'militia-line',    label:'Militia',   imgKey:'champion' },
+  { id:'spearman-line',   label:'Halbs',     imgKey:'halberdier' },
+  { id:'eagle-warrior',   label:'Eagle',     imgKey:'eaglewarrior' },
+  { id:'scout-line',      label:'Scout',     imgKey:'hussar' },
+  { id:'knight-line',     label:'Knight',    imgKey:'paladin' },
+  { id:'camel-line',      label:'Camel',     imgKey:'camel' },
+  { id:'battle-elephant', label:'Bat Ele',   imgKey:'battleeleph' },
+  { id:'steppe-lancer',   label:'Steppe',    imgKey:'steppe_lancer' },
+  { id:'ram-line',        label:'Ram',       imgKey:'siegeram' },
+  { id:'siege-elephant',  label:'Siege Ele', imgKey:'siege_elephant' },
+  { id:'mangonel-line',   label:'Mangonel',  imgKey:'mangonel' },
+  { id:'scorpion-line',   label:'Scorpion',  imgKey:'scorpion' },
+  { id:'bombard-cannon',  label:'BBC',       imgKey:'bombcannon' },
+  { id:'monk',            label:'Monk',      imgKey:'monk' },
+  { id:'galley-line',     label:'Galley',    imgKey:'galley' },
+  { id:'fire-ship-line',  label:'Fire Ship', imgKey:'fireship' },
+  { id:'demo-ship',       label:'Demo Ship', imgKey:'demoship' },
+];
+
+function renderQuickBar() {
+  const bar = document.getElementById('cg-quickbar');
+  if (!bar) return;
+  const imap = (typeof IMG_MAP !== 'undefined' && IMG_MAP) || window.IMG_MAP;
+  bar.innerHTML = QUICK_UNITS.map(u => {
+    const src = imap?.[u.imgKey] ? '/tree/' + imap[u.imgKey] : '';
+    const icon = src
+      ? `<img src="${src}" alt="${u.label}">`
+      : `<span class="cg-qbtn-ph">⚔️</span>`;
+    return `<button class="cg-qbtn" data-uid="${u.id}" onclick="quickSearch('${u.id}')" title="${u.label}">${icon}<span>${u.label}</span></button>`;
+  }).join('');
+}
+
+function quickSearch(unitId) {
+  document.querySelectorAll('.cg-qbtn').forEach(b => b.classList.remove('active'));
+  const btn = document.querySelector(`.cg-qbtn[data-uid="${unitId}"]`);
+  if (btn) btn.classList.add('active');
+  document.getElementById('counter-input').value = unitId;
+  searchCounterGraph();
+}
+
+let cyCtr = null;
+
+function graphLabel(name) {
+  const m = name.match(/\(([^)]+)\)/);
+  if (m) {
+    const first = m[1].split(',')[0].trim();
+    return first.length > 18 ? first.slice(0,16)+'…' : first;
+  }
+  const n = name.replace(/\s*line\s*/gi,' ').replace(/\s+/g,' ').trim();
+  return n.length > 20 ? n.slice(0,18)+'…' : n;
+}
+
+async function searchCounterGraph() {
+  const unit = document.getElementById("counter-input").value.trim();
+  if (!unit) return;
+  const panel  = document.getElementById("cg-detail");
+  const notesEl= document.getElementById("cg-notes");
+  panel.innerHTML  = '<p class="cg-ph">cargando…</p>';
+  notesEl.innerHTML= '';
+  if (cyCtr) { cyCtr.destroy(); cyCtr = null; }
+  try {
+    const data = await fetch(`/api/counter-graph?unit=${encodeURIComponent(unit)}`).then(r=>r.json());
+    if (data.error) {
+      panel.innerHTML = `<p class="cg-ph">⚠️ ${esc(data.error)}</p>`;
+      return;
+    }
+    if (data.notes?.length) {
+      notesEl.innerHTML = data.notes.map(n=>`<blockquote>${esc(n)}</blockquote>`).join('');
+    }
+    if (!window.cytoscape) { panel.innerHTML='<p class="cg-ph">Cytoscape no cargó.</p>'; return; }
+
+    // Agregar íconos de unidad a los nodos
+    // Si el nodo trae imgKey del API estructurado, usarlo directamente
+    const elements = data.nodes.map(n => {
+      const d = { ...n.data, label: graphLabel(n.data.label || '') };
+      const imap = (typeof IMG_MAP !== 'undefined' && IMG_MAP) || window.IMG_MAP;
+      const src = (d.imgKey && imap?.[d.imgKey])
+        ? '/tree/' + imap[d.imgKey]
+        : unitImg(d.full || d.label);
+      if (src) d.imgSrc = src;
+      return { data: d };
+    }).concat(data.edges);
+
+    // Posiciones radiales: ángulo distribuido globalmente, radio varía por fuerza
+    const rMap = { hard: 150, soft: 240, situational: 330 };
+    const outerOrder = { hard: 0, soft: 1, situational: 2 };
+    const outerNodes = data.nodes
+      .filter(n => n.data.type !== 'center')
+      .sort((a, b) => outerOrder[a.data.type] - outerOrder[b.data.type]);
+    const total = outerNodes.length || 1;
+    const pos = { center: { x: 0, y: 0 } };
+    outerNodes.forEach((n, i) => {
+      const r = rMap[n.data.type] || 300;
+      const a = (2 * Math.PI * i / total);
+      pos[n.data.id] = { x: r * Math.cos(a), y: r * Math.sin(a) };
+    });
+
+    cyCtr = cytoscape({
+      container: document.getElementById('cy-counters'),
+      elements,
+      style: [
+        { selector: 'node', style: {
+          'label': 'data(label)', 'text-valign':'bottom', 'text-halign':'center',
+          'font-size':'10px', 'color':'#e6e6e6',
+          'text-outline-color':'#0e1116', 'text-outline-width':'1.5px',
+          'border-width':2, 'border-color':'#262d36',
+          'background-image':'data(imgSrc)', 'background-fit':'contain',
+          'background-clip':'none',
+        }},
+        { selector: 'node[type="center"]', style: {
+          'background-color':'#3d3010', 'border-color':'#e8b84b', 'border-width':3,
+          'width':80, 'height':80, 'font-size':'12px', 'font-weight':'bold',
+        }},
+        { selector: 'node[type="hard"]', style: {
+          'background-color':'#3d1515', 'border-color':'#f85149', 'width':60, 'height':60,
+        }},
+        { selector: 'node[type="soft"]', style: {
+          'background-color':'#2d2510', 'border-color':'#e8b84b', 'width':52, 'height':52,
+        }},
+        { selector: 'node[type="situational"]', style: {
+          'background-color':'#1a2230', 'border-color':'#8b949e', 'width':44, 'height':44,
+        }},
+        { selector: 'node:selected', style: { 'border-color':'#6baed6', 'border-width':3 }},
+        { selector: 'edge', style: {
+          'curve-style':'bezier', 'target-arrow-shape':'triangle',
+          'line-color':'#2d3748', 'target-arrow-color':'#2d3748',
+          'width':'mapData(weight, 0.5, 0.9, 1.5, 4.5)', 'opacity':0.8,
+        }},
+        { selector: 'edge[strength="hard"]',  style: { 'line-color':'#6d1a1a', 'target-arrow-color':'#6d1a1a' }},
+        { selector: 'edge[strength="soft"]',  style: { 'line-color':'#5a4a10', 'target-arrow-color':'#5a4a10' }},
+      ],
+      layout: {
+        name: 'preset',
+        positions: n => pos[n.id()] || { x: 0, y: 0 },
+        animate: true, animationDuration: 500,
+        fit: true, padding: 50,
+      },
+      wheelSensitivity: 0.3, minZoom: 0.3, maxZoom: 4,
+    });
+
+    cyCtr.on('tap', 'node', evt => {
+      const n = evt.target;
+      const type = n.data('type');
+      if (type === 'center') {
+        panel.innerHTML = `<div class="cg-unit-name">${esc(n.data('full'))}</div>
+          <p class="cg-ph" style="margin-top:4px">Nodo central — la unidad buscada.</p>`;
+        return;
+      }
+      const colors = { hard:'#f85149', soft:'#e8b84b', situational:'#8b949e' };
+      const c = colors[type] || '#8b949e';
+      const nota = n.data('nota');
+      panel.innerHTML = `
+        <div class="cg-unit-name">${esc(n.data('full'))}</div>
+        <span class="cg-tier-badge" style="color:${c};border-color:${c};background:${c}18">
+          ${esc(n.data('tier'))}
+        </span>
+        ${nota && nota!=='—' ? `<div class="cg-nota-text">${esc(nota)}</div>` : ''}
+        <div class="cg-weight">Peso: <b style="color:${c}">${n.data('weight')}</b></div>`;
+    });
+    cyCtr.on('tap', evt => {
+      if (evt.target === cyCtr)
+        panel.innerHTML = '<p class="cg-ph">Hacé click en un nodo para ver el detalle.</p>';
+    });
+    panel.innerHTML = '<p class="cg-ph">Hacé click en un nodo para ver el detalle.</p>';
+  } catch(e) {
+    panel.innerHTML = `<p class="cg-ph">⚠️ ${esc(String(e))}</p>`;
+  }
+}
+
+function toggleReasoning(id, btn) {
+  const p = document.getElementById(id);
+  p.classList.toggle('open');
+  btn.textContent = p.classList.contains('open') ? '🔍 Ocultar razonamiento' : '🔍 Ver razonamiento';
+}
+
+// ── COUNTER LOOKUP (text cards — fallback / API) ───────────────────────────
 const UNIT_KEYS = {
   'skirmisher':'skirmisher','skirm':'skirmisher','elite skirm':'eliteskirm',
   'knight':'knight','knights':'knight','cavalier':'cavalier','paladin':'paladin',
@@ -404,11 +732,12 @@ const UNIT_KEYS = {
 };
 
 function unitImg(name) {
-  if (!window.IMG_MAP) return null;
+  const imap = (typeof IMG_MAP !== 'undefined' && IMG_MAP) || window.IMG_MAP;
+  if (!imap) return null;
   const key = name.toLowerCase()
     .replace(/\s*line\b/gi, '').replace(/\(.*?\)/g, '').trim();
   const mapped = UNIT_KEYS[key] || key.replace(/\s+/g, '');
-  const path = window.IMG_MAP[mapped];
+  const path = imap[mapped];
   return path ? '/tree/' + path : null;
 }
 
@@ -486,10 +815,159 @@ async function searchCounters() {
     res.innerHTML = `<div class="cx-empty">⚠️ ${esc(String(e))}</div>`;
   }
 }
-document.getElementById("counter-btn").onclick = searchCounters;
+document.getElementById("counter-btn").onclick = searchCounterGraph;
 document.getElementById("counter-input").onkeydown =
-  e => { if (e.key === "Enter") searchCounters(); };
+  e => { if (e.key === "Enter") searchCounterGraph(); };
+document.getElementById("counter-input").oninput =
+  () => document.querySelectorAll('.cg-qbtn').forEach(b => b.classList.remove('active'));
 
+// ── GRAPH VIEW ────────────────────────────────────────────────────────
+const NODE_COLORS = {
+  civs:'#e8b84b', units:'#6baed6', strategies:'#9e9ac8',
+  technologies:'#74c476', buildings:'#fd8d3c', maps:'#41b3d5',
+  counters:'#fc4e2a', players:'#d6604d',
+};
+function nodeColor(type) { return NODE_COLORS[type] || '#8b949e'; }
+
+let cy = null;
+const graphStack = []; // historial de paths para "Atrás"
+let selectedPath = null;
+
+function initCy() {
+  if (cy) return;
+  cy = cytoscape({
+    container: document.getElementById('cy'),
+    style: [
+      { selector: 'node', style: {
+        'label': 'data(label)', 'background-color': 'data(color)',
+        'color': '#e6e6e6', 'font-size': '11px',
+        'text-valign': 'bottom', 'text-margin-y': '5px',
+        'text-outline-color': '#0e1116', 'text-outline-width': '1px',
+        'width': 'data(sz)', 'height': 'data(sz)',
+        'border-width': 1, 'border-color': '#262d36',
+      }},
+      { selector: 'node.focal', style: {
+        'border-width': 3, 'border-color': '#e8b84b',
+        'font-size': '13px', 'font-weight': 'bold',
+      }},
+      { selector: 'node:selected', style: {
+        'border-width': 3, 'border-color': '#6baed6',
+      }},
+      { selector: 'edge', style: {
+        'line-color': '#2d3748', 'target-arrow-color': '#2d3748',
+        'target-arrow-shape': 'triangle', 'curve-style': 'bezier',
+        'width': 1.2, 'opacity': 0.7,
+        'label': 'data(label)', 'font-size': '9px', 'color': '#8b949e',
+        'text-rotation': 'autorotate', 'text-outline-color': '#0e1116',
+        'text-outline-width': '1px',
+      }},
+    ],
+    wheelSensitivity: 0.3,
+    minZoom: 0.2, maxZoom: 4,
+  });
+
+  cy.on('tap', 'node', (evt) => {
+    const n = evt.target;
+    selectedPath = n.id();
+    showGraphSide(n);
+  });
+  cy.on('tap', (evt) => {
+    if (evt.target === cy) hideGraphSide();
+  });
+
+  document.getElementById('graph-fit').onclick = () => cy.fit(undefined, 30);
+  document.getElementById('gs-explore').onclick = () => {
+    if (selectedPath) loadGraph(selectedPath);
+  };
+  document.getElementById('gs-detail').onclick = () => {
+    if (!selectedPath) return;
+    switchView('explorer');
+    if (selectedPath.startsWith('civs/'))
+      showCiv(selectedPath.replace('civs/','').replace('.md',''));
+    else
+      showNote(selectedPath);
+  };
+}
+
+function showGraphSide(n) {
+  const side = document.getElementById('graph-side');
+  document.getElementById('gs-title').textContent = n.data('fullLabel') || n.data('label');
+  document.getElementById('gs-type').textContent = n.data('type') || '';
+  // vecinos directos como chips
+  const nbrs = n.neighborhood('node').map(nb => {
+    const lbl = nb.data('fullLabel') || nb.data('label');
+    return `<span class="gs-link" data-p="${nb.id()}">${esc(lbl)}</span>`;
+  }).join('');
+  document.getElementById('gs-links').innerHTML =
+    nbrs ? `<b style="color:var(--dim);font-size:11px">CONECTADO CON</b><br>${nbrs}` : '';
+  side.querySelectorAll('.gs-link').forEach(el =>
+    el.onclick = () => { selectedPath = el.dataset.p; loadGraph(el.dataset.p); });
+  side.style.display = 'block';
+}
+function hideGraphSide() {
+  document.getElementById('graph-side').style.display = 'none';
+  selectedPath = null;
+}
+
+async function loadGraph(path) {
+  initCy();
+  switchView('graph');
+  document.getElementById('graph-title').textContent = '⏳ cargando…';
+  hideGraphSide();
+
+  const data = await api(`/api/graph?path=${encodeURIComponent(path)}`).catch(() => null);
+  if (!data || data.error || !data.nodes?.length) {
+    document.getElementById('graph-title').textContent = 'Sin conexiones en el grafo para este nodo.';
+    return;
+  }
+
+  const elements = [
+    ...data.nodes.map(n => ({
+      data: {
+        id: n.id,
+        label: n.label.length > 18 ? n.label.slice(0,16) + '…' : n.label,
+        fullLabel: n.label,
+        color: nodeColor(n.type),
+        type: n.type || '',
+        sz: n.id === path ? 44 : 32,
+      },
+      classes: n.id === path ? 'focal' : '',
+    })),
+    ...data.edges.map((e, i) => ({
+      data: {
+        id: `e${i}`,
+        source: e.from,
+        target: e.to,
+        label: e.rel !== 'LINKS_TO' ? e.rel.replace(/_/g,' ').toLowerCase() : '',
+      },
+    })),
+  ];
+
+  cy.elements().remove();
+  cy.add(elements);
+  cy.layout({
+    name: 'cose', animate: true, animationDuration: 500,
+    nodeRepulsion: 10000, gravity: 0.4, numIter: 1000,
+    fit: true, padding: 50,
+  }).run();
+
+  // historial
+  const focal = data.nodes.find(n => n.id === path);
+  document.getElementById('graph-title').textContent = focal?.label || path;
+  graphStack.push(path);
+  document.getElementById('graph-back').style.display =
+    graphStack.length > 1 ? '' : 'none';
+}
+
+document.getElementById('graph-back').onclick = () => {
+  graphStack.pop(); // quita el actual
+  const prev = graphStack.pop(); // retrocede
+  if (prev) loadGraph(prev);
+};
+
+function openInGraph(path) { loadGraph(path); }
+
+// ── INIT ───────────────────────────────────────────────────────────────
 init();
 </script>
 </body>

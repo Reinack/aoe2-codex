@@ -217,6 +217,113 @@ app.get("/api/counters", wrap(async (req, res) => {
   res.json(rows);
 }));
 
+// --- counter graph: tabla de counters → nodos + aristas para Cytoscape -----
+const TIER_MAP = {
+  'primario':   { weight: 0.9,  strength: 'hard' },
+  'muy sólido': { weight: 0.85, strength: 'hard' },
+  'sólido':     { weight: 0.75, strength: 'soft' },
+  'secundario': { weight: 0.7,  strength: 'soft' },
+  'largo plazo':{ weight: 0.6,  strength: 'situational' },
+  'early':      { weight: 0.6,  strength: 'situational' },
+  'late':       { weight: 0.6,  strength: 'situational' },
+  '50/50':      { weight: 0.5,  strength: 'situational' },
+  'situacional':{ weight: 0.5,  strength: 'situational' },
+};
+function parseTierEntry(t) {
+  const tl = t.toLowerCase();
+  for (const [k, v] of Object.entries(TIER_MAP)) if (tl.includes(k)) return v;
+  return { weight: 0.5, strength: 'situational' };
+}
+function parseCounterTableRows(text) {
+  const lines = text.split('\n')
+    .filter(l => l.trim().startsWith('|') && !/^\|[\s\-:|]+\|/.test(l.trim()));
+  if (lines.length < 2) return [];
+  const hdrs = lines[0].split('|').slice(1,-1).map(h => h.trim().toLowerCase());
+  const tI = hdrs.findIndex(h => h.includes('tier'));
+  const cI = hdrs.findIndex(h => h.includes('contra'));
+  const nI = hdrs.findIndex(h => h.includes('nota'));
+  if (tI < 0 || cI < 0) return [];
+  return lines.slice(1).flatMap(line => {
+    const cells = line.split('|').slice(1,-1).map(c => c.trim().replace(/\*\*/g,''));
+    const tier = cells[tI] || '';
+    const contra = cells[cI] || '';
+    if (!contra || !tier || tier.toLowerCase() === 'tier') return [];
+    if (tier.toLowerCase().includes('evitar')) return [];
+    return [{ contra, tier, nota: nI >= 0 ? (cells[nI]||'') : '', ...parseTierEntry(tier) }];
+  });
+}
+
+app.get("/api/counter-graph", wrap(async (req, res) => {
+  const unit = (req.query.unit || "").trim();
+  if (!unit) return res.status(400).json({ error: "falta ?unit=" });
+
+  // Intentar primero con nodos Unit + relaciones COUNTERS (importadas desde YAML)
+  const [targetRow] = await run(
+    `MATCH (target:Unit)
+     WHERE toLower(target.label) CONTAINS toLower($u)
+        OR toLower(target.id)    CONTAINS toLower($u)
+     RETURN target LIMIT 1`,
+    { u: unit },
+  );
+
+  if (targetRow) {
+    const target = targetRow.target.properties;
+    const counterRows = await run(
+      `MATCH (counter:Unit)-[r:COUNTERS]->(t:Unit {id: $id})
+       RETURN counter.id AS cid, counter.label AS clabel,
+              counter.img_key AS cimg,
+              r.weight AS weight, r.strength AS strength,
+              r.context AS context, r.notes AS notes
+       ORDER BY r.weight DESC`,
+      { id: target.id },
+    );
+
+    const strengthOf = (w) => w >= 0.9 ? 'hard' : w >= 0.65 ? 'soft' : 'situational';
+    const nodes = [
+      { data: { id: 'center', label: target.label, full: target.label,
+                type: 'center', imgKey: target.img_key || '' } },
+      ...counterRows.map((r, i) => {
+        const w = Number(r.weight);
+        return { data: {
+          id: `c${i}`, label: r.clabel, full: r.clabel,
+          type: strengthOf(w), tier: r.strength, nota: r.notes || '',
+          weight: w, context: r.context || 'general',
+          imgKey: r.cimg || '',
+        } };
+      }),
+    ];
+    const edges = counterRows.map((r, i) => ({
+      data: { id: `e${i}`, source: `c${i}`, target: 'center',
+              weight: Number(r.weight), strength: nodes[i + 1].data.type },
+    }));
+    return res.json({ heading: target.label, nodes, edges, notes: [], source: 'graph' });
+  }
+
+  // Fallback: parser de chunks de texto (si los Unit nodes aún no fueron importados)
+  const [chunk] = await run(
+    `MATCH (c:Chunk)-[:PART_OF]->(n:Note)
+     WHERE n.path STARTS WITH 'counters/'
+       AND toLower(c.heading) CONTAINS toLower($u)
+     RETURN c.heading AS heading, c.text AS text
+     ORDER BY size(c.heading) LIMIT 1`,
+    { u: unit },
+  );
+  if (!chunk) return res.status(404).json({ error: "unidad no encontrada en los counters" });
+  const rows = parseCounterTableRows(chunk.text);
+  const notes = (chunk.text.match(/^>\s*(.+)$/gm) || []).map(n => n.replace(/^>\s*/,''));
+  const nodes = [
+    { data: { id:'center', label:chunk.heading, full:chunk.heading, type:'center' } },
+    ...rows.map((r,i) => ({
+      data: { id:`c${i}`, label:r.contra, full:r.contra,
+              type:r.strength, tier:r.tier, nota:r.nota, weight:r.weight },
+    })),
+  ];
+  const edges = rows.map((r,i) => ({
+    data: { id:`e${i}`, source:`c${i}`, target:'center', weight:r.weight, strength:r.strength },
+  }));
+  res.json({ heading: chunk.heading, nodes, edges, notes, source: 'chunks' });
+}));
+
 // --- chat GraphRAG (shell-out al pipeline Python) --------------------------
 const PY = process.env.PYTHON_BIN || "python";
 app.post("/api/chat", chatRateLimit, (req, res) => {
