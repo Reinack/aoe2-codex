@@ -92,7 +92,7 @@
     const q = btn.getAttribute("data-q");
     btn.disabled = true;
     out.style.display = "block";
-    out.innerHTML = `<span class="cx-loading">el modelo local está pensando… (puede tardar)</span>`;
+    out.innerHTML = `<span class="cx-loading">consultando Gemini…</span>`;
     try {
       const r = await fetch("/api/chat", {
         method: "POST",
