@@ -63,7 +63,7 @@ def _post(url: str, payload: dict, api_key: str, timeout: int = 120,
 
 class Gemini:
     def __init__(self, api_key: str, embed_model: str, chat_model: str,
-                 embed_dim: int = 768):
+                 embed_dim: int = 768, chat_fallback: str | None = None):
         if not api_key:
             raise GeminiError(
                 "GEMINI_API_KEY vacío. Obtené una key gratis en "
@@ -72,6 +72,7 @@ class Gemini:
         self.api_key = api_key
         self.embed_model = embed_model
         self.chat_model = chat_model
+        self.chat_fallback = chat_fallback   # modelo alternativo si el principal da 503
         self.embed_dim = embed_dim
 
     # ── embeddings ────────────────────────────────────────────────────────────
@@ -100,21 +101,29 @@ class Gemini:
     # ── generación ────────────────────────────────────────────────────────────
     def generate(self, prompt: str, system: str | None = None,
                  temperature: float = 0.2) -> str:
-        model = self._mref(self.chat_model)
         payload: dict = {
             "contents": [{"role": "user", "parts": [{"text": prompt}]}],
             "generationConfig": {"temperature": temperature},
         }
         if system:
             payload["systemInstruction"] = {"parts": [{"text": system}]}
-        url = f"{BASE}/{model}:generateContent"
-        d = _post(url, payload, self.api_key, timeout=120)
-        cands = d.get("candidates", [])
-        if not cands:
-            fb = d.get("promptFeedback", {})
-            raise GeminiError(f"sin candidatos (feedback: {fb})")
-        parts = cands[0].get("content", {}).get("parts", [])
-        return "".join(p.get("text", "") for p in parts).strip()
+        # Modelo principal y, ante 503 (saturación del modelo), el de fallback.
+        models = [self.chat_model] + ([self.chat_fallback] if self.chat_fallback else [])
+        last = None
+        for m in models:
+            try:
+                d = _post(f"{BASE}/{self._mref(m)}:generateContent",
+                          payload, self.api_key, timeout=120)
+                cands = d.get("candidates", [])
+                if not cands:
+                    raise GeminiError(f"sin candidatos (feedback: {d.get('promptFeedback', {})})")
+                parts = cands[0].get("content", {}).get("parts", [])
+                return "".join(p.get("text", "") for p in parts).strip()
+            except GeminiError as e:
+                last = e
+                if "HTTP 503" not in str(e):   # solo se reintenta con fallback ante 503
+                    raise
+        raise last
 
     @staticmethod
     def _mref(model: str) -> str:

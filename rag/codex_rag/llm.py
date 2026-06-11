@@ -20,5 +20,6 @@ def make_llm(cfg: Config):
             cfg.gemini_embed_model,
             cfg.gemini_chat_model,
             embed_dim=cfg.embed_dim,
+            chat_fallback=cfg.gemini_chat_fallback,
         )
     return Ollama(cfg.ollama_host, cfg.ollama_embed_model, cfg.ollama_chat_model)

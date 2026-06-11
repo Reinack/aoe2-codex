@@ -50,7 +50,8 @@ class Config:
     # Proveedor LLM: 'gemini' (cloud, default) o 'ollama' (100% local).
     llm_provider: str = "gemini"
     gemini_api_key: str = ""
-    gemini_chat_model: str = "gemini-2.5-flash"
+    gemini_chat_model: str = "gemini-2.5-flash-lite"
+    gemini_chat_fallback: str = "gemini-flash-latest"   # si el principal da 503
     gemini_embed_model: str = "gemini-embedding-001"
     # Dimensión del vector index: bge-m3=1024; gemini-embedding-001 truncado=768.
     embed_dim: int = 1024
@@ -94,7 +95,8 @@ class Config:
             ollama_chat_model=os.environ.get("OLLAMA_CHAT_MODEL", "gemma3:4b"),
             llm_provider=provider,
             gemini_api_key=os.environ.get("GEMINI_API_KEY", ""),
-            gemini_chat_model=os.environ.get("GEMINI_CHAT_MODEL", "gemini-2.5-flash"),
+            gemini_chat_model=os.environ.get("GEMINI_CHAT_MODEL", "gemini-2.5-flash-lite"),
+            gemini_chat_fallback=os.environ.get("GEMINI_CHAT_FALLBACK", "gemini-flash-latest"),
             gemini_embed_model=os.environ.get("GEMINI_EMBED_MODEL", "gemini-embedding-001"),
             embed_dim=embed_dim,
         )
