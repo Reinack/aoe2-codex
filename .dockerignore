@@ -15,3 +15,6 @@ dashboard
 **/*.md
 .vscode
 .idea
+
+dumps
+*.dump

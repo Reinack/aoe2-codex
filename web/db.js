@@ -24,7 +24,8 @@ function loadEnv() {
 loadEnv();
 
 const URI = process.env.NEO4J_URI || "bolt://localhost:7687";
-const USER = process.env.NEO4J_USER || "neo4j";
+// Aura entrega NEO4J_USERNAME (a veces el id de instancia, no 'neo4j').
+const USER = process.env.NEO4J_USER || process.env.NEO4J_USERNAME || "neo4j";
 const PASS = process.env.NEO4J_PASSWORD || "codexpass";
 
 export const driver = neo4j.driver(URI, neo4j.auth.basic(USER, PASS));

@@ -85,7 +85,9 @@ class Config:
             vault_path=Path(vault),
             exclude_dirs=exclude,
             neo4j_uri=os.environ.get("NEO4J_URI", "bolt://localhost:7687"),
-            neo4j_user=os.environ.get("NEO4J_USER", "neo4j"),
+            # Aura entrega NEO4J_USERNAME (a veces el id de instancia, no 'neo4j').
+            neo4j_user=(os.environ.get("NEO4J_USER")
+                        or os.environ.get("NEO4J_USERNAME") or "neo4j"),
             neo4j_password=os.environ.get("NEO4J_PASSWORD", "codexpass"),
             ollama_host=os.environ.get("OLLAMA_HOST", "http://localhost:11434"),
             ollama_embed_model=os.environ.get("OLLAMA_EMBED_MODEL", "bge-m3"),
