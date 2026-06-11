@@ -198,6 +198,25 @@ async function noteExcerpt(path) {
   return null;
 }
 
+// --- counters por unidad (búsqueda en chunks de la carpeta counters/) ------
+app.get("/api/counters", wrap(async (req, res) => {
+  const unit = (req.query.unit || "").trim();
+  if (!unit) return res.status(400).json({ error: "falta ?unit=" });
+  const rows = await run(
+    `MATCH (c:Chunk)-[:PART_OF]->(n:Note)
+     WHERE n.path STARTS WITH 'counters/'
+       AND (toLower(c.heading) CONTAINS toLower($u)
+         OR toLower(c.text) CONTAINS toLower($u))
+     RETURN c.heading AS heading, c.text AS text, n.title AS note
+     ORDER BY
+       CASE WHEN toLower(c.heading) CONTAINS toLower($u) THEN 0 ELSE 1 END,
+       size(c.heading)
+     LIMIT 4`,
+    { u: unit },
+  );
+  res.json(rows);
+}));
+
 // --- chat GraphRAG (shell-out al pipeline Python) --------------------------
 const PY = process.env.PYTHON_BIN || "python";
 app.post("/api/chat", chatRateLimit, (req, res) => {
