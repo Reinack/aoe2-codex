@@ -33,6 +33,10 @@ def main(argv: list[str] | None = None) -> None:
             "abstained": res.abstained,
             "max_score": round(res.max_score, 3),
             "related": [r["title"] for r in res.related],
+            "hits_meta": [
+                {"note": h["note"], "heading": h["heading"], "score": round(h["score"], 3)}
+                for h in res.hits
+            ],
         },
         ensure_ascii=False,
     ))
