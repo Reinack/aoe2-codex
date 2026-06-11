@@ -546,9 +546,13 @@ async function searchCounterGraph() {
     if (!window.cytoscape) { panel.innerHTML='<p class="cg-ph">Cytoscape no cargó.</p>'; return; }
 
     // Agregar íconos de unidad a los nodos
+    // Si el nodo trae imgKey del API estructurado, usarlo directamente
     const elements = data.nodes.map(n => {
       const d = { ...n.data, label: graphLabel(n.data.label || '') };
-      const src = unitImg(d.full || d.label);
+      const imap = (typeof IMG_MAP !== 'undefined' && IMG_MAP) || window.IMG_MAP;
+      const src = (d.imgKey && imap?.[d.imgKey])
+        ? '/tree/' + imap[d.imgKey]
+        : unitImg(d.full || d.label);
       if (src) d.imgSrc = src;
       return { data: d };
     }).concat(data.edges);

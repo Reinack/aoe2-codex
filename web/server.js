@@ -256,6 +256,50 @@ function parseCounterTableRows(text) {
 app.get("/api/counter-graph", wrap(async (req, res) => {
   const unit = (req.query.unit || "").trim();
   if (!unit) return res.status(400).json({ error: "falta ?unit=" });
+
+  // Intentar primero con nodos Unit + relaciones COUNTERS (importadas desde YAML)
+  const [targetRow] = await run(
+    `MATCH (target:Unit)
+     WHERE toLower(target.label) CONTAINS toLower($u)
+        OR toLower(target.id)    CONTAINS toLower($u)
+     RETURN target LIMIT 1`,
+    { u: unit },
+  );
+
+  if (targetRow) {
+    const target = targetRow.target.properties;
+    const counterRows = await run(
+      `MATCH (counter:Unit)-[r:COUNTERS]->(t:Unit {id: $id})
+       RETURN counter.id AS cid, counter.label AS clabel,
+              counter.img_key AS cimg,
+              r.weight AS weight, r.strength AS strength,
+              r.context AS context, r.notes AS notes
+       ORDER BY r.weight DESC`,
+      { id: target.id },
+    );
+
+    const strengthOf = (w) => w >= 0.9 ? 'hard' : w >= 0.65 ? 'soft' : 'situational';
+    const nodes = [
+      { data: { id: 'center', label: target.label, full: target.label,
+                type: 'center', imgKey: target.img_key || '' } },
+      ...counterRows.map((r, i) => {
+        const w = Number(r.weight);
+        return { data: {
+          id: `c${i}`, label: r.clabel, full: r.clabel,
+          type: strengthOf(w), tier: r.strength, nota: r.notes || '',
+          weight: w, context: r.context || 'general',
+          imgKey: r.cimg || '',
+        } };
+      }),
+    ];
+    const edges = counterRows.map((r, i) => ({
+      data: { id: `e${i}`, source: `c${i}`, target: 'center',
+              weight: Number(r.weight), strength: nodes[i + 1].data.type },
+    }));
+    return res.json({ heading: target.label, nodes, edges, notes: [], source: 'graph' });
+  }
+
+  // Fallback: parser de chunks de texto (si los Unit nodes aún no fueron importados)
   const [chunk] = await run(
     `MATCH (c:Chunk)-[:PART_OF]->(n:Note)
      WHERE n.path STARTS WITH 'counters/'
@@ -277,7 +321,7 @@ app.get("/api/counter-graph", wrap(async (req, res) => {
   const edges = rows.map((r,i) => ({
     data: { id:`e${i}`, source:`c${i}`, target:'center', weight:r.weight, strength:r.strength },
   }));
-  res.json({ heading: chunk.heading, nodes, edges, notes });
+  res.json({ heading: chunk.heading, nodes, edges, notes, source: 'chunks' });
 }));
 
 // --- chat GraphRAG (shell-out al pipeline Python) --------------------------
