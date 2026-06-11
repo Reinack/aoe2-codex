@@ -6,10 +6,15 @@ requires-python = ">=3.11"
 dependencies = [
     "neo4j>=5.20",
     "python-frontmatter>=1.1",
-    "streamlit>=1.30",
     "truststore>=0.9",     # TLS vía almacén del SO (proxies/antivirus que interceptan HTTPS)
     "aoe2-codex-ingest",   # reutiliza codex.config y codex.scanner
 ]
+
+# Streamlit solo lo necesitan los dashboards (chat_app.py, analítica). El deploy
+# (query vía API) NO lo usa → queda opcional para no inflar la imagen.
+# Instalar UIs locales: pip install ./rag[ui]
+[project.optional-dependencies]
+ui = ["streamlit>=1.30"]
 
 [build-system]
 requires = ["setuptools>=68"]

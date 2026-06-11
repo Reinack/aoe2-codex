@@ -7,6 +7,7 @@ dependencies = [
     "neo4j>=5.20",
     "python-frontmatter>=1.1",
     "watchdog>=4.0",
+    "truststore>=0.9",     # TLS vía almacén del SO (Neo4j Aura/Gemini detrás de proxy)
 ]
 
 [build-system]

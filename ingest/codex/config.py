@@ -13,6 +13,18 @@ ENV_FILE = REPO_ROOT / ".env"
 MANIFEST_PATH = REPO_ROOT / ".codex" / "manifest.json"
 
 
+def _init_tls() -> None:
+    """Hace que TODA conexión TLS de Python (Neo4j Aura `neo4j+s://`, Gemini) use
+    el almacén de certificados del SO. Necesario en máquinas con antivirus/proxy
+    que interceptan HTTPS con un CA propio que el bundle de Python rechaza.
+    En la nube (CAs públicos válidos) es inofensivo."""
+    try:
+        import truststore
+        truststore.inject_into_ssl()
+    except Exception:  # noqa: BLE001 — truststore ausente o ya inyectado
+        pass
+
+
 def _load_dotenv(path: Path) -> None:
     """Carga simple de .env -> os.environ (sin dependencia externa)."""
     if not path.exists():
@@ -44,14 +56,22 @@ class Config:
     embed_dim: int = 1024
     manifest_path: Path = field(default=MANIFEST_PATH)
 
-    @classmethod
-    def load(cls, vault_override: str | None = None) -> "Config":
-        _load_dotenv(ENV_FILE)
-        vault = vault_override or os.environ.get("VAULT_PATH", "")
-        if not vault:
+    def require_vault(self) -> Path:
+        """Valida VAULT_PATH para operaciones que leen el vault (build/sync).
+        El query/deploy NO necesita el vault (los datos viven en Neo4j)."""
+        if not str(self.vault_path):
             raise SystemExit(
                 "VAULT_PATH no definido. Copiá .env.example a .env o pasá --vault."
             )
+        return self.vault_path
+
+    @classmethod
+    def load(cls, vault_override: str | None = None) -> "Config":
+        _init_tls()
+        _load_dotenv(ENV_FILE)
+        # VAULT_PATH es opcional: el deploy (solo query) no tiene el vault montado.
+        # build/sync validan con cfg.require_vault().
+        vault = vault_override or os.environ.get("VAULT_PATH", "")
         exclude = {
             d.strip()
             for d in os.environ.get("EXCLUDE_DIRS", ".obsidian,.trash,raw").split(",")

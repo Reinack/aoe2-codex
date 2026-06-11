@@ -1,0 +1,17 @@
+# Mantener la imagen chica y reproducible.
+**/node_modules
+.git
+.gitignore
+.codex
+.vault-backup-*
+.claude
+.env
+**/__pycache__
+**/*.egg-info
+.venv
+venv
+analytics
+dashboard
+**/*.md
+.vscode
+.idea

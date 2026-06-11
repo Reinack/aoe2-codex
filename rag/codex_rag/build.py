@@ -89,7 +89,7 @@ def main(argv: list[str] | None = None) -> None:
     print(f"[llm] proveedor={cfg.llm_provider}  embed_dim={cfg.embed_dim}  "
           f"batch={BATCH}  max_chars={max_chars}")
 
-    entries = scan_vault(cfg.vault_path, cfg.exclude_dirs)
+    entries = scan_vault(cfg.require_vault(), cfg.exclude_dirs)
     diff = compute_diff(entries, _load_manifest(), full=args.full)
     print(f"[scan] {len(entries)} notas  |  [diff] {diff.summary()}")
 

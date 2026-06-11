@@ -7,10 +7,34 @@ import { run, driver } from "./db.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const app = express();
-const PORT = process.env.API_PORT || 3000;
+// Render/hosts inyectan PORT; API_PORT es el override local.
+const PORT = process.env.PORT || process.env.API_PORT || 3000;
 
 app.use(express.json());
 app.use(express.static(join(__dirname, "public")));   // sirve el frontend (5b)
+
+// Rate-limit simple en memoria para /api/chat: protege el crédito de Gemini en la
+// demo pública (cada chat = una llamada al LLM). Sin dependencias externas.
+const CHAT_WINDOW_MS = Number(process.env.CHAT_RL_WINDOW_MS || 600_000);   // 10 min
+const CHAT_MAX = Number(process.env.CHAT_RL_MAX || 15);                    // por IP/ventana
+const chatHits = new Map();   // ip -> [timestamps]
+function chatRateLimit(req, res, next) {
+  const ip = (req.headers["x-forwarded-for"] || req.socket.remoteAddress || "?")
+    .toString().split(",")[0].trim();
+  const now = Date.now();
+  const hits = (chatHits.get(ip) || []).filter((t) => now - t < CHAT_WINDOW_MS);
+  if (hits.length >= CHAT_MAX) {
+    const retry = Math.ceil((CHAT_WINDOW_MS - (now - hits[0])) / 1000);
+    res.set("Retry-After", String(retry));
+    return res.status(429).json({
+      error: `Límite de consultas alcanzado. Probá de nuevo en ${retry}s.`,
+    });
+  }
+  hits.push(now);
+  chatHits.set(ip, hits);
+  if (chatHits.size > 5000) chatHits.clear();   // evita crecer sin límite
+  next();
+}
 
 const wrap = (fn) => (req, res) =>
   fn(req, res).catch((e) => {
@@ -138,10 +162,11 @@ app.get("/api/tree/:treeId", wrap(async (req, res) => {
      WHERE type(r) IN ['HAS_UNIT','HAS_TECH','HAS_BUILDING']
      RETURN c.title AS title ORDER BY c.title`, { id });
 
-  // Extracto de prosa de la nota del vault, si está documentada.
+  // Extracto de prosa de la nota, si está documentada. Sale del GRAFO (texto de
+  // los chunks en Neo4j) → no depende del vault en disco, anda igual en el deploy.
   let note = null;
   if (node.path) {
-    note = { path: node.path, title: node.title, excerpt: readExcerpt(node.path) };
+    note = { path: node.path, title: node.title, excerpt: await noteExcerpt(node.path) };
   }
 
   const label = (node.labels || []).find((l) => l !== "Note") || node.labels?.[0];
@@ -153,32 +178,29 @@ app.get("/api/tree/:treeId", wrap(async (req, res) => {
   });
 }));
 
-// Lee el primer párrafo de prosa de una nota del vault (read-only).
-import { readFileSync } from "node:fs";
-const VAULT = process.env.VAULT_PATH || "D:/Boveda/Aoe";
-function readExcerpt(relPath) {
-  try {
-    let txt = readFileSync(join(VAULT, relPath), "utf-8");
-    if (txt.charCodeAt(0) === 0xfeff) txt = txt.slice(1);          // BOM
-    txt = txt.replace(/^---[\s\S]*?\n---\s*/m, "");                // frontmatter
-    for (let para of txt.split(/\n\s*\n/)) {
+// Extrae un párrafo de prosa de los primeros chunks de la nota (Neo4j). El chunk
+// guarda el texto de cada sección H2 → sale del grafo, sin tocar el vault en disco.
+async function noteExcerpt(path) {
+  const rows = await run(
+    `MATCH (c:Chunk {note:$path}) RETURN c.text AS text ORDER BY c.ord LIMIT 3`,
+    { path });
+  for (const { text } of rows) {
+    for (let para of String(text || "").split(/\n\s*\n/)) {
       let t = para.trim();
       if (!t) continue;
-      // Aceptar blockquotes (suelen ser el resumen de la entidad): quitar "> ".
-      if (t.startsWith(">")) t = t.replace(/^>\s?/gm, "").trim();
-      // Saltar headings, tablas, listas, reglas horizontales, imágenes.
-      if (/^[#|\-*]|^\d+\.|^!\[/.test(t)) continue;
+      if (t.startsWith(">")) t = t.replace(/^>\s?/gm, "").trim();   // blockquote→prosa
+      if (/^[#|\-*]|^\d+\.|^!\[/.test(t)) continue;   // saltar heading/tabla/lista
       t = t.replace(/\s+/g, " ");
-      if (t.length < 25) continue;                 // demasiado corto para ser prosa
+      if (t.length < 25) continue;
       return t.length > 400 ? t.slice(0, 400) + "…" : t;
     }
-  } catch { /* nota sin archivo */ }
+  }
   return null;
 }
 
 // --- chat GraphRAG (shell-out al pipeline Python) --------------------------
 const PY = process.env.PYTHON_BIN || "python";
-app.post("/api/chat", (req, res) => {
+app.post("/api/chat", chatRateLimit, (req, res) => {
   const q = (req.body?.question || "").trim();
   if (!q) return res.status(400).json({ error: "falta 'question'" });
 

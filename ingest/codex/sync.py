@@ -23,7 +23,7 @@ from .scanner import (
 
 
 def run_sync(cfg: Config, *, full: bool = False) -> None:
-    entries = scan_vault(cfg.vault_path, cfg.exclude_dirs)
+    entries = scan_vault(cfg.require_vault(), cfg.exclude_dirs)
     manifest = load_manifest(cfg.manifest_path)
     diff = compute_diff(entries, manifest, full=full)
 

@@ -85,10 +85,10 @@ El pipeline es **agnóstico al proveedor** vía `LLM_PROVIDER` en `.env`:
 
 ```bash
 cd rag
-pip install -e .
+pip install -e .                   # núcleo (CLI + API). Para el chat con UI: pip install -e .[ui]
 python -m codex_rag.build          # chunk + embed del vault (incremental; --full reembebe)
 python -m codex_rag.chat "¿Cómo juego Scout Rush con Georgianos?"
-python -m streamlit run codex_rag/chat_app.py     # chat con UI
+python -m streamlit run codex_rag/chat_app.py     # chat con UI (requiere el extra [ui])
 ```
 
 Modelo de datos: `(:Chunk {text, embedding})-[:PART_OF]->(:Note)`, una sección
@@ -169,13 +169,42 @@ npm run techtree:report   # regenera el MD de incongruencias árbol↔vault
 > `<vault>/meta/codex-incongruencias-arbol-vault.md`. Correr **después** de
 > `python -m codex.sync --full` (el sync puede pisar el `tree_id` de las notas).
 
+## Deploy (demo pública)
+
+Stack cloud: **Neo4j Aura Free** (grafo + vectores) + **Render** (web/API Docker
+Node+Python) + **Gemini** (LLM). No requiere Ollama ni el vault en runtime — los
+datos viven en el grafo. Imagen única definida en `Dockerfile`, blueprint en
+`render.yaml`.
+
+**1. Neo4j Aura Free** — crear instancia en [console.neo4j.io](https://console.neo4j.io),
+guardar `URI` (`neo4j+s://…`) y password. Cargar los datos apuntando el pipeline a Aura:
+
+```bash
+# con NEO4J_URI/USER/PASSWORD de Aura en el entorno (o .env):
+cd ingest && python -m codex.sync --full        # vault → grafo
+cd ../web && npm run techtree:ingest             # stats + aristas del árbol
+cd ../rag && python -m codex_rag.build --full    # chunks + embeddings (Gemini)
+```
+
+**2. Render** — New → Blueprint → conectar este repo (toma `render.yaml`). Completar
+en el dashboard los secretos (`sync: false`): `NEO4J_URI`, `NEO4J_USER`,
+`NEO4J_PASSWORD`, `GEMINI_API_KEY`. Render buildea el `Dockerfile` y expone el sitio.
+
+El chat público está rate-limiteado (`CHAT_RL_MAX`/`CHAT_RL_WINDOW_MS`) para acotar
+el gasto de Gemini; conviene además dejar un spend cap bajo en AI Studio.
+
+> Plan free de Render: el servicio se duerme tras inactividad (cold start ~50s en la
+> primera visita). Para una demo de portfolio alcanza.
+
 ## Estado
 
 - [x] Scaffold + Docker (Neo4j)
 - [x] Sync incremental: vault → Neo4j (`Note`, `LINKS_TO`, `Concept`/`DEFINES`)
 - [x] Nodos tipados (`Civ`, `Player`, `Strategy`, `Tech`…) + `RATED`→`TierList`
 - [x] Analítica de red (NetworkX) + dashboard Streamlit
-- [x] GraphRAG chat (Ollama local + vector index nativo de Neo4j)
+- [x] GraphRAG chat (proveedor conmutable: Ollama local **o** Gemini cloud)
 - [x] API Express + frontend explorador + chat GraphRAG (`:3000`)
 - [x] Integración tech-tree cableada al grafo + ingesta de stats (`HAS_*`, `tree_id`)
-- [ ] Push a GitHub + deploy de demo (Fase 7)
+- [x] Push a GitHub (privado) + migración a Gemini (deployable sin Ollama)
+- [x] Dockerfile + `render.yaml` para deploy (Aura + Render + Gemini)
+- [ ] Demo pública live
