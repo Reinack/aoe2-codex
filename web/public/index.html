@@ -245,6 +245,41 @@
     font-style:italic; }
   .cx-empty { color:var(--dim); padding:24px 0; font-size:14px; }
 
+  /* MATCHUP LAB */
+  #view-matchups { min-height:calc(100vh - 66px); padding:18px 24px; }
+  .mu-shell { display:grid; grid-template-columns:320px 1fr; gap:18px; align-items:start; }
+  .mu-panel { background:var(--panel); border:1px solid var(--line); border-radius:8px; padding:16px; }
+  .mu-panel h2, .mu-section h3 { margin:0 0 10px; font-size:13px; text-transform:uppercase;
+    letter-spacing:.5px; color:var(--dim); }
+  .mu-field { display:flex; flex-direction:column; gap:5px; margin-bottom:12px; }
+  .mu-field label { font-size:12px; color:var(--dim); }
+  .mu-field select, .mu-field input { background:var(--bg); border:1px solid var(--line);
+    color:var(--ink); border-radius:8px; padding:9px 11px; font-size:14px; width:100%; }
+  #mu-run, #mu-chat { background:var(--gold); color:#1a1a1a; border:0; border-radius:8px;
+    padding:10px 14px; font-weight:700; cursor:pointer; width:100%; }
+  #mu-chat { margin-top:10px; background:#6baed6; }
+  #mu-run:disabled, #mu-chat:disabled { opacity:.55; cursor:default; }
+  .mu-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; }
+  .mu-section { background:var(--panel); border:1px solid var(--line); border-radius:8px; padding:14px; }
+  .mu-section.wide { grid-column:1 / -1; }
+  .mu-title { display:flex; align-items:center; gap:10px; margin-bottom:10px; }
+  .mu-title img { width:42px; height:42px; object-fit:contain; }
+  .mu-title b { font-size:18px; }
+  .mu-line { display:inline-flex; align-items:center; gap:6px; background:#1b222b;
+    border:1px solid var(--line); border-radius:14px; padding:3px 9px; margin:3px; font-size:12px; }
+  .mu-line img { width:20px; height:20px; object-fit:contain; }
+  .mu-edge { display:grid; grid-template-columns:1fr auto 1fr; gap:8px; align-items:center;
+    border-bottom:1px solid var(--line); padding:7px 0; font-size:13px; }
+  .mu-edge:last-child { border-bottom:0; }
+  .mu-score { color:var(--gold); font-weight:700; font-size:12px; }
+  .mu-note { color:var(--dim); font-size:12px; margin-top:2px; grid-column:1 / -1; }
+  .mu-plan { margin:0; padding-left:18px; color:var(--ink); }
+  .mu-plan li { margin:5px 0; }
+  .mu-empty { color:var(--dim); font-size:13px; }
+  .mu-source { border-left:2px solid var(--gold); padding:6px 10px; margin:8px 0;
+    color:var(--dim); font-size:12px; background:#111820; }
+  @media(max-width:900px){ .mu-shell{ grid-template-columns:1fr; } .mu-grid{ grid-template-columns:1fr; } }
+
   /* ── MOBILE ──────────────────────────────────────────────────────── */
   @media(max-width:768px) {
     #sidebar { display:none; }
@@ -293,6 +328,9 @@ fetch('/tree/src/data/img_map.js').then(r=>r.text()).then(t=>{
   <a class="sb-item" data-view="counters">
     <span class="sb-icon">🛡️</span><span class="sb-label">Counters</span>
   </a>
+  <a class="sb-item" data-view="matchups">
+    <span class="sb-icon">VS</span><span class="sb-label">Matchups</span>
+  </a>
   <a class="sb-item" data-view="graph">
     <span class="sb-icon">🕸️</span><span class="sb-label">Grafo</span>
   </a>
@@ -308,6 +346,9 @@ fetch('/tree/src/data/img_map.js').then(r=>r.text()).then(t=>{
   </a>
   <a class="mn-item" data-view="counters">
     <span class="mn-icon">🛡️</span>Counters
+  </a>
+  <a class="mn-item" data-view="matchups">
+    <span class="mn-icon">VS</span>Matchups
   </a>
   <a class="mn-item" data-view="graph">
     <span class="mn-icon">🕸️</span>Grafo
@@ -351,6 +392,33 @@ fetch('/tree/src/data/img_map.js').then(r=>r.text()).then(t=>{
   </div>
 
   <!-- VIEW: GRAFO ─────────────────────────────────────────────────── -->
+  <div id="view-matchups" class="view" style="display:none">
+    <div class="mu-shell">
+      <div class="mu-panel">
+        <h2>Matchup Lab</h2>
+        <div class="mu-field">
+          <label for="mu-me">Tu civilizacion</label>
+          <select id="mu-me"></select>
+        </div>
+        <div class="mu-field">
+          <label for="mu-vs">Rival</label>
+          <select id="mu-vs"></select>
+        </div>
+        <div class="mu-field">
+          <label for="mu-map">Mapa</label>
+          <input id="mu-map" placeholder="Arabia, Arena, Nomad..." autocomplete="off" />
+        </div>
+        <button id="mu-run">Analizar matchup</button>
+        <button id="mu-chat" disabled>Convertir en briefing GraphRAG</button>
+      </div>
+      <div id="mu-result" class="mu-grid">
+        <div class="mu-section wide">
+          <div class="mu-empty">Elegí dos civilizaciones para cruzar tech tree, counters y notas del grafo.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <div id="view-graph" class="view" style="display:none">
     <div id="graph-toolbar">
       <button class="graph-btn" id="graph-back" style="display:none">← Atrás</button>
@@ -458,7 +526,134 @@ async function init() {
       sel.appendChild(opt);
     }
   }
+  populateMatchupSelects(civs);
 }
+
+function populateMatchupSelects(civs) {
+  const me = document.getElementById("mu-me");
+  const vs = document.getElementById("mu-vs");
+  if (!me || !vs) return;
+  const opts = civs.map(c => {
+    const slug = c.path.replace("civs/","").replace(".md","");
+    return `<option value="${esc(slug)}">${esc(c.title)}</option>`;
+  }).join("");
+  me.innerHTML = `<option value="">Elegir...</option>${opts}`;
+  vs.innerHTML = `<option value="">Elegir...</option>${opts}`;
+  me.value = "franks";
+  vs.value = "mayans";
+}
+
+let lastMatchup = null;
+
+function civBadge(civ) {
+  return `<div class="mu-title">
+    <img src="/img/civs/${esc(civ.slug)}.png" alt="" onerror="this.style.display='none'">
+    <div><b>${esc(civ.title)}</b><div class="mu-empty">${esc(civ.aliases?.join(" / ") || civ.path)}</div></div>
+  </div>`;
+}
+
+function chipList(items, empty = "sin datos") {
+  if (!items?.length) return `<span class="mu-empty">${empty}</span>`;
+  return items.map(x => `<span class="chip">${esc(x.title || x.label || x.id)}</span>`).join("");
+}
+
+function lineChip(line) {
+  const imap = (typeof IMG_MAP !== 'undefined' && IMG_MAP) || window.IMG_MAP;
+  const src = line.imgKey && imap?.[line.imgKey] ? '/tree/' + imap[line.imgKey] : '';
+  const img = src ? `<img src="${src}" alt="">` : '';
+  return `<span class="mu-line">${img}${esc(line.label)}</span>`;
+}
+
+function edgeRows(rows, empty) {
+  if (!rows?.length) return `<div class="mu-empty">${empty}</div>`;
+  return rows.slice(0, 10).map(r => `
+    <div class="mu-edge">
+      <span>${esc(r.from)}</span>
+      <span class="mu-score">${Number(r.weight || 0).toFixed(2)}</span>
+      <span>${esc(r.target)}</span>
+      ${r.notes && r.notes !== '-' ? `<div class="mu-note">${esc(r.notes)}</div>` : ''}
+    </div>`).join("");
+}
+
+function tierRows(rows) {
+  if (!rows?.length) return `<span class="mu-empty">sin tiers</span>`;
+  return `<table>${rows.map(t => `<tr><td>${esc(t.list)}</td><td>${esc(t.tier)}</td></tr>`).join("")}</table>`;
+}
+
+function renderMatchup(d) {
+  const out = document.getElementById("mu-result");
+  const map = document.getElementById("mu-map").value.trim();
+  out.innerHTML = `
+    <div class="mu-section">${civBadge(d.me)}
+      <h3>Kit unico</h3>${chipList(d.kits.me.uniqueUnits)}
+      <div style="margin-top:8px">${chipList(d.kits.me.uniqueTechs)}</div>
+      <h3 style="margin-top:12px">Tiers</h3>${tierRows(d.kits.me.tiers)}
+    </div>
+    <div class="mu-section">${civBadge(d.vs)}
+      <h3>Kit unico</h3>${chipList(d.kits.vs.uniqueUnits)}
+      <div style="margin-top:8px">${chipList(d.kits.vs.uniqueTechs)}</div>
+      <h3 style="margin-top:12px">Tiers</h3>${tierRows(d.kits.vs.tiers)}
+    </div>
+    <div class="mu-section wide">
+      <h3>Plan inicial${map ? ` · ${esc(map)}` : ""}</h3>
+      <ol class="mu-plan">${(d.plan || []).map(x => `<li>${esc(x)}</li>`).join("") || "<li>Sin senales fuertes todavia: usa el grafo para explorar el cruce.</li>"}</ol>
+    </div>
+    <div class="mu-section">
+      <h3>Tus respuestas</h3>
+      ${edgeRows(d.counters.answers, "No hay counters directos curados entre las lineas disponibles.")}
+    </div>
+    <div class="mu-section">
+      <h3>Amenazas del rival</h3>
+      ${edgeRows(d.counters.threats, "No hay amenazas directas curadas entre las lineas disponibles.")}
+    </div>
+    <div class="mu-section">
+      <h3>Tus lineas</h3>${d.lines.me.map(lineChip).join("") || "<span class='mu-empty'>sin lineas detectadas</span>"}
+    </div>
+    <div class="mu-section">
+      <h3>Lineas rivales</h3>${d.lines.vs.map(lineChip).join("") || "<span class='mu-empty'>sin lineas detectadas</span>"}
+    </div>
+    <div class="mu-section wide">
+      <h3>Notas donde aparecen ambas civs</h3>
+      ${d.sharedNotes?.length ? d.sharedNotes.map(n => `
+        <div class="mu-source"><b>${esc(n.note)}</b>${n.heading ? ` · ${esc(n.heading)}` : ""}<br>${esc(n.excerpt || "")}</div>`).join("")
+        : "<div class='mu-empty'>No encontre chunks que mencionen ambas civs juntas.</div>"}
+    </div>`;
+}
+
+async function runMatchup() {
+  const me = document.getElementById("mu-me").value;
+  const vs = document.getElementById("mu-vs").value;
+  const out = document.getElementById("mu-result");
+  const chatBtn = document.getElementById("mu-chat");
+  if (!me || !vs) return;
+  out.innerHTML = `<div class="mu-section wide"><div class="mu-empty">analizando...</div></div>`;
+  chatBtn.disabled = true;
+  const d = await api(`/api/matchup?me=${encodeURIComponent(me)}&vs=${encodeURIComponent(vs)}`);
+  if (d.error) {
+    out.innerHTML = `<div class="mu-section wide"><div class="mu-empty">${esc(d.error)}</div></div>`;
+    return;
+  }
+  lastMatchup = d;
+  renderMatchup(d);
+  chatBtn.disabled = false;
+}
+
+function matchupPrompt() {
+  if (!lastMatchup) return "";
+  const map = document.getElementById("mu-map").value.trim();
+  const answers = lastMatchup.counters.answers.slice(0, 5).map(x => `${x.from} > ${x.target}`).join(", ");
+  const threats = lastMatchup.counters.threats.slice(0, 5).map(x => `${x.from} > ${x.target}`).join(", ");
+  return `Dame un briefing practico para jugar ${lastMatchup.me.title} vs ${lastMatchup.vs.title}${map ? ` en ${map}` : ""}. Usa el vault y considera estos datos del grafo: respuestas nuestras (${answers || "sin counters directos"}), amenazas rivales (${threats || "sin counters directos"}). Dividilo por Dark, Feudal, Castle e Imperial.`;
+}
+
+document.getElementById("mu-run").onclick = runMatchup;
+document.getElementById("mu-chat").onclick = () => {
+  const q = matchupPrompt();
+  if (!q) return;
+  switchView("explorer");
+  chatq.value = q;
+  chatq.focus();
+};
 
 async function showCiv(slug) {
   const d = await api(`/api/civ/${slug}`);

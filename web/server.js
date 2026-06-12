@@ -198,6 +198,139 @@ app.get("/api/civ-units", wrap(async (req, res) => {
 }));
 
 // --- detalle de una civ (kit único + tiers + vecinos) ----------------------
+async function matchupCiv(slug) {
+  const clean = String(slug || "").trim().toLowerCase();
+  if (!/^[a-z0-9_-]+$/.test(clean)) return null;
+  const path = `civs/${clean}.md`;
+  const [base] = await run(
+    `MATCH (c:Civ)
+     WHERE toLower(c.path) = toLower($path)
+     RETURN c.path AS path, c.title AS title, c.aliases AS aliases`,
+    { path },
+  );
+  return base ? { slug: clean, ...base } : null;
+}
+
+async function matchupKit(path) {
+  const units = await run(
+    `MATCH (:Civ {path:$path})-[:HAS_UNIQUE_UNIT]->(u)
+     WHERE NOT u.title STARTS WITH 'Elite'
+     RETURN u.title AS title, u.path AS path, u.tree_id AS treeId
+     ORDER BY u.title`,
+    { path },
+  );
+  const techs = await run(
+    `MATCH (:Civ {path:$path})-[:HAS_UNIQUE_TECH]->(t)
+     RETURN t.title AS title, t.path AS path, t.tree_id AS treeId
+     ORDER BY t.title`,
+    { path },
+  );
+  const tiers = await run(
+    `MATCH (:Civ {path:$path})-[r:RATED]->(tl:TierList)
+     RETURN tl.name AS list, r.tier AS tier
+     ORDER BY tl.name`,
+    { path },
+  );
+  return { uniqueUnits: units, uniqueTechs: techs, tiers };
+}
+
+async function matchupLines(path) {
+  const allIds = [...new Set(Object.values(LINE_MEMBERS).flat())];
+  const rows = await run(
+    `MATCH (:Civ {path:$path})-[:HAS_UNIT]->(u)
+     WHERE u.tree_id IN $ids
+     RETURN DISTINCT u.tree_id AS id`,
+    { path, ids: allIds },
+  );
+  const have = new Set(rows.map((r) => r.id));
+  const lineIds = Object.entries(LINE_MEMBERS)
+    .filter(([, members]) => members.some((m) => have.has(m)))
+    .map(([line]) => line);
+  if (!lineIds.length) return [];
+  const labels = await run(
+    `MATCH (u:Unit)
+     WHERE u.id IN $ids
+     RETURN u.id AS id, u.label AS label, u.img_key AS imgKey`,
+    { ids: lineIds },
+  );
+  const byId = new Map(labels.map((r) => [r.id, r]));
+  return lineIds.map((id) => ({
+    id,
+    label: byId.get(id)?.label || id.replace(/-/g, " "),
+    imgKey: byId.get(id)?.imgKey || "",
+  }));
+}
+
+async function matchupCounterEdges(fromIds, toIds) {
+  if (!fromIds.length || !toIds.length) return [];
+  return run(
+    `MATCH (a:Unit)-[r:COUNTERS]->(b:Unit)
+     WHERE a.id IN $fromIds AND b.id IN $toIds
+     RETURN a.id AS fromId, a.label AS from, a.img_key AS fromImg,
+            b.id AS toId, b.label AS target, b.img_key AS targetImg,
+            r.weight AS weight, r.strength AS strength,
+            r.context AS context, r.notes AS notes
+     ORDER BY r.weight DESC, a.label
+     LIMIT 18`,
+    { fromIds, toIds },
+  );
+}
+
+// --- matchup lab: civ vs civ briefing from graph data ----------------------
+app.get("/api/matchup", wrap(async (req, res) => {
+  const me = await matchupCiv(req.query.me);
+  const vs = await matchupCiv(req.query.vs);
+  if (!me || !vs) return res.status(404).json({ error: "civilizacion no encontrada" });
+  if (me.slug === vs.slug) return res.status(400).json({ error: "elegi dos civilizaciones distintas" });
+
+  const [meKit, vsKit, meLines, vsLines] = await Promise.all([
+    matchupKit(me.path),
+    matchupKit(vs.path),
+    matchupLines(me.path),
+    matchupLines(vs.path),
+  ]);
+  const meIds = meLines.map((x) => x.id);
+  const vsIds = vsLines.map((x) => x.id);
+  const [answers, threats, sharedNotes] = await Promise.all([
+    matchupCounterEdges(meIds, vsIds),
+    matchupCounterEdges(vsIds, meIds),
+    run(
+      `MATCH (c:Chunk)
+       WHERE toLower(c.text) CONTAINS toLower($me)
+         AND toLower(c.text) CONTAINS toLower($vs)
+       RETURN c.note AS note, c.heading AS heading,
+              substring(c.text, 0, 420) AS excerpt
+       ORDER BY size(c.text) LIMIT 5`,
+      { me: me.title, vs: vs.title },
+    ),
+  ]);
+
+  const plan = [];
+  if (answers.length) {
+    plan.push(`Usa ${answers[0].from} para presionar ${answers[0].target}.`);
+  } else if (meLines.length) {
+    plan.push(`Abri con tus lineas disponibles mas solidas: ${meLines.slice(0, 4).map((x) => x.label).join(", ")}.`);
+  }
+  if (threats.length) {
+    plan.push(`Respeta ${threats[0].from}: amenaza directa contra ${threats[0].target}.`);
+  }
+  if (meKit.uniqueUnits.length || meKit.uniqueTechs.length) {
+    const uu = meKit.uniqueUnits.slice(0, 2).map((x) => x.title).join(", ");
+    const ut = meKit.uniqueTechs.slice(0, 2).map((x) => x.title).join(", ");
+    plan.push(`Revisa tu identidad unica${uu ? ` (${uu})` : ""}${ut ? ` y techs (${ut})` : ""}.`);
+  }
+
+  res.json({
+    me,
+    vs,
+    kits: { me: meKit, vs: vsKit },
+    lines: { me: meLines, vs: vsLines },
+    counters: { answers, threats },
+    sharedNotes,
+    plan,
+  });
+}));
+
 app.get("/api/civ/:slug", wrap(async (req, res) => {
   const path = `civs/${req.params.slug}.md`;
   const [base] = await run(
