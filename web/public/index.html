@@ -516,7 +516,7 @@ function switchView(name) {
 function openCivInTree(slug) {
   switchView('tree');
   const f = document.getElementById('tree-frame');
-  const target = location.origin + '/tree/?civ=' + encodeURIComponent(slug);
+  const target = location.origin + '/tree/?civ=' + encodeURIComponent(slug.toLowerCase());
   if (f.src !== target) f.src = target;
 }
 document.querySelectorAll('[data-view]').forEach(el =>

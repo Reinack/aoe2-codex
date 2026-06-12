@@ -454,7 +454,7 @@ function toggleView() {
 // ═══════════════════════════════════════════════════════════
 
 // Pre-selección desde URL param (?civ=franks) — funciona tanto en standalone como en iframe
-const _urlCiv = new URLSearchParams(location.search).get('civ');
+const _urlCiv = new URLSearchParams(location.search).get('civ')?.toLowerCase();
 if (_urlCiv && typeof CIVS !== 'undefined' && CIVS[_urlCiv]) {
   civSelect.value = _urlCiv;
 }
