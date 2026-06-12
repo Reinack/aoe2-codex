@@ -186,6 +186,13 @@
     align-items:center; gap:2px; transition:.1s; min-width:46px; }
   .cg-qbtn:hover { border-color:var(--gold); background:#1a2030; }
   .cg-qbtn.active { border-color:var(--gold); background:#2a1f00; }
+  .cg-qbtn:disabled { opacity:.25; filter:grayscale(1); cursor:not-allowed; }
+  .cg-qbtn.uu { border-color:var(--gold); background:#22200f; }
+  .cg-qbtn.uu span { color:var(--gold); }
+  .cg-qbtn:disabled:hover { border-color:var(--line); background:var(--panel); }
+  #cg-civ { background:var(--panel); border:1px solid var(--line); color:var(--ink);
+    border-radius:8px; padding:0 10px; font-size:14px; max-width:190px; cursor:pointer; }
+  #cg-civ:focus { border-color:var(--gold); outline:none; }
   .cg-qbtn img { width:30px; height:30px; object-fit:contain; image-rendering:pixelated; }
   .cg-qbtn-ph { width:30px; height:30px; display:flex; align-items:center;
     justify-content:center; font-size:16px; }
@@ -350,6 +357,9 @@ fetch('/tree/src/data/img_map.js').then(r=>r.text()).then(t=>{
     <div class="cg-top">
       <h2>🛡️ Counter Graph</h2>
       <div class="counter-search-row">
+        <select id="cg-civ" title="Filtrar unidades por civilización">
+          <option value="">🌐 Todas las civs</option>
+        </select>
         <input id="counter-input"
           placeholder="Buscar unidad: Paladin, Archer, Skirmisher, Mangonel, Monk…"
           autocomplete="off" />
@@ -405,6 +415,17 @@ async function init() {
     el.innerHTML = `<img class="civ-img" src="/img/civs/${slug}.png" alt="" onerror="this.style.display='none'"><div class="t">${c.title}</div>${tier}${al}`;
     el.onclick = () => showCiv(slug);
     grid.appendChild(el);
+  }
+  // Selector de civ del Counter Graph (filtra la botonera de unidades)
+  const sel = document.getElementById("cg-civ");
+  if (sel) {
+    for (const c of civs) {
+      const slug = c.path.replace("civs/","").replace(".md","");
+      const opt = document.createElement("option");
+      opt.value = slug;
+      opt.textContent = c.title;
+      sel.appendChild(opt);
+    }
   }
 }
 
@@ -554,24 +575,102 @@ const QUICK_UNITS = [
   { id:'demo-ship',       label:'Demo Ship', imgKey:'demoship' },
 ];
 
+// null = sin filtro (todas las civs); Set de line-ids cuando hay civ elegida
+let civUnitFilter = null;
+let civFilterName = '';
+let civUniqueUnits = [];        // [{title, treeId, imgUrl}] de la civ elegida
+let uuCenterImg = '';           // ícono para el nodo central al buscar una UU
+
 function renderQuickBar() {
   const bar = document.getElementById('cg-quickbar');
   if (!bar) return;
   const imap = (typeof IMG_MAP !== 'undefined' && IMG_MAP) || window.IMG_MAP;
-  bar.innerHTML = QUICK_UNITS.map(u => {
+  const generic = QUICK_UNITS.map(u => {
     const src = imap?.[u.imgKey] ? '/tree/' + imap[u.imgKey] : '';
     const icon = src
       ? `<img src="${src}" alt="${u.label}">`
       : `<span class="cg-qbtn-ph">⚔️</span>`;
-    return `<button class="cg-qbtn" data-uid="${u.id}" onclick="quickSearch('${u.id}')" title="${u.label}">${icon}<span>${u.label}</span></button>`;
-  }).join('');
+    const off = civUnitFilter && !civUnitFilter.has(u.id);
+    const title = off ? `${civFilterName} no tiene ${u.label}` : u.label;
+    return `<button class="cg-qbtn" data-uid="${u.id}" ${off ? 'disabled' : ''}
+      onclick="quickSearch('${u.id}')" title="${title}">${icon}<span>${u.label}</span></button>`;
+  });
+  // Unidades únicas de la civ seleccionada (borde dorado)
+  const uu = civUniqueUnits.map((u, i) => {
+    const icon = u.imgUrl
+      ? `<img src="${u.imgUrl}" alt="${esc(u.title)}">`
+      : `<span class="cg-qbtn-ph">⭐</span>`;
+    const short = u.title.length > 12 ? u.title.slice(0,11) + '…' : u.title;
+    return `<button class="cg-qbtn uu" data-uu="${i}" onclick="quickSearchUU(${i})"
+      title="${esc(u.title)} — unidad única de ${esc(civFilterName)}">${icon}<span>${esc(short)}</span></button>`;
+  });
+  bar.innerHTML = generic.concat(uu).join('');
 }
+
+// Ícono de la UU: si la nota tiene tree_id con imagen propia (UUs secundarias:
+// Slinger, Houfnice, Imperial Camel…) se usa esa; si no (UU de castillo), se lee
+// el imgPic del data file vendorizado del árbol (cacheado por civ).
+const civImgPicCache = {};
+async function resolveUUIcons(slug, uus) {
+  const imap = (typeof IMG_MAP !== 'undefined' && IMG_MAP) || window.IMG_MAP;
+  let castleImg = '';
+  const needsCastle = uus.some(u => !u.treeId || u.treeId.includes('uniquetech') || !imap?.[u.treeId]);
+  if (needsCastle) {
+    if (!(slug in civImgPicCache)) {
+      try {
+        const txt = await fetch(`/tree/src/data/civ/${slug.toLowerCase()}.js`).then(r => r.text());
+        const m = txt.match(/"imgPic":\s*(\d+)/);
+        civImgPicCache[slug] = m ? `/tree/img/Unit/${m[1]}.png` : '';
+      } catch { civImgPicCache[slug] = ''; }
+    }
+    castleImg = civImgPicCache[slug];
+  }
+  for (const u of uus) {
+    const own = u.treeId && !u.treeId.includes('uniquetech') && imap?.[u.treeId];
+    u.imgUrl = own ? '/tree/' + imap[u.treeId] : castleImg;
+  }
+}
+
+function quickSearchUU(i) {
+  const u = civUniqueUnits[i];
+  if (!u) return;
+  document.querySelectorAll('.cg-qbtn').forEach(b => b.classList.remove('active'));
+  document.querySelector(`.cg-qbtn[data-uu="${i}"]`)?.classList.add('active');
+  document.getElementById('counter-input').value = u.title;
+  uuCenterImg = u.imgUrl || '';
+  searchCounterGraph();
+}
+
+async function onCivFilterChange() {
+  const sel = document.getElementById('cg-civ');
+  const slug = sel.value;
+  if (!slug) {
+    civUnitFilter = null; civFilterName = ''; civUniqueUnits = [];
+    renderQuickBar();
+    return;
+  }
+  try {
+    const data = await api(`/api/civ-units?civ=${encodeURIComponent(slug)}`);
+    if (data.error) throw new Error(data.error);
+    civUnitFilter = new Set(data.units);
+    civFilterName = data.civ;
+    civUniqueUnits = data.uniqueUnits || [];
+    await resolveUUIcons(slug, civUniqueUnits);
+  } catch (e) {
+    console.error('civ-units:', e);
+    civUnitFilter = null; civFilterName = ''; civUniqueUnits = [];
+    sel.value = '';
+  }
+  renderQuickBar();
+}
+document.getElementById('cg-civ').onchange = onCivFilterChange;
 
 function quickSearch(unitId) {
   document.querySelectorAll('.cg-qbtn').forEach(b => b.classList.remove('active'));
   const btn = document.querySelector(`.cg-qbtn[data-uid="${unitId}"]`);
   if (btn) btn.classList.add('active');
   document.getElementById('counter-input').value = unitId;
+  uuCenterImg = '';
   searchCounterGraph();
 }
 
@@ -601,6 +700,18 @@ async function searchCounterGraph() {
       panel.innerHTML = `<p class="cg-ph">⚠️ ${esc(data.error)}</p>`;
       return;
     }
+    // Con civ seleccionada, solo se pueden ver unidades de esa civ
+    if (civUnitFilter && data.unitId && !civUnitFilter.has(data.unitId)) {
+      panel.innerHTML = `<p class="cg-ph">🚫 <b>${esc(civFilterName)}</b> no puede construir
+        <b>${esc(data.heading)}</b>. Elegí otra unidad o cambiá la civ.</p>`;
+      return;
+    }
+    // Idem para unidades únicas de otra civ
+    if (civUnitFilter && data.uuCivs?.length && !data.uuCivs.includes(civFilterName)) {
+      panel.innerHTML = `<p class="cg-ph">🚫 <b>${esc(data.heading)}</b> es unidad única de
+        <b>${esc(data.uuCivs.join(', '))}</b>, no de ${esc(civFilterName)}.</p>`;
+      return;
+    }
     if (data.notes?.length) {
       notesEl.innerHTML = data.notes.map(n=>`<blockquote>${esc(n)}</blockquote>`).join('');
     }
@@ -611,9 +722,10 @@ async function searchCounterGraph() {
     const elements = data.nodes.map(n => {
       const d = { ...n.data, label: graphLabel(n.data.label || '') };
       const imap = (typeof IMG_MAP !== 'undefined' && IMG_MAP) || window.IMG_MAP;
-      const src = (d.imgKey && imap?.[d.imgKey])
+      let src = (d.imgKey && imap?.[d.imgKey])
         ? '/tree/' + imap[d.imgKey]
         : unitImg(d.full || d.label);
+      if (!src && d.type === 'center' && uuCenterImg) src = uuCenterImg;   // ícono de UU
       if (src) d.imgSrc = src;
       return { data: d };
     }).concat(data.edges);
@@ -684,15 +796,23 @@ async function searchCounterGraph() {
         return;
       }
       const colors = { hard:'#f85149', soft:'#e8b84b', situational:'#8b949e' };
-      const c = colors[type] || '#8b949e';
-      const nota = n.data('nota');
+      const strengthOf = w => w >= 0.9 ? 'hard' : w >= 0.65 ? 'soft' : 'situational';
+      const ctxs = n.data('contexts') || [{
+        context: n.data('context') || 'general', tier: n.data('tier'),
+        weight: n.data('weight'), nota: n.data('nota'),
+      }];
+      const blocks = ctxs.map(x => {
+        const c = colors[strengthOf(x.weight)] || '#8b949e';
+        return `
+          <span class="cg-tier-badge" style="color:${c};border-color:${c};background:${c}18">
+            ${esc(x.tier)}${ctxs.length > 1 ? ` · ${esc(x.context)}` : ''}
+          </span>
+          ${x.nota && x.nota!=='—' ? `<div class="cg-nota-text">${esc(x.nota)}</div>` : ''}
+          <div class="cg-weight">Peso: <b style="color:${c}">${x.weight}</b></div>`;
+      }).join('');
       panel.innerHTML = `
         <div class="cg-unit-name">${esc(n.data('full'))}</div>
-        <span class="cg-tier-badge" style="color:${c};border-color:${c};background:${c}18">
-          ${esc(n.data('tier'))}
-        </span>
-        ${nota && nota!=='—' ? `<div class="cg-nota-text">${esc(nota)}</div>` : ''}
-        <div class="cg-weight">Peso: <b style="color:${c}">${n.data('weight')}</b></div>`;
+        ${blocks}`;
     });
     cyCtr.on('tap', evt => {
       if (evt.target === cyCtr)

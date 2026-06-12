@@ -39,6 +39,7 @@ UNIT_IMG_KEYS: dict[str, str] = {
     "galley-line":      "galley",
     "fire-ship-line":   "fireship",
     "demo-ship":        "demoship",
+    "hulk-line":        "hulk",
 }
 
 
@@ -93,10 +94,9 @@ def run_import(vault_path: Path, dry_run: bool = False) -> None:
             s.run(
                 """
                 MATCH (a:Unit {id: $from_id}), (b:Unit {id: $to_id})
-                MERGE (a)-[r:COUNTERS]->(b)
+                MERGE (a)-[r:COUNTERS {context: $context}]->(b)
                 SET r.weight   = $weight,
                     r.strength = $strength,
-                    r.context  = $context,
                     r.notes    = $notes
                 """,
                 from_id=e["from"],

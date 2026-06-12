@@ -82,6 +82,111 @@ app.get("/api/civs", wrap(async (_req, res) => {
   res.json(rows);
 }));
 
+// --- líneas genéricas del Counter Graph disponibles para una civ -----------
+// Mapeo línea (id de :Unit del counter graph) → tree_ids de sus miembros en el
+// árbol. Una civ tiene la línea si tiene HAS_UNIT a cualquiera de sus miembros
+// (p.ej. Franks sin Arbalester igual tienen archer-line por Archer/Crossbowman).
+const LINE_MEMBERS = {
+  "archer-line":     ["archer", "crossbow", "arbalester"],
+  "skirmisher-line": ["skirmisher", "eliteskirm", "imp_skirmisher"],
+  "hand-cannoneer":  ["handcannon"],
+  "cavalry-archer":  ["cavarcher", "hcavarcher"],
+  "elephant-archer": ["elephant_archer", "elite_elephant_archer"],
+  "militia-line":    ["militia", "manatarms", "longsword", "twohanded", "champion"],
+  "spearman-line":   ["spearman", "pikeman", "halberdier"],
+  "eagle-warrior":   ["eaglescout", "eaglewarrior", "eliteeagle"],
+  "scout-line":      ["scout", "lightcav", "hussar", "winged_hussar"],
+  "knight-line":     ["knight", "cavalier", "paladin"],
+  "camel-line":      ["camel", "heavycamel", "imp_camel"],
+  "battle-elephant": ["battleeleph", "eliteeleph"],
+  "steppe-lancer":   ["steppe_lancer", "elite_steppe_lancer"],
+  "ram-line":        ["batteringram", "cappedram", "siegeram"],
+  "siege-elephant":  ["armored_elephant", "siege_elephant"],
+  "mangonel-line":   ["mangonel", "onager", "siegeonager"],
+  "scorpion-line":   ["scorpion", "heavyscorpion"],
+  "bombard-cannon":  ["bombcannon"],
+  "monk":            ["monk"],
+  "galley-line":     ["galley", "wargalley", "galleon"],
+  "fire-ship-line":  ["firegalley", "fireship", "fastfireship"],
+  "demo-ship":       ["demoraft", "demoship", "heavydemo"],
+  "hulk-line":       ["hulk", "war_hulk"],
+};
+
+// Clases de las descripciones in-game ("Weak vs. Cavalry and Archery Units") →
+// líneas genéricas del counter graph. El orden importa: los términos compuestos
+// ('cavalry archer') se chequean antes que los genéricos ('cavalry', 'archer').
+const CLASS_TO_LINES = [
+  ['cavalry archer',  ['cavalry-archer']],
+  ['mounted archer',  ['cavalry-archer']],
+  ['foot archer',     ['archer-line']],
+  ['archery unit',    ['archer-line']],
+  ['archer',          ['archer-line']],
+  ['ranged soldier',  ['archer-line', 'skirmisher-line']],
+  ['skirmisher',      ['skirmisher-line']],
+  ['gunner',          ['hand-cannoneer']],
+  ['gunpowder',       ['hand-cannoneer']],
+  ['hand cannoneer',  ['hand-cannoneer']],
+  ['spearman',        ['spearman-line']],
+  ['pikemen',         ['spearman-line']],
+  ['halberdier',      ['spearman-line']],
+  ['militia',         ['militia-line']],
+  ['infantry',        ['militia-line']],
+  ['camel',           ['camel-line']],
+  ['mounted unit',    ['knight-line']],
+  ['cavalry',         ['knight-line']],
+  ['monk',            ['monk']],
+  ['mangonel',        ['mangonel-line']],
+  ['onager',          ['mangonel-line']],
+  ['scorpion',        ['scorpion-line']],
+  ['siege weapon',    ['mangonel-line', 'bombard-cannon']],
+  ['siege',           ['mangonel-line', 'bombard-cannon']],
+  ['eagle',           ['eagle-warrior']],
+  ['elephant',        ['battle-elephant']],
+  ['demolition',      ['demo-ship']],
+  ['fire ship',       ['fire-ship-line']],
+  ['fire galley',     ['fire-ship-line']],
+  ['war hulk',        ['hulk-line']],
+  ['hulk',            ['hulk-line']],
+  ['galley',          ['galley-line']],
+  ['close range',     ['militia-line']],
+];
+function mapClassesToLines(phrase) {
+  let p = phrase.toLowerCase();
+  const out = [];
+  for (const [kw, lines] of CLASS_TO_LINES) {
+    if (!p.includes(kw)) continue;
+    p = p.split(kw).join(" ");   // consumir el término: 'cavalry archer' no debe re-disparar 'cavalry'/'archer'
+    for (const l of lines) if (!out.includes(l)) out.push(l);
+  }
+  return out;
+}
+
+app.get("/api/civ-units", wrap(async (req, res) => {
+  const slug = (req.query.civ || "").trim();
+  if (!slug) return res.status(400).json({ error: "falta ?civ=" });
+  const path = `civs/${slug}.md`;
+  const [civ] = await run(
+    `MATCH (c:Civ {path:$path}) RETURN c.title AS title`, { path });
+  if (!civ) return res.status(404).json({ error: "civ no encontrada", path });
+
+  const allIds = [...new Set(Object.values(LINE_MEMBERS).flat())];
+  const rows = await run(
+    `MATCH (:Civ {path:$path})-[:HAS_UNIT]->(u)
+     WHERE u.tree_id IN $ids
+     RETURN DISTINCT u.tree_id AS id`, { path, ids: allIds });
+  const have = new Set(rows.map((r) => r.id));
+  const units = Object.entries(LINE_MEMBERS)
+    .filter(([, members]) => members.some((m) => have.has(m)))
+    .map(([line]) => line);
+
+  // Unidades únicas de la civ (sin las Elite — son la misma línea).
+  const uuRows = await run(
+    `MATCH (:Civ {path:$path})-[:HAS_UNIQUE_UNIT]->(u)
+     WHERE NOT u.title STARTS WITH 'Elite'
+     RETURN u.title AS title, u.tree_id AS treeId ORDER BY u.title`, { path });
+  res.json({ civ: civ.title, slug, units, uniqueUnits: uuRows });
+}));
+
 // --- detalle de una civ (kit único + tiers + vecinos) ----------------------
 app.get("/api/civ/:slug", wrap(async (req, res) => {
   const path = `civs/${req.params.slug}.md`;
@@ -279,24 +384,91 @@ app.get("/api/counter-graph", wrap(async (req, res) => {
     );
 
     const strengthOf = (w) => w >= 0.9 ? 'hard' : w >= 0.65 ? 'soft' : 'situational';
+
+    // Una misma unidad puede counterar con varios edges (contextos distintos):
+    // agrupar por unidad para no duplicar nodos, y emitir un edge por contexto.
+    const byUnit = new Map();
+    for (const r of counterRows) {
+      if (!byUnit.has(r.cid)) byUnit.set(r.cid, []);
+      byUnit.get(r.cid).push(r);
+    }
+
     const nodes = [
       { data: { id: 'center', label: target.label, full: target.label,
                 type: 'center', imgKey: target.img_key || '' } },
-      ...counterRows.map((r, i) => {
-        const w = Number(r.weight);
-        return { data: {
-          id: `c${i}`, label: r.clabel, full: r.clabel,
-          type: strengthOf(w), tier: r.strength, nota: r.notes || '',
-          weight: w, context: r.context || 'general',
-          imgKey: r.cimg || '',
-        } };
-      }),
     ];
-    const edges = counterRows.map((r, i) => ({
-      data: { id: `e${i}`, source: `c${i}`, target: 'center',
-              weight: Number(r.weight), strength: nodes[i + 1].data.type },
+    const edges = [];
+    let i = 0;
+    for (const rows of byUnit.values()) {
+      const best = rows[0];                      // ORDER BY weight DESC → el más fuerte primero
+      const w = Number(best.weight);
+      const nodeId = `c${i}`;
+      nodes.push({ data: {
+        id: nodeId, label: best.clabel, full: best.clabel,
+        type: strengthOf(w), tier: best.strength, nota: best.notes || '',
+        weight: w, context: best.context || 'general',
+        contexts: rows.map(r => ({
+          context: r.context || 'general', tier: r.strength,
+          weight: Number(r.weight), nota: r.notes || '',
+        })),
+        imgKey: best.cimg || '',
+      } });
+      rows.forEach((r, j) => {
+        const rw = Number(r.weight);
+        edges.push({ data: {
+          id: `e${i}_${j}`, source: nodeId, target: 'center',
+          weight: rw, strength: strengthOf(rw), context: r.context || 'general',
+        } });
+      });
+      i++;
+    }
+    return res.json({ heading: target.label, unitId: target.id, nodes, edges, notes: [], source: 'graph' });
+  }
+
+  // Unidades únicas: no hay COUNTERS curados (scope del YAML = genéricas), pero
+  // la ficha del vault trae la descripción in-game ("Strong vs. X. Weak vs. Y.")
+  // en el chunk intro → se derivan counters suaves mapeando las clases a líneas.
+  const [uu] = await run(
+    `MATCH (n:Note)
+     WHERE n.path STARTS WITH 'units/unique/'
+       AND toLower(n.title) CONTAINS toLower($u)
+     MATCH (c:Chunk {note: n.path, heading: 'intro'})
+     OPTIONAL MATCH (civ:Civ)-[:HAS_UNIQUE_UNIT]->(n)
+     RETURN n.title AS title, n.path AS path, c.text AS text,
+            collect(civ.title) AS civs
+     ORDER BY size(n.title) LIMIT 1`,
+    { u: unit },
+  );
+
+  if (uu) {
+    const weakM   = uu.text.match(/(?:weak vs\.?|d[eé]bil contra)\s+([^.\n]+)/i);
+    const strongM = uu.text.match(/(?:strong vs\.?|fuerte contra)\s+([^.\n]+)/i);
+    const lineIds = weakM ? mapClassesToLines(weakM[1]) : [];
+
+    const counters = lineIds.length
+      ? await run(
+          `MATCH (u:Unit) WHERE u.id IN $ids
+           RETURN u.id AS id, u.label AS label, u.img_key AS img`,
+          { ids: lineIds })
+      : [];
+
+    const nodes = [
+      { data: { id: 'center', label: uu.title, full: uu.title, type: 'center', imgKey: '' } },
+      ...counters.map((c, i) => ({
+        data: { id: `c${i}`, label: c.label, full: c.label, type: 'soft',
+                tier: 'SÓLIDO', nota: 'Según descripción in-game', weight: 0.7,
+                context: 'general', imgKey: c.img || '' },
+      })),
+    ];
+    const edges = counters.map((_, i) => ({
+      data: { id: `e${i}`, source: `c${i}`, target: 'center', weight: 0.7, strength: 'soft' },
     }));
-    return res.json({ heading: target.label, nodes, edges, notes: [], source: 'graph' });
+    const notes = [];
+    if (strongM) notes.push(`Fuerte contra: ${strongM[1].trim()}`);
+    if (weakM)   notes.push(`Débil contra: ${weakM[1].trim()} (descripción in-game — sin análisis curado todavía)`);
+    else         notes.push('Sin counters documentados para esta unidad única todavía.');
+    return res.json({ heading: uu.title, nodes, edges, notes,
+                      uuCivs: uu.civs || [], source: 'unique-desc' });
   }
 
   // Fallback: parser de chunks de texto (si los Unit nodes aún no fueron importados)
