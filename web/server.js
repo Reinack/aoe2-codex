@@ -306,18 +306,49 @@ app.get("/api/matchup", wrap(async (req, res) => {
   ]);
 
   const plan = [];
-  if (answers.length) {
-    plan.push(`Usa ${answers[0].from} para presionar ${answers[0].target}.`);
-  } else if (meLines.length) {
-    plan.push(`Abri con tus lineas disponibles mas solidas: ${meLines.slice(0, 4).map((x) => x.label).join(", ")}.`);
+
+  // Apertura: siempre mencionar las mejores lineas disponibles
+  if (meLines.length) {
+    plan.push(`Apertura: tus lineas mas solidas son ${meLines.slice(0, 3).map((x) => x.label).join(", ")}.`);
   }
-  if (threats.length) {
-    plan.push(`Respeta ${threats[0].from}: amenaza directa contra ${threats[0].target}.`);
+
+  // Counter principal: distinguir fuerte (>=0.8) de moderado
+  const strongAnswers = answers.filter((a) => (a.weight || 0) >= 0.8);
+  const modAnswers = answers.filter((a) => (a.weight || 0) < 0.8 && (a.weight || 0) >= 0.5);
+  if (strongAnswers.length) {
+    const extras = strongAnswers.length > 1 ? ` (${strongAnswers.length} counters fuertes disponibles)` : "";
+    plan.push(`Counter fuerte: ${strongAnswers[0].from} aplasta ${strongAnswers[0].target}${extras}.`);
+  } else if (modAnswers.length) {
+    plan.push(`Counter moderado: ${modAnswers[0].from} vs ${modAnswers[0].target} — funciona con micro.`);
+  } else if (!answers.length && meLines.length) {
+    plan.push(`Sin counters directos curados — juga con las lineas disponibles y adapta en partida.`);
   }
-  if (meKit.uniqueUnits.length || meKit.uniqueTechs.length) {
-    const uu = meKit.uniqueUnits.slice(0, 2).map((x) => x.title).join(", ");
-    const ut = meKit.uniqueTechs.slice(0, 2).map((x) => x.title).join(", ");
-    plan.push(`Revisa tu identidad unica${uu ? ` (${uu})` : ""}${ut ? ` y techs (${ut})` : ""}.`);
+
+  // Amenaza del rival: distinguir fuerte de moderada
+  const strongThreats = threats.filter((t) => (t.weight || 0) >= 0.8);
+  if (strongThreats.length) {
+    plan.push(`Amenaza critica del rival: ${strongThreats[0].from} destruye tus ${strongThreats[0].target} — respeta esto.`);
+  } else if (threats.length) {
+    plan.push(`Cuidado con ${threats[0].from} del rival contra tus ${threats[0].target}.`);
+  }
+
+  // UU con timing de Castle Age
+  if (meKit.uniqueUnits.length) {
+    const uu = meKit.uniqueUnits[0].title;
+    plan.push(`Tu UU (${uu}) entra en Castle Age — construi hacia eso si el matchup lo permite.`);
+  }
+
+  // Techs unicas como linea separada
+  if (meKit.uniqueTechs.length) {
+    const ut = meKit.uniqueTechs.slice(0, 2).map((x) => x.title).join(" y ");
+    plan.push(`Techs unicas clave: ${ut}.`);
+  }
+
+  // Comparacion de tier Arabia si difieren
+  const meTier = meKit.tiers.find((t) => t.list.toLowerCase().includes("arabia"));
+  const vsTier = vsKit.tiers.find((t) => t.list.toLowerCase().includes("arabia"));
+  if (meTier && vsTier && meTier.tier !== vsTier.tier) {
+    plan.push(`Tier Arabia: vos (${meTier.tier}) vs rival (${vsTier.tier}) — ajusta la agresividad en consecuencia.`);
   }
 
   res.json({
@@ -371,7 +402,8 @@ app.get("/api/graph", wrap(async (req, res) => {
   const path = (req.query.path || "").trim();
   if (!path) return res.status(400).json({ error: "falta ?path=" });
   const rows = await run(
-    `MATCH (c:Note {path:$path})-[r]-(m:Note)
+    `MATCH (c:Note)-[r]-(m:Note)
+     WHERE toLower(c.path) = toLower($path)
      RETURN c.path AS src, c.title AS srcTitle, c.type AS srcType,
             m.path AS dst, m.title AS dstTitle, m.type AS dstType,
             type(r) AS rel LIMIT 80`, { path });
