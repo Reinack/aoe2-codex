@@ -154,7 +154,7 @@
   .cg-top h2 { font-size:13px; text-transform:uppercase; letter-spacing:.5px;
     color:var(--dim); margin:0 0 8px; }
   #cg-layout { display:flex; flex:1; overflow:hidden; min-height:400px; }
-  #cg-panel { width:230px; flex-shrink:0; padding:14px; overflow-y:auto;
+  #cg-panel { width:272px; flex-shrink:0; padding:12px; overflow-y:auto;
     border-right:1px solid var(--line); display:flex; flex-direction:column; gap:10px; }
   #cy-counters { flex:1; background:var(--bg); }
   #cg-legend { display:flex; flex-direction:column; gap:5px; }
@@ -180,23 +180,48 @@
   .rh-row { padding:2px 0; }
   .rh-score { color:var(--gold); font-weight:700; margin-right:5px; font-size:11px; }
   .counter-search-row { display:flex; gap:8px; margin:0; }
-  #cg-quickbar { display:flex; flex-wrap:wrap; gap:4px; margin-top:10px; }
+  #cg-quickbar { display:flex; flex-direction:column; gap:7px;
+    border-top:1px solid var(--line); padding-top:10px; }
+  .cg-qgroup { display:flex; flex-direction:column; gap:3px; }
+  .cg-qgroup-h { font-size:10px; color:var(--dim); font-weight:700;
+    text-transform:uppercase; letter-spacing:.4px; opacity:.85; }
+  .cg-qrow { display:grid; grid-template-columns:repeat(3, 1fr); gap:4px; }
   .cg-qbtn { background:var(--panel); border:1px solid var(--line); border-radius:6px;
-    cursor:pointer; padding:4px 5px 3px; display:flex; flex-direction:column;
-    align-items:center; gap:2px; transition:.1s; min-width:46px; }
+    cursor:pointer; padding:4px 3px 3px; display:flex; flex-direction:column;
+    align-items:center; gap:2px; transition:.1s; min-width:0; overflow:hidden; }
+  /* Chips de civilizaciones seleccionadas (multi-civ) */
+  #cg-civ-chips { display:flex; flex-wrap:wrap; gap:5px; margin-top:8px; }
+  .cg-civ-chip { display:inline-flex; align-items:center; gap:5px; font-size:12px;
+    background:#16202e; border:1px solid #2f5b87; color:#9ecbf0; border-radius:14px;
+    padding:2px 6px 2px 10px; }
+  .cg-civ-chip.player { border-color:var(--gold); color:var(--gold); background:#231d08; }
+  .cg-civ-chip button { background:none; border:none; color:inherit; cursor:pointer;
+    font-size:14px; line-height:1; padding:0 2px; opacity:.7; }
+  .cg-civ-chip button:hover { opacity:1; }
+  .cg-civ-count { font-size:11px; color:var(--dim); align-self:center; }
   .cg-qbtn:hover { border-color:var(--gold); background:#1a2030; }
-  .cg-qbtn.active { border-color:var(--gold); background:#2a1f00; }
-  .cg-qbtn:disabled { opacity:.25; filter:grayscale(1); cursor:not-allowed; }
-  .cg-qbtn.uu { border-color:var(--gold); background:#22200f; }
-  .cg-qbtn.uu span { color:var(--gold); }
-  .cg-qbtn:disabled:hover { border-color:var(--line); background:var(--panel); }
+  .cg-qbtn.active { border-color:var(--gold); background:#2a1f00; box-shadow:0 0 0 1px var(--gold); }
+  .cg-qbtn:disabled { opacity:.22; filter:grayscale(1); cursor:not-allowed; }
+  .cg-qbtn:disabled:hover { background:var(--panel); }
+  /* Color por tipo de unidad: genérica=celeste · regional=aguamarina · única=violeta */
+  .cg-qbtn.k-generic  { border-color:#2f5b87; }
+  .cg-qbtn.k-generic  span { color:#6bb6e8; }
+  .cg-qbtn.k-regional { border-color:#1f7a6e; background:#0e1a19; }
+  .cg-qbtn.k-regional span { color:#3fd6c4; }
+  .cg-qbtn.k-unique   { border-color:#6a3fb0; background:#15101f; }
+  .cg-qbtn.k-unique   span { color:#bd92f0; }
+  .cg-qbtn.k-generic:hover, .cg-qbtn.k-regional:hover, .cg-qbtn.k-unique:hover { border-color:var(--gold); }
+  /* Botones UU dinámicos (por civ): violeta como las únicas */
+  .cg-qbtn.uu { border-color:#6a3fb0; background:#15101f; }
+  .cg-qbtn.uu span { color:#bd92f0; }
   #cg-civ { background:var(--panel); border:1px solid var(--line); color:var(--ink);
     border-radius:8px; padding:0 10px; font-size:14px; max-width:190px; cursor:pointer; }
   #cg-civ:focus { border-color:var(--gold); outline:none; }
   .cg-qbtn img { width:30px; height:30px; object-fit:contain; image-rendering:pixelated; }
   .cg-qbtn-ph { width:30px; height:30px; display:flex; align-items:center;
     justify-content:center; font-size:16px; }
-  .cg-qbtn span { font-size:9px; color:var(--dim); white-space:nowrap; line-height:1.2; }
+  .cg-qbtn span { font-size:9px; color:var(--dim); line-height:1.2; max-width:100%;
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
   #counter-input { flex:1; background:var(--panel); border:1px solid var(--line);
     color:var(--ink); padding:9px 13px; border-radius:8px; font-size:14px; }
   #counter-btn { background:var(--gold); color:#1a1a1a; border:0; border-radius:8px;
@@ -251,6 +276,7 @@ fetch('/tree/src/data/img_map.js').then(r=>r.text()).then(t=>{
     eval(t.replace(/\bconst IMG_MAP\b/,'window.IMG_MAP')
           .replace(/export\s*\{[^}]*\}\s*;?/g,''));
     renderQuickBar();
+    if (typeof renderCivChips === 'function') renderCivChips();
   } catch(e){ console.warn('IMG_MAP load error',e); }
 }).catch(()=>{});
 </script>
@@ -357,23 +383,28 @@ fetch('/tree/src/data/img_map.js').then(r=>r.text()).then(t=>{
     <div class="cg-top">
       <h2>🛡️ Counter Graph</h2>
       <div class="counter-search-row">
-        <select id="cg-civ" title="Filtrar unidades por civilización">
-          <option value="">🌐 Todas las civs</option>
+        <select id="cg-civ" title="Agregá civilizaciones (hasta 8)">
+          <option value="">➕ Agregar civ…</option>
         </select>
         <input id="counter-input"
           placeholder="Buscar unidad: Paladin, Archer, Skirmisher, Mangonel, Monk…"
           autocomplete="off" />
         <button id="counter-btn">Buscar</button>
       </div>
-      <div id="cg-quickbar"></div>
+      <div id="cg-civ-chips"></div>
     </div>
     <div id="cg-layout">
       <div id="cg-panel">
         <div id="cg-legend">
+          <div class="cg-leg" style="font-weight:600;color:#c9d1d9">🛡️ La counterean (izq.)</div>
           <div class="cg-leg"><span class="cg-dot" style="background:#f85149"></span>Hard (Primario)</div>
           <div class="cg-leg"><span class="cg-dot" style="background:#e8b84b"></span>Sólido</div>
           <div class="cg-leg"><span class="cg-dot" style="background:#8b949e"></span>Situacional</div>
+          <div class="cg-leg" style="font-weight:600;color:#c9d1d9;margin-top:4px">⚔️ Es fuerte contra (der.)</div>
+          <div class="cg-leg"><span class="cg-dot" style="background:#3fb950"></span>Fuerte (Primario)</div>
+          <div class="cg-leg"><span class="cg-dot" style="background:#3aa17a"></span>Levemente fuerte</div>
         </div>
+        <div id="cg-quickbar"></div>
         <div id="cg-detail"><p class="cg-ph">Buscá una unidad para ver el grafo de counters.</p></div>
         <div id="cg-notes"></div>
       </div>
@@ -550,85 +581,181 @@ document.querySelectorAll(".hint").forEach(h =>
   h.onclick = () => { chatq.value = h.dataset.q; chatq.focus(); });
 
 // ── COUNTER GRAPH (Cytoscape) ─────────────────────────────────────────
+// kind: 'generic' (celeste) · 'regional' (aguamarina) · 'unique' (violeta)
 const QUICK_UNITS = [
-  { id:'archer-line',     label:'Archer',    imgKey:'archer' },
-  { id:'skirmisher-line', label:'Skirm',     imgKey:'skirmisher' },
-  { id:'hand-cannoneer',  label:'HC',        imgKey:'handcannon' },
-  { id:'cavalry-archer',  label:'Cav Arch',  imgKey:'cavarcher' },
-  { id:'elephant-archer', label:'Ele Arch',  imgKey:'elephant_archer' },
-  { id:'militia-line',    label:'Militia',   imgKey:'champion' },
-  { id:'spearman-line',   label:'Halbs',     imgKey:'halberdier' },
-  { id:'eagle-warrior',   label:'Eagle',     imgKey:'eaglewarrior' },
-  { id:'scout-line',      label:'Scout',     imgKey:'hussar' },
-  { id:'knight-line',     label:'Knight',    imgKey:'paladin' },
-  { id:'camel-line',      label:'Camel',     imgKey:'camel' },
-  { id:'battle-elephant', label:'Bat Ele',   imgKey:'battleeleph' },
-  { id:'steppe-lancer',   label:'Steppe',    imgKey:'steppe_lancer' },
-  { id:'ram-line',        label:'Ram',       imgKey:'siegeram' },
-  { id:'siege-elephant',  label:'Siege Ele', imgKey:'siege_elephant' },
-  { id:'mangonel-line',   label:'Mangonel',  imgKey:'mangonel' },
-  { id:'scorpion-line',   label:'Scorpion',  imgKey:'scorpion' },
-  { id:'bombard-cannon',  label:'BBC',       imgKey:'bombcannon' },
-  { id:'monk',            label:'Monk',      imgKey:'monk' },
-  { id:'galley-line',     label:'Galley',    imgKey:'galley' },
-  { id:'fire-ship-line',  label:'Fire Ship', imgKey:'fireship' },
-  { id:'demo-ship',       label:'Demo Ship', imgKey:'demoship' },
+  { id:'archer-line',     label:'Archer',    imgKey:'archer',          kind:'generic' },
+  { id:'skirmisher-line', label:'Skirm',     imgKey:'skirmisher',      kind:'generic' },
+  { id:'hand-cannoneer',  label:'HC',        imgKey:'handcannon',      kind:'generic' },
+  { id:'cavalry-archer',  label:'Cav Arch',  imgKey:'cavarcher',       kind:'generic' },
+  { id:'elephant-archer', label:'Ele Arch',  imgKey:'elephant_archer', kind:'regional' },
+  { id:'militia-line',    label:'Militia',   imgKey:'champion',        kind:'generic' },
+  { id:'spearman-line',   label:'Halbs',     imgKey:'halberdier',      kind:'generic' },
+  { id:'eagle-warrior',   label:'Eagle',     imgKey:'eaglewarrior',    kind:'regional' },
+  { id:'scout-line',      label:'Scout',     imgKey:'hussar',          kind:'generic' },
+  { id:'knight-line',     label:'Knight',    imgKey:'paladin',         kind:'generic' },
+  { id:'camel-line',      label:'Camel',     imgKey:'camel',           kind:'regional' },
+  { id:'battle-elephant', label:'Bat Ele',   imgKey:'battleeleph',     kind:'regional' },
+  { id:'steppe-lancer',   label:'Steppe',    imgKey:'steppe_lancer',   kind:'regional' },
+  { id:'ram-line',        label:'Ram',       imgKey:'siegeram',        kind:'generic' },
+  { id:'siege-elephant',  label:'Siege Ele', imgKey:'siege_elephant',  kind:'regional' },
+  { id:'mangonel-line',   label:'Mangonel',  imgKey:'mangonel',        kind:'generic' },
+  { id:'scorpion-line',   label:'Scorpion',  imgKey:'scorpion',        kind:'generic' },
+  { id:'bombard-cannon',  label:'BBC',       imgKey:'bombcannon',      kind:'generic' },
+  { id:'monk',            label:'Monk',      imgKey:'monk',            kind:'generic' },
+  // Naval genérico
+  { id:'galley-line',     label:'Galley',    imgKey:'galley',          kind:'generic' },
+  { id:'fire-ship-line',  label:'Fire Ship', imgKey:'fireship',        kind:'generic' },
+  { id:'demo-ship',       label:'Demo Ship', imgKey:'demoship',        kind:'generic' },
+  { id:'hulk-line',       label:'Hulk',      imgKey:'hulk',            kind:'generic' },
+  { id:'cannon-galleon',  label:'Cannon G.', imgKey:'cannongalleon',   kind:'generic' },
+  // Naval regional (largo alcance, por grupo de civs)
+  { id:'lou-chuan',       label:'Lou Chuan', imgKey:'lou_chuan',       kind:'regional' },
+  { id:'dromon',          label:'Dromon',    imgKey:'dromon',          kind:'regional' },
+  { id:'catapult-galleon',label:'Catapult G.',imgKey:'catapult_gall',  kind:'regional' },
+  // Regionales terrestres (chinas / sudamericanas)
+  { id:'fire-lancer',     label:'Fire Lanc', imgKey:'fire_lancer',     kind:'regional' },
+  { id:'hei-guang-cavalry',label:'Hei Guang',imgKey:'hei_guang',       kind:'regional' },
+  { id:'rocket-cart',     label:'Rocket',    imgKey:'rocket_cart',     kind:'regional' },
+  { id:'champi-line',     label:'Champi',    imgKey:'champiwarrior',   kind:'regional' },
+  { id:'slinger',         label:'Slinger',   imgKey:'slinger',         kind:'regional' },
+  // Únicas (1 civ)
+  { id:'turtle-ship',     label:'Turtle',    imgKey:'turtle_ship',     kind:'unique' },
+  { id:'caravel',         label:'Caravel',   imgKey:'caravel_d',       kind:'unique' },
+  { id:'longboat',        label:'Longboat',  imgKey:'longboat',        kind:'unique' },
+  { id:'thirisadai',      label:'Thirisadai',imgKey:'thirisadai',      kind:'unique' },
+  { id:'dragon-ship',     label:'Dragon Sh', imgKey:'dragon_ship',     kind:'unique' },
+  { id:'liao-dao',        label:'Liao Dao',  imgKey:'liao_dao',        kind:'unique' },
+  { id:'white-feather-guard',label:'W.Feather',imgKey:'white_feather', kind:'unique' },
+  { id:'jian-swordsman',  label:'Jian Sw',   imgKey:'jian_swordsman',  kind:'unique' },
+  { id:'xianbei-raider',  label:'Xianbei',   imgKey:'xianbei_raider',  kind:'unique' },
 ];
 
-// null = sin filtro (todas las civs); Set de line-ids cuando hay civ elegida
-let civUnitFilter = null;
+// Edificio de origen (nodes.js) + claves del árbol tecnológico por unidad.
+// `keys`: ids del array `available` de cada civ → para filtrar disponibilidad.
+// `pic`: picture_index (solo UUs de castillo, que en `available` usan placeholder
+//        'uniqueunit' → se detectan vía civ.uniqueUnits[].imgPic).
+// `uuName`: nombre completo (para no duplicar el botón UU dinámico de la civ).
+const UNIT_META = {
+  'archer-line':      { b:'archery',   keys:['archer','crossbow','arbalester'] },
+  'skirmisher-line':  { b:'archery',   keys:['skirmisher','eliteskirm','imp_skirmisher'] },
+  'hand-cannoneer':   { b:'archery',   keys:['handcannon'] },
+  'cavalry-archer':   { b:'archery',   keys:['cavarcher','hcavarcher'] },
+  'elephant-archer':  { b:'archery',   keys:['elephant_archer','elite_elephant_archer'] },
+  'slinger':          { b:'archery',   keys:['slinger'] },
+  'xianbei-raider':   { b:'archery',   keys:['xianbei_raider'], uuName:'Xianbei Raider' },
+  'militia-line':     { b:'barracks',  keys:['militia','manatarms','longsword','twohanded','champion'] },
+  'spearman-line':    { b:'barracks',  keys:['spearman','pikeman','halberdier'] },
+  'eagle-warrior':    { b:'barracks',  keys:['eaglescout','eaglewarrior','eliteeagle'] },
+  'fire-lancer':      { b:'barracks',  keys:['fire_lancer','elite_fire_lancer'] },
+  'champi-line':      { b:'barracks',  keys:['champiscout','champirunner','champiwarrior','elitechampi'] },
+  'jian-swordsman':   { b:'barracks',  keys:['jian_swordsman'], uuName:'Jian Swordsman' },
+  'scout-line':       { b:'stable',    keys:['scout','lightcav','hussar','winged_hussar'] },
+  'knight-line':      { b:'stable',    keys:['knight','cavalier','paladin'] },
+  'camel-line':       { b:'stable',    keys:['camel','heavycamel','imp_camel'] },
+  'battle-elephant':  { b:'stable',    keys:['battleeleph','eliteeleph'] },
+  'steppe-lancer':    { b:'stable',    keys:['steppe_lancer','elite_steppe_lancer'] },
+  'hei-guang-cavalry':{ b:'stable',    keys:['hei_guang','heavy_hei_guang'] },
+  'ram-line':         { b:'siege',     keys:['batteringram','cappedram','siegeram'] },
+  'siege-elephant':   { b:'siege',     keys:['armored_elephant','siege_elephant'] },
+  'mangonel-line':    { b:'siege',     keys:['mangonel','onager','siegeonager'] },
+  'scorpion-line':    { b:'siege',     keys:['scorpion','heavyscorpion'] },
+  'bombard-cannon':   { b:'siege',     keys:['bombcannon'] },
+  'rocket-cart':      { b:'siege',     keys:['rocket_cart','heavy_rocket_cart'] },
+  'monk':             { b:'monastery', keys:['monk'] },
+  'galley-line':      { b:'dock',      keys:['galley','wargalley','galleon'] },
+  'fire-ship-line':   { b:'dock',      keys:['firegalley','fireship','fastfireship'] },
+  'demo-ship':        { b:'dock',      keys:['demoraft','demoship','heavydemo'] },
+  'hulk-line':        { b:'dock',      keys:['hulk','war_hulk','carrack'] },
+  'cannon-galleon':   { b:'dock',      keys:['cannongalleon','elitecannon','elitecannongalleon'] },
+  'lou-chuan':        { b:'dock',      keys:['lou_chuan'] },
+  'dromon':           { b:'dock',      keys:['dromon'] },
+  'catapult-galleon': { b:'dock',      keys:['catapult_gall'] },
+  'turtle-ship':      { b:'dock',      keys:['turtle_ship'], uuName:'Turtle Ship' },
+  'caravel':          { b:'dock',      keys:['caravel_d'], uuName:'Caravel' },
+  'longboat':         { b:'dock',      keys:['longboat'], uuName:'Longboat' },
+  'thirisadai':       { b:'dock',      keys:['thirisadai'], uuName:'Thirisadai' },
+  'dragon-ship':      { b:'dock',      keys:['dragon_ship'], uuName:'Dragon Ship' },
+  'liao-dao':         { b:'castle',    keys:[], pic:463, uuName:'Liao Dao' },
+  'white-feather-guard':{ b:'castle',  keys:[], pic:434, uuName:'White Feather Guard' },
+};
+QUICK_UNITS.forEach(u => { const m = UNIT_META[u.id] || {}; u.building = m.b || 'castle'; u.keys = m.keys || []; if (m.pic) u.pic = m.pic; if (m.uuName) u.uuName = m.uuName; });
+
+// Nombres completos de las UUs que YA son nodos del grafo (para no duplicar el
+// botón UU dinámico de la civ).
+const STATIC_UU_NAMES = new Set(
+  QUICK_UNITS.filter(u => u.uuName).map(u => u.uuName.toLowerCase()));
+
+// Edificios en orden de despliegue del quickbar.
+const QB_BUILDINGS = [
+  ['barracks','⚔️ Cuartel'], ['archery','🏹 Arquería'], ['stable','🐎 Establo'],
+  ['siege','💣 Asedio'], ['dock','⚓ Muelle'], ['monastery','✝️ Monasterio'],
+  ['castle','🏰 Castillo'],
+];
+
+// Multi-civ: jugador + hasta 7 más (8 total). El filtro es la UNIÓN de unidades
+// construibles por las civs elegidas.
+const MAX_CIVS = 8;
+let selectedCivs = [];          // [{slug, name, civ, loc}] — la 1ª es "el jugador"
+let civUnitFilter = null;       // null = todas; Set de QUICK_UNIT ids disponibles (unión)
 let civFilterName = '';
-let civUniqueUnits = [];        // [{title, treeId, imgUrl}] de la civ elegida
+let civUniqueUnits = [];        // [{title, imgUrl, civ}] UUs de las civs (botones dinámicos)
 let uuCenterImg = '';           // ícono para el nodo central al buscar una UU
+const kindLabel = { generic:'genérica', regional:'regional', unique:'única' };
+
+// ── Datos del árbol tecnológico (fuente de verdad para disponibilidad por civ) ──
+// El grafo Neo4j tiene HAS_UNIQUE_UNIT incompleto; el árbol vendorizado es completo.
+let TT_LOCALE = null;
+async function loadLocale() {
+  if (TT_LOCALE) return TT_LOCALE;
+  try {
+    const t = await fetch('/tree/src/locales/en.js').then(r => r.text());
+    TT_LOCALE = Function(t + '\n;return LOCALE_EN;')();
+  } catch (e) { console.warn('locale load', e); TT_LOCALE = { civs:{}, nodes:{} }; }
+  return TT_LOCALE;
+}
+const civDataCache = {};
+async function loadCivData(slug) {
+  if (slug in civDataCache) return civDataCache[slug];
+  let obj = null;
+  try {
+    const t = await fetch(`/tree/src/data/civ/${slug.toLowerCase()}.js`).then(r => r.text());
+    const m = t.match(/const\s+(\w+)\s*=/);
+    const body = t.replace(/export\s+default\s+\w+\s*;?/g, '').replace(/\bexport\s+/g, '');
+    obj = m ? Function(body + `\n;return ${m[1]};`)() : null;
+  } catch (e) { console.warn('civ data', slug, e); }
+  civDataCache[slug] = obj;
+  return obj;
+}
+
+function qbtnHtml(u, imap) {
+  const src = imap?.[u.imgKey] ? '/tree/' + imap[u.imgKey] : '';
+  const icon = src ? `<img src="${src}" alt="${u.label}">` : `<span class="cg-qbtn-ph">⚔️</span>`;
+  const off = civUnitFilter && !civUnitFilter.has(u.id);
+  const title = off ? `${civFilterName} no tiene ${u.label}` : `${u.label} (${kindLabel[u.kind] || ''})`;
+  return `<button class="cg-qbtn k-${u.kind}" data-uid="${u.id}" ${off ? 'disabled' : ''}
+    onclick="quickSearch('${u.id}')" title="${title}">${icon}<span>${u.label}</span></button>`;
+}
 
 function renderQuickBar() {
   const bar = document.getElementById('cg-quickbar');
   if (!bar) return;
   const imap = (typeof IMG_MAP !== 'undefined' && IMG_MAP) || window.IMG_MAP;
-  const generic = QUICK_UNITS.map(u => {
-    const src = imap?.[u.imgKey] ? '/tree/' + imap[u.imgKey] : '';
-    const icon = src
-      ? `<img src="${src}" alt="${u.label}">`
-      : `<span class="cg-qbtn-ph">⚔️</span>`;
-    const off = civUnitFilter && !civUnitFilter.has(u.id);
-    const title = off ? `${civFilterName} no tiene ${u.label}` : u.label;
-    return `<button class="cg-qbtn" data-uid="${u.id}" ${off ? 'disabled' : ''}
-      onclick="quickSearch('${u.id}')" title="${title}">${icon}<span>${u.label}</span></button>`;
-  });
-  // Unidades únicas de la civ seleccionada (borde dorado)
-  const uu = civUniqueUnits.map((u, i) => {
-    const icon = u.imgUrl
-      ? `<img src="${u.imgUrl}" alt="${esc(u.title)}">`
-      : `<span class="cg-qbtn-ph">⭐</span>`;
-    const short = u.title.length > 12 ? u.title.slice(0,11) + '…' : u.title;
-    return `<button class="cg-qbtn uu" data-uu="${i}" onclick="quickSearchUU(${i})"
-      title="${esc(u.title)} — unidad única de ${esc(civFilterName)}">${icon}<span>${esc(short)}</span></button>`;
-  });
-  bar.innerHTML = generic.concat(uu).join('');
-}
-
-// Ícono de la UU: si la nota tiene tree_id con imagen propia (UUs secundarias:
-// Slinger, Houfnice, Imperial Camel…) se usa esa; si no (UU de castillo), se lee
-// el imgPic del data file vendorizado del árbol (cacheado por civ).
-const civImgPicCache = {};
-async function resolveUUIcons(slug, uus) {
-  const imap = (typeof IMG_MAP !== 'undefined' && IMG_MAP) || window.IMG_MAP;
-  let castleImg = '';
-  const needsCastle = uus.some(u => !u.treeId || u.treeId.includes('uniquetech') || !imap?.[u.treeId]);
-  if (needsCastle) {
-    if (!(slug in civImgPicCache)) {
-      try {
-        const txt = await fetch(`/tree/src/data/civ/${slug.toLowerCase()}.js`).then(r => r.text());
-        const m = txt.match(/"imgPic":\s*(\d+)/);
-        civImgPicCache[slug] = m ? `/tree/img/Unit/${m[1]}.png` : '';
-      } catch { civImgPicCache[slug] = ''; }
-    }
-    castleImg = civImgPicCache[slug];
+  let html = '';
+  for (const [bkey, bname] of QB_BUILDINGS) {
+    const units = QUICK_UNITS.filter(u => u.building === bkey);
+    const dynUU = bkey === 'castle' ? civUniqueUnits : [];
+    if (!units.length && !dynUU.length) continue;
+    let btns = units.map(u => qbtnHtml(u, imap)).join('');
+    // Botones de UU de castillo de la civ que NO son nodos del grafo (Woad Raider…)
+    btns += dynUU.map((u, i) => {
+      const icon = u.imgUrl ? `<img src="${u.imgUrl}" alt="${esc(u.title)}">` : `<span class="cg-qbtn-ph">⭐</span>`;
+      const short = u.title.length > 12 ? u.title.slice(0, 11) + '…' : u.title;
+      return `<button class="cg-qbtn k-unique" data-uu="${i}" onclick="quickSearchUU(${i})"
+        title="${esc(u.title)} — única de ${esc(u.civ || civFilterName)}">${icon}<span>${esc(short)}</span></button>`;
+    }).join('');
+    html += `<div class="cg-qgroup"><div class="cg-qgroup-h">${bname}</div><div class="cg-qrow">${btns}</div></div>`;
   }
-  for (const u of uus) {
-    const own = u.treeId && !u.treeId.includes('uniquetech') && imap?.[u.treeId];
-    u.imgUrl = own ? '/tree/' + imap[u.treeId] : castleImg;
-  }
+  bar.innerHTML = html;
 }
 
 function quickSearchUU(i) {
@@ -641,29 +768,93 @@ function quickSearchUU(i) {
   searchCounterGraph();
 }
 
-async function onCivFilterChange() {
-  const sel = document.getElementById('cg-civ');
-  const slug = sel.value;
-  if (!slug) {
-    civUnitFilter = null; civFilterName = ''; civUniqueUnits = [];
-    renderQuickBar();
-    return;
-  }
-  try {
-    const data = await api(`/api/civ-units?civ=${encodeURIComponent(slug)}`);
-    if (data.error) throw new Error(data.error);
-    civUnitFilter = new Set(data.units);
-    civFilterName = data.civ;
-    civUniqueUnits = data.uniqueUnits || [];
-    await resolveUUIcons(slug, civUniqueUnits);
-  } catch (e) {
-    console.error('civ-units:', e);
-    civUnitFilter = null; civFilterName = ''; civUniqueUnits = [];
-    sel.value = '';
-  }
-  renderQuickBar();
+// Disponibilidad + UUs de UNA civ (datos del árbol). Devuelve {availIds, uus}.
+function civUnitsOf(slug, loc, civ) {
+  const imap = (typeof IMG_MAP !== 'undefined' && IMG_MAP) || window.IMG_MAP || {};
+  const picOf = (p) => { const m = p && p.match(/\/(\d+)\.png/); return m ? +m[1] : null; };
+  const avail = new Set(civ.available || []);
+  const uuPics = new Set();
+  (civ.uniqueUnits || []).forEach(u => {
+    if (u.imgPic != null) uuPics.add(u.imgPic);
+    if (u.eliteImgPic != null) uuPics.add(u.eliteImgPic);
+  });
+  const availIds = QUICK_UNITS
+    .filter(u => u.keys.some(k => avail.has(k)) || (u.pic && uuPics.has(u.pic)))
+    .map(u => u.id);
+  // UUs de castillo. Placeholder "Unique Unit" (DLC) → se resuelve por imgPic en IMG_MAP.
+  // Se excluyen las que ya son nodos estáticos del grafo (por nombre o imgPic).
+  const staticPics = new Set(QUICK_UNITS.filter(u => u.kind === 'unique')
+    .map(u => picOf(imap[u.imgKey])).filter(x => x != null));
+  const picToKey = {};
+  for (const [k, v] of Object.entries(imap)) { const pi = picOf(v); if (pi != null && !(pi in picToKey)) picToKey[pi] = k; }
+  const pretty = (k) => k.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+  const civName = loc.civs?.[slug.toLowerCase()]?.name || slug;
+  const uus = (loc.civs?.[slug.toLowerCase()]?.uniqueUnits || []).map((lu, idx) => {
+    const pic = (civ.uniqueUnits || [])[idx]?.imgPic;
+    let title = lu.name;
+    if ((!title || title === 'Unique Unit') && pic != null && picToKey[pic]) title = pretty(picToKey[pic]);
+    let imgUrl = pic != null ? `/tree/img/Unit/${pic}.png` : '';
+    if (!imgUrl && title) {
+      const nk = title.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/_+$/, '');
+      const cand = imap[nk] || imap[nk.split('_')[0]];
+      if (cand) imgUrl = '/tree/' + cand;
+    }
+    return { title, pic, imgUrl, civ: civName };
+  }).filter(u => u.title && u.title !== 'Unique Unit'
+              && !STATIC_UU_NAMES.has(u.title.toLowerCase())
+              && !(u.pic != null && staticPics.has(u.pic)));
+  return { availIds, uus };
 }
-document.getElementById('cg-civ').onchange = onCivFilterChange;
+
+// Recalcula el filtro como UNIÓN de las civs seleccionadas.
+function recomputeCivFilter() {
+  if (!selectedCivs.length) { civUnitFilter = null; civFilterName = ''; civUniqueUnits = []; return; }
+  const ids = new Set();
+  const uus = []; const seen = new Set();
+  for (const c of selectedCivs) {
+    const { availIds, uus: cu } = civUnitsOf(c.slug, c.loc, c.civ);
+    availIds.forEach(id => ids.add(id));
+    for (const u of cu) { const k = u.title.toLowerCase(); if (!seen.has(k)) { seen.add(k); uus.push(u); } }
+  }
+  civUnitFilter = ids;
+  civUniqueUnits = uus;
+  civFilterName = selectedCivs.map(c => c.name).join(' · ');
+}
+
+function renderCivChips() {
+  const box = document.getElementById('cg-civ-chips');
+  if (!box) return;
+  if (!selectedCivs.length) { box.innerHTML = '<span class="cg-civ-count">Sin civ — se muestran todas las unidades</span>'; return; }
+  box.innerHTML = selectedCivs.map((c, i) =>
+    `<span class="cg-civ-chip${i === 0 ? ' player' : ''}" title="${i === 0 ? 'Tu civ' : 'Civ adicional'}">
+      ${i === 0 ? '★ ' : ''}${esc(c.name)}
+      <button onclick="removeCiv('${c.slug}')" title="Quitar">×</button></span>`
+  ).join('') + `<span class="cg-civ-count">${selectedCivs.length}/${MAX_CIVS}</span>`;
+}
+
+async function addCiv(slug) {
+  if (!slug || selectedCivs.length >= MAX_CIVS || selectedCivs.some(c => c.slug === slug)) return;
+  const [loc, civ] = await Promise.all([loadLocale(), loadCivData(slug)]);
+  if (!civ) return;
+  const name = loc.civs?.[slug.toLowerCase()]?.name || slug;
+  selectedCivs.push({ slug, name, civ, loc });
+  recomputeCivFilter();
+  renderCivChips(); renderQuickBar();
+  if (document.getElementById('counter-input').value.trim()) searchCounterGraph();
+}
+
+function removeCiv(slug) {
+  selectedCivs = selectedCivs.filter(c => c.slug !== slug);
+  recomputeCivFilter();
+  renderCivChips(); renderQuickBar();
+  if (document.getElementById('counter-input').value.trim()) searchCounterGraph();
+}
+
+document.getElementById('cg-civ').onchange = function () {
+  const slug = this.value;
+  this.value = '';                // reset para poder elegir otra
+  if (slug) addCiv(slug);
+};
 
 function quickSearch(unitId) {
   document.querySelectorAll('.cg-qbtn').forEach(b => b.classList.remove('active'));
@@ -700,17 +891,29 @@ async function searchCounterGraph() {
       panel.innerHTML = `<p class="cg-ph">⚠️ ${esc(data.error)}</p>`;
       return;
     }
-    // Con civ seleccionada, solo se pueden ver unidades de esa civ
+    // Con civs elegidas, solo se busca lo construible por alguna de ellas
     if (civUnitFilter && data.unitId && !civUnitFilter.has(data.unitId)) {
-      panel.innerHTML = `<p class="cg-ph">🚫 <b>${esc(civFilterName)}</b> no puede construir
-        <b>${esc(data.heading)}</b>. Elegí otra unidad o cambiá la civ.</p>`;
+      panel.innerHTML = `<p class="cg-ph">🚫 Ninguna de tus civs (<b>${esc(civFilterName)}</b>)
+        puede construir <b>${esc(data.heading)}</b>. Elegí otra unidad o agregá la civ.</p>`;
       return;
     }
-    // Idem para unidades únicas de otra civ
-    if (civUnitFilter && data.uuCivs?.length && !data.uuCivs.includes(civFilterName)) {
+    // Unidad única de otra civ (solo si el grafo Neo4j conoce sus civs)
+    if (selectedCivs.length && data.uuCivs?.length &&
+        !data.uuCivs.some(c => selectedCivs.some(s => s.name === c))) {
       panel.innerHTML = `<p class="cg-ph">🚫 <b>${esc(data.heading)}</b> es unidad única de
-        <b>${esc(data.uuCivs.join(', '))}</b>, no de ${esc(civFilterName)}.</p>`;
+        <b>${esc(data.uuCivs.join(', '))}</b>, ninguna de tus civs.</p>`;
       return;
+    }
+    // Con civs elegidas, el grafo solo muestra unidades posibles para alguna de
+    // ellas: las ÚNICAS no construibles se ocultan (las genéricas/regionales no).
+    if (civUnitFilter) {
+      const kindOf = id => (QUICK_UNITS.find(u => u.id === id) || {}).kind;
+      data.nodes = data.nodes.filter(n =>
+        n.data.type === 'center' ||
+        kindOf(n.data.uid) !== 'unique' ||
+        civUnitFilter.has(n.data.uid));
+      const keep = new Set(data.nodes.map(n => n.data.id));
+      data.edges = data.edges.filter(e => keep.has(e.data.source) && keep.has(e.data.target));
     }
     if (data.notes?.length) {
       notesEl.innerHTML = data.notes.map(n=>`<blockquote>${esc(n)}</blockquote>`).join('');
@@ -730,19 +933,26 @@ async function searchCounterGraph() {
       return { data: d };
     }).concat(data.edges);
 
-    // Posiciones radiales: ángulo distribuido globalmente, radio varía por fuerza
+    // Posiciones: counters (te counterean) en el semicírculo izquierdo;
+    // beats (a quién vencés) en el derecho. Radio por fuerza.
+    const baseType = t => (t || '').replace('beats-', '');
     const rMap = { hard: 150, soft: 240, situational: 330 };
-    const outerOrder = { hard: 0, soft: 1, situational: 2 };
-    const outerNodes = data.nodes
-      .filter(n => n.data.type !== 'center')
-      .sort((a, b) => outerOrder[a.data.type] - outerOrder[b.data.type]);
-    const total = outerNodes.length || 1;
+    const order = { hard: 0, soft: 1, situational: 2 };
+    const sortFn = (a, b) => order[baseType(a.data.type)] - order[baseType(b.data.type)];
+    // Nodos sin `dir` (branch de UU por descripción / fallback) cuentan como counters.
+    const counters = data.nodes.filter(n => n.data.type !== 'center' && n.data.dir !== 'beats').sort(sortFn);
+    const beats    = data.nodes.filter(n => n.data.dir === 'beats').sort(sortFn);
     const pos = { center: { x: 0, y: 0 } };
-    outerNodes.forEach((n, i) => {
-      const r = rMap[n.data.type] || 300;
-      const a = (2 * Math.PI * i / total);
-      pos[n.data.id] = { x: r * Math.cos(a), y: r * Math.sin(a) };
-    });
+    const place = (list, from, to) => {
+      const n = list.length;
+      list.forEach((node, i) => {
+        const r = rMap[baseType(node.data.type)] || 300;
+        const a = n === 1 ? (from + to) / 2 : from + (to - from) * i / (n - 1);
+        pos[node.data.id] = { x: r * Math.cos(a), y: r * Math.sin(a) };
+      });
+    };
+    place(counters, Math.PI / 2 + 0.25, 3 * Math.PI / 2 - 0.25);  // izquierda
+    place(beats,   -Math.PI / 2 + 0.25, Math.PI / 2 - 0.25);       // derecha
 
     cyCtr = cytoscape({
       container: document.getElementById('cy-counters'),
@@ -769,6 +979,16 @@ async function searchCounterGraph() {
         { selector: 'node[type="situational"]', style: {
           'background-color':'#1a2230', 'border-color':'#8b949e', 'width':44, 'height':44,
         }},
+        // Dirección "vence a" (verde): fuerte / levemente fuerte
+        { selector: 'node[type="beats-hard"]', style: {
+          'background-color':'#10301a', 'border-color':'#3fb950', 'width':60, 'height':60,
+        }},
+        { selector: 'node[type="beats-soft"]', style: {
+          'background-color':'#15281d', 'border-color':'#3aa17a', 'width':52, 'height':52,
+        }},
+        { selector: 'node[type="beats-situational"]', style: {
+          'background-color':'#16241f', 'border-color':'#6fa890', 'width':44, 'height':44,
+        }},
         { selector: 'node:selected', style: { 'border-color':'#6baed6', 'border-width':3 }},
         { selector: 'edge', style: {
           'curve-style':'bezier', 'target-arrow-shape':'triangle',
@@ -777,6 +997,9 @@ async function searchCounterGraph() {
         }},
         { selector: 'edge[strength="hard"]',  style: { 'line-color':'#6d1a1a', 'target-arrow-color':'#6d1a1a' }},
         { selector: 'edge[strength="soft"]',  style: { 'line-color':'#5a4a10', 'target-arrow-color':'#5a4a10' }},
+        { selector: 'edge[strength="beats-hard"]', style: { 'line-color':'#1a6d33', 'target-arrow-color':'#1a6d33' }},
+        { selector: 'edge[strength="beats-soft"]', style: { 'line-color':'#155a3a', 'target-arrow-color':'#155a3a' }},
+        { selector: 'edge[strength="beats-situational"]', style: { 'line-color':'#1f3a30', 'target-arrow-color':'#1f3a30' }},
       ],
       layout: {
         name: 'preset',
@@ -795,8 +1018,14 @@ async function searchCounterGraph() {
           <p class="cg-ph" style="margin-top:4px">Nodo central — la unidad buscada.</p>`;
         return;
       }
-      const colors = { hard:'#f85149', soft:'#e8b84b', situational:'#8b949e' };
+      const isBeats = n.data('dir') === 'beats';
+      const colors = isBeats
+        ? { hard:'#3fb950', soft:'#3aa17a', situational:'#6fa890' }
+        : { hard:'#f85149', soft:'#e8b84b', situational:'#8b949e' };
       const strengthOf = w => w >= 0.9 ? 'hard' : w >= 0.65 ? 'soft' : 'situational';
+      const rel = isBeats
+        ? `<div class="cg-weight" style="color:#3fb950">⚔️ <b>${esc(data.heading)}</b> es fuerte contra esta unidad</div>`
+        : `<div class="cg-weight" style="color:#f85149">🛡️ contrarresta a <b>${esc(data.heading)}</b></div>`;
       const ctxs = n.data('contexts') || [{
         context: n.data('context') || 'general', tier: n.data('tier'),
         weight: n.data('weight'), nota: n.data('nota'),
@@ -812,7 +1041,7 @@ async function searchCounterGraph() {
       }).join('');
       panel.innerHTML = `
         <div class="cg-unit-name">${esc(n.data('full'))}</div>
-        ${blocks}`;
+        ${rel}${blocks}`;
     });
     cyCtr.on('tap', evt => {
       if (evt.target === cyCtr)
