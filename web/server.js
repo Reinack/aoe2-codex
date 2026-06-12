@@ -271,7 +271,7 @@ async function matchupCounterEdges(fromIds, toIds) {
             r.weight AS weight, r.strength AS strength,
             r.context AS context, r.notes AS notes
      ORDER BY r.weight DESC, a.label
-     LIMIT 18`,
+     LIMIT 10`,
     { fromIds, toIds },
   );
 }
@@ -296,12 +296,12 @@ app.get("/api/matchup", wrap(async (req, res) => {
     matchupCounterEdges(vsIds, meIds),
     run(
       `MATCH (c:Chunk)
-       WHERE toLower(c.text) CONTAINS toLower($me)
-         AND toLower(c.text) CONTAINS toLower($vs)
+       WHERE (toLower(c.text) CONTAINS toLower($me) OR ANY(a IN $meAliases WHERE toLower(c.text) CONTAINS toLower(a)))
+         AND (toLower(c.text) CONTAINS toLower($vs) OR ANY(a IN $vsAliases WHERE toLower(c.text) CONTAINS toLower(a)))
        RETURN c.note AS note, c.heading AS heading,
               substring(c.text, 0, 420) AS excerpt
        ORDER BY size(c.text) LIMIT 5`,
-      { me: me.title, vs: vs.title },
+      { me: me.title, meAliases: me.aliases || [], vs: vs.title, vsAliases: vs.aliases || [] },
     ),
   ]);
 
