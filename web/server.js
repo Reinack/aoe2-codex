@@ -198,6 +198,170 @@ app.get("/api/civ-units", wrap(async (req, res) => {
 }));
 
 // --- detalle de una civ (kit único + tiers + vecinos) ----------------------
+async function matchupCiv(slug) {
+  const clean = String(slug || "").trim().toLowerCase();
+  if (!/^[a-z0-9_-]+$/.test(clean)) return null;
+  const path = `civs/${clean}.md`;
+  const [base] = await run(
+    `MATCH (c:Civ)
+     WHERE toLower(c.path) = toLower($path)
+     RETURN c.path AS path, c.title AS title, c.aliases AS aliases`,
+    { path },
+  );
+  return base ? { slug: clean, ...base } : null;
+}
+
+async function matchupKit(path) {
+  const units = await run(
+    `MATCH (:Civ {path:$path})-[:HAS_UNIQUE_UNIT]->(u)
+     WHERE NOT u.title STARTS WITH 'Elite'
+     RETURN u.title AS title, u.path AS path, u.tree_id AS treeId
+     ORDER BY u.title`,
+    { path },
+  );
+  const techs = await run(
+    `MATCH (:Civ {path:$path})-[:HAS_UNIQUE_TECH]->(t)
+     RETURN t.title AS title, t.path AS path, t.tree_id AS treeId
+     ORDER BY t.title`,
+    { path },
+  );
+  const tiers = await run(
+    `MATCH (:Civ {path:$path})-[r:RATED]->(tl:TierList)
+     RETURN tl.name AS list, r.tier AS tier
+     ORDER BY tl.name`,
+    { path },
+  );
+  return { uniqueUnits: units, uniqueTechs: techs, tiers };
+}
+
+async function matchupLines(path) {
+  const allIds = [...new Set(Object.values(LINE_MEMBERS).flat())];
+  const rows = await run(
+    `MATCH (:Civ {path:$path})-[:HAS_UNIT]->(u)
+     WHERE u.tree_id IN $ids
+     RETURN DISTINCT u.tree_id AS id`,
+    { path, ids: allIds },
+  );
+  const have = new Set(rows.map((r) => r.id));
+  const lineIds = Object.entries(LINE_MEMBERS)
+    .filter(([, members]) => members.some((m) => have.has(m)))
+    .map(([line]) => line);
+  if (!lineIds.length) return [];
+  const labels = await run(
+    `MATCH (u:Unit)
+     WHERE u.id IN $ids
+     RETURN u.id AS id, u.label AS label, u.img_key AS imgKey`,
+    { ids: lineIds },
+  );
+  const byId = new Map(labels.map((r) => [r.id, r]));
+  return lineIds.map((id) => ({
+    id,
+    label: byId.get(id)?.label || id.replace(/-/g, " "),
+    imgKey: byId.get(id)?.imgKey || "",
+  }));
+}
+
+async function matchupCounterEdges(fromIds, toIds) {
+  if (!fromIds.length || !toIds.length) return [];
+  return run(
+    `MATCH (a:Unit)-[r:COUNTERS]->(b:Unit)
+     WHERE a.id IN $fromIds AND b.id IN $toIds
+     RETURN a.id AS fromId, a.label AS from, a.img_key AS fromImg,
+            b.id AS toId, b.label AS target, b.img_key AS targetImg,
+            r.weight AS weight, r.strength AS strength,
+            r.context AS context, r.notes AS notes
+     ORDER BY r.weight DESC, a.label
+     LIMIT 10`,
+    { fromIds, toIds },
+  );
+}
+
+// --- matchup lab: civ vs civ briefing from graph data ----------------------
+app.get("/api/matchup", wrap(async (req, res) => {
+  const me = await matchupCiv(req.query.me);
+  const vs = await matchupCiv(req.query.vs);
+  if (!me || !vs) return res.status(404).json({ error: "civilizacion no encontrada" });
+  if (me.slug === vs.slug) return res.status(400).json({ error: "elegi dos civilizaciones distintas" });
+
+  const [meKit, vsKit, meLines, vsLines] = await Promise.all([
+    matchupKit(me.path),
+    matchupKit(vs.path),
+    matchupLines(me.path),
+    matchupLines(vs.path),
+  ]);
+  const meIds = meLines.map((x) => x.id);
+  const vsIds = vsLines.map((x) => x.id);
+  const [answers, threats, sharedNotes] = await Promise.all([
+    matchupCounterEdges(meIds, vsIds),
+    matchupCounterEdges(vsIds, meIds),
+    run(
+      `MATCH (c:Chunk)
+       WHERE (toLower(c.text) CONTAINS toLower($me) OR ANY(a IN $meAliases WHERE toLower(c.text) CONTAINS toLower(a)))
+         AND (toLower(c.text) CONTAINS toLower($vs) OR ANY(a IN $vsAliases WHERE toLower(c.text) CONTAINS toLower(a)))
+       RETURN c.note AS note, c.heading AS heading,
+              substring(c.text, 0, 420) AS excerpt
+       ORDER BY size(c.text) LIMIT 5`,
+      { me: me.title, meAliases: me.aliases || [], vs: vs.title, vsAliases: vs.aliases || [] },
+    ),
+  ]);
+
+  const plan = [];
+
+  // Apertura: siempre mencionar las mejores lineas disponibles
+  if (meLines.length) {
+    plan.push(`Apertura: tus lineas mas solidas son ${meLines.slice(0, 3).map((x) => x.label).join(", ")}.`);
+  }
+
+  // Counter principal: distinguir fuerte (>=0.8) de moderado
+  const strongAnswers = answers.filter((a) => (a.weight || 0) >= 0.8);
+  const modAnswers = answers.filter((a) => (a.weight || 0) < 0.8 && (a.weight || 0) >= 0.5);
+  if (strongAnswers.length) {
+    const extras = strongAnswers.length > 1 ? ` (${strongAnswers.length} counters fuertes disponibles)` : "";
+    plan.push(`Counter fuerte: ${strongAnswers[0].from} aplasta ${strongAnswers[0].target}${extras}.`);
+  } else if (modAnswers.length) {
+    plan.push(`Counter moderado: ${modAnswers[0].from} vs ${modAnswers[0].target} — funciona con micro.`);
+  } else if (!answers.length && meLines.length) {
+    plan.push(`Sin counters directos curados — juga con las lineas disponibles y adapta en partida.`);
+  }
+
+  // Amenaza del rival: distinguir fuerte de moderada
+  const strongThreats = threats.filter((t) => (t.weight || 0) >= 0.8);
+  if (strongThreats.length) {
+    plan.push(`Amenaza critica del rival: ${strongThreats[0].from} destruye tus ${strongThreats[0].target} — respeta esto.`);
+  } else if (threats.length) {
+    plan.push(`Cuidado con ${threats[0].from} del rival contra tus ${threats[0].target}.`);
+  }
+
+  // UU con timing de Castle Age
+  if (meKit.uniqueUnits.length) {
+    const uu = meKit.uniqueUnits[0].title;
+    plan.push(`Tu UU (${uu}) entra en Castle Age — construi hacia eso si el matchup lo permite.`);
+  }
+
+  // Techs unicas como linea separada
+  if (meKit.uniqueTechs.length) {
+    const ut = meKit.uniqueTechs.slice(0, 2).map((x) => x.title).join(" y ");
+    plan.push(`Techs unicas clave: ${ut}.`);
+  }
+
+  // Comparacion de tier Arabia si difieren
+  const meTier = meKit.tiers.find((t) => t.list.toLowerCase().includes("arabia"));
+  const vsTier = vsKit.tiers.find((t) => t.list.toLowerCase().includes("arabia"));
+  if (meTier && vsTier && meTier.tier !== vsTier.tier) {
+    plan.push(`Tier Arabia: vos (${meTier.tier}) vs rival (${vsTier.tier}) — ajusta la agresividad en consecuencia.`);
+  }
+
+  res.json({
+    me,
+    vs,
+    kits: { me: meKit, vs: vsKit },
+    lines: { me: meLines, vs: vsLines },
+    counters: { answers, threats },
+    sharedNotes,
+    plan,
+  });
+}));
+
 app.get("/api/civ/:slug", wrap(async (req, res) => {
   const path = `civs/${req.params.slug}.md`;
   const [base] = await run(
@@ -238,7 +402,8 @@ app.get("/api/graph", wrap(async (req, res) => {
   const path = (req.query.path || "").trim();
   if (!path) return res.status(400).json({ error: "falta ?path=" });
   const rows = await run(
-    `MATCH (c:Note {path:$path})-[r]-(m:Note)
+    `MATCH (c:Note)-[r]-(m:Note)
+     WHERE toLower(c.path) = toLower($path)
      RETURN c.path AS src, c.title AS srcTitle, c.type AS srcType,
             m.path AS dst, m.title AS dstTitle, m.type AS dstType,
             type(r) AS rel LIMIT 80`, { path });

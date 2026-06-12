@@ -72,6 +72,8 @@ langSelect.addEventListener('change', () => {
 
 civSelect.addEventListener('change', () => {
   currentCiv = civSelect.value;
+  const fsBtn = document.getElementById('open-fullscreen');
+  if (fsBtn) fsBtn.href = '/tree/?civ=' + encodeURIComponent(currentCiv);
 
   // Reset ally team when main civ changes
   simTeamCivs  = [];
@@ -450,6 +452,12 @@ function toggleView() {
 // ═══════════════════════════════════════════════════════════
 // INIT
 // ═══════════════════════════════════════════════════════════
+
+// Pre-selección desde URL param (?civ=franks) — funciona tanto en standalone como en iframe
+const _urlCiv = new URLSearchParams(location.search).get('civ')?.toLowerCase();
+if (_urlCiv && typeof CIVS !== 'undefined' && CIVS[_urlCiv]) {
+  civSelect.value = _urlCiv;
+}
 
 // Trigger initial info render
 civSelect.dispatchEvent(new Event('change'));
