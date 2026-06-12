@@ -276,6 +276,94 @@ async function matchupCounterEdges(fromIds, toIds) {
   );
 }
 
+// Buscador de huecos: una linea propia es un EXPLOIT cuando el rival no tiene
+// acceso a sus counters. Pregunta invertida vs matchupCounterEdges: aca miramos
+// los COUNTERS *entrantes* a cada linea mia y vemos cuales le faltan al rival.
+async function matchupExploits(meLines, vsLines) {
+  const meIds = meLines.map((x) => x.id);
+  if (!meIds.length) return { lines: [], combos: [] };
+  const vsHas = new Set(vsLines.map((x) => x.id));
+  const meLabels = new Map(meLines.map((x) => [x.id, x.label]));
+
+  const rows = await run(
+    `MATCH (counter:Unit)-[r:COUNTERS]->(mine:Unit)
+     WHERE mine.id IN $meIds
+     RETURN mine.id AS lineId, mine.label AS lineLabel,
+            counter.id AS counterId, counter.label AS counterLabel,
+            r.weight AS weight, r.context AS context`,
+    { meIds },
+  );
+
+  // Agrupar por linea propia, separando gaps (rival NO tiene) de risks (rival SI).
+  const byLine = new Map();
+  for (const r of rows) {
+    if (!byLine.has(r.lineId)) {
+      byLine.set(r.lineId, { id: r.lineId, label: r.lineLabel, gaps: [], risks: [] });
+    }
+    const slot = vsHas.has(r.counterId) ? "risks" : "gaps";
+    byLine.get(r.lineId)[slot].push({
+      id: r.counterId, label: r.counterLabel,
+      weight: r.weight || 0, context: r.context || "general",
+    });
+  }
+
+  // Una linea propia sin counters curados igual es jugable: la incluimos como
+  // exploit "limpio" si no aparece en byLine (nadie la counterea en el grafo).
+  for (const l of meLines) {
+    if (!byLine.has(l.id)) byLine.set(l.id, { id: l.id, label: l.label, gaps: [], risks: [] });
+  }
+
+  const lines = [...byLine.values()].map((l) => {
+    const primaryRisk = l.risks.some((r) => r.weight >= 1.0);
+    const solidRisk = l.risks.some((r) => r.weight >= 0.7 && r.weight < 1.0);
+    const status = primaryRisk ? "red" : solidRisk ? "yellow" : "green";
+    return { ...l, status };
+  });
+
+  // Orden: verde > amarillo > rojo; dentro, menos risks primero.
+  const rank = { green: 0, yellow: 1, red: 2 };
+  lines.sort((a, b) => rank[a.status] - rank[b.status] || a.risks.length - b.risks.length);
+
+  // Fase 2 — combos: por cada linea explotable con riesgo residual R, buscar otra
+  // linea propia que countere a R (edge COUNTERS saliente). Si existe, es sinergia.
+  const exploitable = lines.filter((l) => l.status !== "red");
+  const combos = [];
+  if (exploitable.length) {
+    const riskIds = [...new Set(exploitable.flatMap((l) => l.risks.map((r) => r.id)))];
+    let coverRows = [];
+    if (riskIds.length) {
+      coverRows = await run(
+        `MATCH (mine:Unit)-[r:COUNTERS]->(risk:Unit)
+         WHERE mine.id IN $meIds AND risk.id IN $riskIds
+         RETURN mine.id AS coverId, risk.id AS riskId, r.weight AS weight`,
+        { meIds, riskIds },
+      );
+    }
+    const coverByRisk = new Map();
+    for (const c of coverRows) {
+      if (!coverByRisk.has(c.riskId)) coverByRisk.set(c.riskId, []);
+      coverByRisk.get(c.riskId).push({ id: c.coverId, weight: c.weight || 0 });
+    }
+    for (const base of exploitable) {
+      for (const risk of base.risks) {
+        const covers = (coverByRisk.get(risk.id) || []).filter((c) => c.id !== base.id);
+        if (!covers.length) continue;
+        covers.sort((a, b) => b.weight - a.weight);
+        const partner = covers[0];
+        combos.push({
+          base: base.label,
+          partner: meLabels.get(partner.id) || partner.id,
+          covers: risk.label,
+        });
+        break; // un combo por linea base alcanza
+      }
+      if (combos.length >= 3) break;
+    }
+  }
+
+  return { lines: lines.slice(0, 6), combos };
+}
+
 // --- matchup lab: civ vs civ briefing from graph data ----------------------
 app.get("/api/matchup", wrap(async (req, res) => {
   const me = await matchupCiv(req.query.me);
@@ -291,9 +379,10 @@ app.get("/api/matchup", wrap(async (req, res) => {
   ]);
   const meIds = meLines.map((x) => x.id);
   const vsIds = vsLines.map((x) => x.id);
-  const [answers, threats, sharedNotes] = await Promise.all([
+  const [answers, threats, exploits, sharedNotes] = await Promise.all([
     matchupCounterEdges(meIds, vsIds),
     matchupCounterEdges(vsIds, meIds),
+    matchupExploits(meLines, vsLines),
     run(
       `MATCH (c:Chunk)
        WHERE (toLower(c.text) CONTAINS toLower($me) OR ANY(a IN $meAliases WHERE toLower(c.text) CONTAINS toLower(a)))
@@ -332,6 +421,13 @@ app.get("/api/matchup", wrap(async (req, res) => {
     plan.push(`Cuidado con ${threats[0].from} del rival contra tus ${threats[0].target}.`);
   }
 
+  // Hueco principal: la linea propia que el rival no puede contestar
+  const topExploit = exploits.lines.find((l) => l.status === "green" && l.gaps.length);
+  if (topExploit) {
+    const missing = topExploit.gaps.slice(0, 2).map((g) => g.label).join(", ");
+    plan.push(`Hueco explotable: ${topExploit.label} — al rival le faltan sus counters (${missing}).`);
+  }
+
   // UU con timing de Castle Age
   if (meKit.uniqueUnits.length) {
     const uu = meKit.uniqueUnits[0].title;
@@ -357,6 +453,7 @@ app.get("/api/matchup", wrap(async (req, res) => {
     kits: { me: meKit, vs: vsKit },
     lines: { me: meLines, vs: vsLines },
     counters: { answers, threats },
+    exploits,
     sharedNotes,
     plan,
   });
