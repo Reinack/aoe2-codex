@@ -40,6 +40,27 @@ UNIT_IMG_KEYS: dict[str, str] = {
     "fire-ship-line":   "fireship",
     "demo-ship":        "demoship",
     "hulk-line":        "hulk",
+    # Naval — naves de largo alcance + barcos únicos
+    "cannon-galleon":   "cannongalleon",
+    "lou-chuan":        "lou_chuan",
+    "dromon":           "dromon",
+    "catapult-galleon": "catapult_gall",
+    "turtle-ship":      "turtle_ship",
+    "caravel":          "caravel_d",
+    "longboat":         "longboat",
+    "thirisadai":       "thirisadai",
+    "dragon-ship":      "dragon_ship",
+    # Regionales chinas
+    "fire-lancer":      "fire_lancer",
+    "hei-guang-cavalry": "hei_guang",
+    "rocket-cart":      "rocket_cart",
+    "liao-dao":         "liao_dao",
+    "white-feather-guard": "white_feather",
+    "jian-swordsman":   "jian_swordsman",
+    "xianbei-raider":   "xianbei_raider",
+    # Regionales sudamericanas
+    "champi-line":      "champiwarrior",
+    "slinger":          "slinger",
 }
 
 

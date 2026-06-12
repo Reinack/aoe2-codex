@@ -109,7 +109,17 @@ const LINE_MEMBERS = {
   "galley-line":     ["galley", "wargalley", "galleon"],
   "fire-ship-line":  ["firegalley", "fireship", "fastfireship"],
   "demo-ship":       ["demoraft", "demoship", "heavydemo"],
-  "hulk-line":       ["hulk", "war_hulk"],
+  "hulk-line":       ["hulk", "war_hulk", "carrack"],
+  // Naval de largo alcance + regionales (post-overhaul / DLC)
+  "cannon-galleon":  ["cannongalleon", "elitecannon", "elitecannongalleon"],
+  "lou-chuan":       ["lou_chuan"],
+  "dromon":          ["dromon"],
+  "catapult-galleon":["catapult_gall"],
+  "fire-lancer":     ["fire_lancer", "elite_fire_lancer"],
+  "hei-guang-cavalry":["hei_guang", "heavy_hei_guang"],
+  "rocket-cart":     ["rocket_cart", "heavy_rocket_cart"],
+  "champi-line":     ["champirunner", "champiscout", "champiwarrior", "elitechampi"],
+  "slinger":         ["slinger"],
 };
 
 // Clases de las descripciones in-game ("Weak vs. Cavalry and Archery Units") →
@@ -383,45 +393,65 @@ app.get("/api/counter-graph", wrap(async (req, res) => {
       { id: target.id },
     );
 
-    const strengthOf = (w) => w >= 0.9 ? 'hard' : w >= 0.65 ? 'soft' : 'situational';
+    // Dirección opuesta: a quién VENCE la unidad seleccionada (fuerte / levemente fuerte)
+    const beatsRows = await run(
+      `MATCH (t:Unit {id: $id})-[r:COUNTERS]->(victim:Unit)
+       RETURN victim.id AS cid, victim.label AS clabel, victim.img_key AS cimg,
+              r.weight AS weight, r.strength AS strength,
+              r.context AS context, r.notes AS notes
+       ORDER BY r.weight DESC`,
+      { id: target.id },
+    );
 
-    // Una misma unidad puede counterar con varios edges (contextos distintos):
-    // agrupar por unidad para no duplicar nodos, y emitir un edge por contexto.
-    const byUnit = new Map();
-    for (const r of counterRows) {
-      if (!byUnit.has(r.cid)) byUnit.set(r.cid, []);
-      byUnit.get(r.cid).push(r);
-    }
+    const strengthOf = (w) => w >= 0.9 ? 'hard' : w >= 0.65 ? 'soft' : 'situational';
 
     const nodes = [
       { data: { id: 'center', label: target.label, full: target.label,
                 type: 'center', imgKey: target.img_key || '' } },
     ];
     const edges = [];
-    let i = 0;
-    for (const rows of byUnit.values()) {
-      const best = rows[0];                      // ORDER BY weight DESC → el más fuerte primero
-      const w = Number(best.weight);
-      const nodeId = `c${i}`;
-      nodes.push({ data: {
-        id: nodeId, label: best.clabel, full: best.clabel,
-        type: strengthOf(w), tier: best.strength, nota: best.notes || '',
-        weight: w, context: best.context || 'general',
-        contexts: rows.map(r => ({
-          context: r.context || 'general', tier: r.strength,
-          weight: Number(r.weight), nota: r.notes || '',
-        })),
-        imgKey: best.cimg || '',
-      } });
-      rows.forEach((r, j) => {
-        const rw = Number(r.weight);
-        edges.push({ data: {
-          id: `e${i}_${j}`, source: nodeId, target: 'center',
-          weight: rw, strength: strengthOf(rw), context: r.context || 'general',
+
+    // Agrupa edges por unidad (varios contextos → un solo nodo) y los emite.
+    // dir='counter' (entrante, te counterea) | 'beats' (saliente, la vencés).
+    const emit = (rows, dir, prefix) => {
+      const byUnit = new Map();
+      for (const r of rows) {
+        if (!byUnit.has(r.cid)) byUnit.set(r.cid, []);
+        byUnit.get(r.cid).push(r);
+      }
+      let i = 0;
+      for (const grp of byUnit.values()) {
+        const best = grp[0];                       // ORDER BY weight DESC → más fuerte primero
+        const w = Number(best.weight);
+        const base = strengthOf(w);
+        const nodeId = `${prefix}${i}`;
+        nodes.push({ data: {
+          id: nodeId, uid: best.cid, label: best.clabel, full: best.clabel,
+          type: dir === 'beats' ? `beats-${base}` : base,
+          dir, tier: best.strength, nota: best.notes || '',
+          weight: w, context: best.context || 'general',
+          contexts: grp.map(r => ({
+            context: r.context || 'general', tier: r.strength,
+            weight: Number(r.weight), nota: r.notes || '',
+          })),
+          imgKey: best.cimg || '',
         } });
-      });
-      i++;
-    }
+        grp.forEach((r, j) => {
+          const rw = Number(r.weight);
+          const eStrength = dir === 'beats' ? `beats-${strengthOf(rw)}` : strengthOf(rw);
+          edges.push({ data: {
+            id: `${prefix}e${i}_${j}`,
+            source: dir === 'beats' ? 'center' : nodeId,
+            target: dir === 'beats' ? nodeId : 'center',
+            weight: rw, strength: eStrength, dir, context: r.context || 'general',
+          } });
+        });
+        i++;
+      }
+    };
+    emit(counterRows, 'counter', 'c');
+    emit(beatsRows, 'beats', 'b');
+
     return res.json({ heading: target.label, unitId: target.id, nodes, edges, notes: [], source: 'graph' });
   }
 

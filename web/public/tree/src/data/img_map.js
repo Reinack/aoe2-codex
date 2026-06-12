@@ -54,6 +54,8 @@ const IMG_MAP = {
   'elite_fire_lancer': 'img/Unit/458.png',
   'flemish_militia': 'img/Unit/354.png',
   'jian_swordsman': 'img/Unit/437.png',
+  'liao_dao': 'img/Unit/463.png',
+  'white_feather': 'img/Unit/434.png',
   'temple_guard': 'img/Unit/553.png',
   'ibirapema': 'img/Unit/551.png',
   'huskarl_b': 'img/Unit/50.png',
