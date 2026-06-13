@@ -299,6 +299,10 @@
   .mu-combo-canonical { background:#111820; border-radius:6px; padding:8px 11px; margin:6px 0; border-left:3px solid var(--gold); }
   .mu-combo-name { font-size:13px; margin-bottom:4px; }
   .mu-combo-why { font-size:12px; color:var(--dim); line-height:1.5; }
+  .mu-bonus { font-size:10px; font-weight:600; border-radius:3px; padding:1px 5px; margin-left:6px; vertical-align:middle; }
+  .mu-bonus-propio { color:#ffd700; background:rgba(255,215,0,.13); }
+  .mu-bonus-ajeno  { color:#f85149; background:rgba(248,81,73,.13); }
+  .mu-eco-summary  { font-size:10px; color:#8b949e; padding:4px 0 0; border-top:1px solid #30363d; margin-top:6px; }
   .mu-composition { background:#0d1117; border:1px solid var(--line); border-radius:8px; padding:10px 14px; margin-bottom:12px; }
   .mu-comp-title { font-size:11px; text-transform:uppercase; letter-spacing:.5px; color:var(--dim); margin-bottom:8px; }
   .mu-comp-slots { display:flex; gap:10px; flex-wrap:wrap; }
@@ -614,7 +618,10 @@ function lineChip(line) {
   const imap = (typeof IMG_MAP !== 'undefined' && IMG_MAP) || window.IMG_MAP;
   const src = line.imgKey && imap?.[line.imgKey] ? '/tree/' + imap[line.imgKey] : '';
   const img = src ? `<img src="${src}" alt="" onerror="this.style.display='none'">` : '';
-  return `<span class="mu-line">${img}${esc(line.label)}</span>`;
+  const bonus = line.bonus?.labels?.length
+    ? `<span class="mu-bonus mu-bonus-${line.bonus.tag}">${line.bonus.tag === 'propio' ? '★' : '⚠'} ${esc(line.bonus.labels.join(' · '))}</span>`
+    : '';
+  return `<span class="mu-line">${img}${esc(line.label)}${bonus}</span>`;
 }
 
 function edgeRows(rows, empty) {
@@ -646,16 +653,27 @@ function exploitRows(ex) {
   let compHtml = '';
   if (ex.composition && (ex.composition.gold || ex.composition.trash || ex.composition.siege)) {
     const c = ex.composition;
-    const slot = (role, line, icon) => line
-      ? `<div class="mu-comp-slot mu-comp-${role}"><span class="mu-comp-icon">${icon}</span><b>${esc(typeof line === 'string' ? line : line.label)}</b><span class="mu-comp-role">${role}</span></div>`
-      : '';
+    const bonusBadge = (b) => b?.labels?.length
+      ? `<span class="mu-bonus mu-bonus-propio">★ ${esc(b.labels.join(' · '))}</span>` : '';
+    const slot = (role, line, bonus, icon) => line
+      ? `<div class="mu-comp-slot mu-comp-${role}">
+           <span class="mu-comp-icon">${icon}</span>
+           <b>${esc(typeof line === 'string' ? line : line.label)}</b>
+           ${bonusBadge(bonus)}
+           <span class="mu-comp-role">${role}</span>
+         </div>` : '';
+    // Eco summary: recoger bonuses eco de todas las líneas del exploit
+    const ecoItems = [...new Set((ex.lines || []).flatMap((l) => l.eco || []))];
+    const ecoHtml = ecoItems.length
+      ? `<div class="mu-eco-summary">Eco: ${esc(ecoItems.join(' · '))}</div>` : '';
     compHtml = `<div class="mu-composition">
       <div class="mu-comp-title">Composicion recomendada (gold + trash + siege)</div>
       <div class="mu-comp-slots">
-        ${slot('gold', c.gold, '⚔️')}
-        ${slot('trash', c.trash, '🛡️')}
-        ${slot('siege', c.siege, '💥')}
+        ${slot('gold', c.gold, c.goldBonus, '⚔️')}
+        ${slot('trash', c.trash, c.trashBonus, '🛡️')}
+        ${slot('siege', c.siege, null, '💥')}
       </div>
+      ${ecoHtml}
     </div>`;
   }
 
@@ -668,8 +686,11 @@ function exploitRows(ex) {
       ? `<span class="mu-risk">⚠ ojo: tiene ${esc(l.risks.map(r => r.label).join(", "))}</span>`
       : '';
     const role = l.role ? `<span class="mu-comp-role">${esc(l.role)}</span>` : '';
+    const bonus = l.bonus?.labels?.length
+      ? `<span class="mu-bonus mu-bonus-${l.bonus.tag}">${l.bonus.tag === 'propio' ? '★' : '⚠'} ${esc(l.bonus.labels.join(' · '))}</span>`
+      : '';
     return `<div class="mu-exploit mu-exploit-${l.status}">
-      <div class="mu-exploit-head">${dot[l.status] || '⚪'} <b>${esc(l.label)}</b>${role}</div>
+      <div class="mu-exploit-head">${dot[l.status] || '⚪'} <b>${esc(l.label)}</b>${role}${bonus}</div>
       <div class="mu-exploit-body">${gaps}${risks}</div>
     </div>`;
   }).join("");

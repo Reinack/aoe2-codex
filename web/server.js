@@ -107,6 +107,74 @@ const CIV_AVAILABLE = (() => {
   return map;
 })();
 
+// Mapeo scope de bonus (civ JS) → line IDs del counter graph.
+// "barracks"/"stable"/"archery" mapean a las líneas que producen esos edificios.
+// "_eco" es un sentinel: esos bonuses se muestran como contexto de eco, no como
+// fortaleza de unidad.
+const SCOPE_TO_LINES = {
+  "cavalry":              ["knight-line", "steppe-lancer", "camel-line"],
+  "cavalry_no_camel":     ["knight-line", "steppe-lancer"],
+  "camel":                ["camel-line"],
+  "foot_archer":          ["archer-line"],
+  "foot_archer_no_skirm": ["archer-line"],
+  "light_cavalry":        ["scout-line"],
+  "cavalry_archer":       ["cavalry-archer"],
+  "infantry":             ["militia-line", "eagle-warrior"],
+  "skirmisher":           ["skirmisher-line"],
+  "elephant":             ["battle-elephant"],
+  "monk":                 ["monk"],
+  "mangonel":             ["mangonel-line"],
+  "barracks":             ["militia-line", "spearman-line", "eagle-warrior"],
+  "stable":               ["knight-line", "scout-line", "camel-line", "cavalry-archer"],
+  "archery":              ["archer-line", "skirmisher-line", "cavalry-archer"],
+  // scope global: aplica a todas las líneas de combate (Aztecs, Persians TC, etc.)
+  "military_unit":        ["knight-line", "archer-line", "militia-line", "skirmisher-line",
+                           "spearman-line", "scout-line", "camel-line", "cavalry-archer", "monk"],
+  "tc":      ["_eco"], "mill":    ["_eco"], "forager": ["_eco"], "hunter": ["_eco"],
+};
+
+// Extrae el array "bonuses" de un archivo JS de civ usando bracket counting.
+// El regex simple falla para civs con "teamBonus" entre "bonuses" y "available".
+function extractBonusesArray(code) {
+  const keyIdx = code.indexOf('"bonuses"');
+  if (keyIdx === -1) return null;
+  const arrStart = code.indexOf("[", keyIdx);
+  if (arrStart === -1) return null;
+  let depth = 0;
+  for (let i = arrStart; i < code.length; i++) {
+    const c = code[i];
+    if (c === "[" || c === "{") depth++;
+    else if (c === "]" || c === "}") { depth--; if (depth === 0) return code.slice(arrStart, i + 1); }
+  }
+  return null;
+}
+
+// Bonuses de cada civ precargados al inicio (slug → array de bonuses relevantes).
+// Parsea el bloque "bonuses" de cada archivo JS del árbol; filtra por tipos y scopes
+// que SCOPE_TO_LINES reconoce.
+const CIV_BONUSES = (() => {
+  const civDir = join(__dirname, "public/tree/src/data/civ");
+  const map = new Map();
+  const RELEVANT = new Set(["stat_modifier", "building_work_speed", "cost_modifier", "creation_speed"]);
+  try {
+    for (const file of readdirSync(civDir).filter((f) => f.endsWith(".js"))) {
+      const slug = file.replace(".js", "");
+      const code = readFileSync(join(civDir, file), "utf8");
+      const raw = extractBonusesArray(code);
+      if (!raw) continue;
+      try {
+        const clean = raw.replace(/\/\/[^\n]*/g, "").replace(/,(\s*[\]}])/g, "$1");
+        const all = JSON.parse(clean);
+        const kept = all.filter((b) => RELEVANT.has(b.type) && b.scope && SCOPE_TO_LINES[b.scope]);
+        if (kept.length) map.set(slug, kept);
+      } catch {}
+    }
+  } catch (e) {
+    console.error("[CIV_BONUSES] Error al cargar bonuses:", e.message);
+  }
+  return map;
+})();
+
 // (p.ej. Franks sin Arbalester igual tienen archer-line por Archer/Crossbowman).
 const LINE_MEMBERS = {
   "archer-line":     ["archer", "crossbow", "arbalester"],
@@ -148,9 +216,9 @@ const LINE_MEMBERS = {
 // de 3 Unidades"): oro (power unit, cuesta oro), trash (sin oro, protege al oro
 // de su counter) y asedio (rompe edificios y ranged apilados). Default = oro.
 const LINE_ROLE = {
-  // trash: sin costo de oro, protege a la unidad de oro de su counter
+  // trash: sin costo de oro ni piedra
   "skirmisher-line": "trash", "spearman-line": "trash", "scout-line": "trash",
-  "eagle-warrior": "trash",      // equivalente al hussar en civs mesoamericanas
+  "eagle-warrior": "trash",   "slinger": "trash",
   // siege: rompe edificios y unidades ranged apiladas
   "mangonel-line": "siege", "scorpion-line": "siege", "ram-line": "siege",
   "bombard-cannon": "siege", "siege-elephant": "siege", "rocket-cart": "siege",
@@ -159,6 +227,37 @@ const LINE_ROLE = {
   "monk": "support",
 };
 const lineRole = (id) => LINE_ROLE[id] || "gold";
+
+// Genera etiquetas de bonus para una línea de unidades dada la civ.
+// Retorna { labels: string[], eco: string[] }:
+//   labels → bonuses que fortalecen directamente esa línea (stat, costo, velocidad)
+//   eco    → bonuses de eco relacionados (contexto, no afectan el semáforo)
+function civLineBonuses(civSlug, lineId) {
+  const bonuses = CIV_BONUSES.get(civSlug) || [];
+  const labels = [], eco = [];
+  for (const b of bonuses) {
+    const targets = SCOPE_TO_LINES[b.scope] || [];
+    const isEco = targets.includes("_eco");
+    if (!targets.includes(lineId) && !isEco) continue;
+    const v = Array.isArray(b.value_by_age) ? b.value_by_age[3] : (b.value ?? 1);
+    let lbl = null;
+    if (b.type === "stat_modifier" && ["hp", "attack", "range", "rof"].includes(b.stat)) {
+      const pct = b.op === "multiply" ? `${Math.round((v - 1) * 100)}%` : `+${v}`;
+      lbl = `${b.stat} ${pct}`;
+    } else if (b.type === "building_work_speed" && !isEco) {
+      lbl = `entrena ${Math.round((v - 1) * 100)}% más rápido`;
+    } else if (b.type === "creation_speed") {
+      // value < 1 means faster: 0.85 = 15% más rápido
+      lbl = `entrena ${Math.round((1 - v) * 100)}% más rápido`;
+    } else if (b.type === "cost_modifier") {
+      lbl = `costo -${Math.round((1 - v) * 100)}%`;
+    } else if (isEco) {
+      eco.push(b.type === "building_work_speed" ? `${b.scope} +vel` : b.type);
+    }
+    if (lbl) labels.push(lbl);
+  }
+  return { labels, eco };
+}
 
 // Lineas navales: solo relevantes en mapas de agua (military.md confirma que el
 // naval es map-dependent). Se filtran en mapas terrestres.
@@ -392,11 +491,19 @@ async function matchupExploits(meLines, vsLines, { map } = {}) {
     if (!byLine.has(l.id)) byLine.set(l.id, { id: l.id, label: l.label, gaps: [], risks: [] });
   }
 
+  // Preservar bonus/eco que vienen de la civ (enriquecidos antes de llamar esta fn).
+  const bonusByLineId = new Map(myLines.filter((l) => l.bonus).map((l) => [l.id, l.bonus]));
+  const ecoByLineId = new Map(myLines.filter((l) => l.eco?.length).map((l) => [l.id, l.eco]));
+
   const lines = [...byLine.values()].map((l) => {
     const primaryRisk = l.risks.some((r) => r.weight >= 1.0);
     const solidRisk = l.risks.some((r) => r.weight >= 0.7 && r.weight < 1.0);
     const status = primaryRisk ? "red" : solidRisk ? "yellow" : "green";
-    return { ...l, role: lineRole(l.id), status };
+    return {
+      ...l, role: lineRole(l.id), status,
+      bonus: bonusByLineId.get(l.id) || null,
+      eco: ecoByLineId.get(l.id) || [],
+    };
   });
   const rank = { green: 0, yellow: 1, red: 2 };
   lines.sort((a, b) => rank[a.status] - rank[b.status] || b.gaps.length - a.gaps.length);
@@ -445,7 +552,9 @@ async function matchupExploits(meLines, vsLines, { map } = {}) {
       || lines.find((l) => l.role === "siege") || null;
     composition = {
       gold: gold.label,
+      goldBonus: gold.bonus || null,
       trash: trash ? trash.label : null,
+      trashBonus: trash?.bonus || null,
       trashCovers: trash && covers ? covers : null,
       siege: siege ? siege.label : null,
     };
@@ -482,10 +591,19 @@ app.get("/api/matchup", wrap(async (req, res) => {
   ]);
   const meIds = meLines.map((x) => x.id);
   const vsIds = vsLines.map((x) => x.id);
+  // Enriquecer líneas con bonuses de cada civ: propio (mis líneas) y ajeno (rival).
+  const slug_me = me.path.replace(/^civs\//, "").replace(/\.md$/, "").toLowerCase();
+  const slug_vs = vs.path.replace(/^civs\//, "").replace(/\.md$/, "").toLowerCase();
+  const enrichLines = (lines, civSlug, tag) => lines.map((l) => {
+    const { labels, eco } = civLineBonuses(civSlug, l.id);
+    return { ...l, bonus: labels.length ? { tag, labels } : null, eco };
+  });
+  const meLinesB = enrichLines(meLines, slug_me, "propio");
+  const vsLinesB = enrichLines(vsLines, slug_vs, "ajeno");
   const [answers, threats, exploits, sharedNotes] = await Promise.all([
     matchupCounterEdges(meIds, vsIds),
     matchupCounterEdges(vsIds, meIds),
-    matchupExploits(meLines, vsLines, { map }),
+    matchupExploits(meLinesB, vsLinesB, { map }),
     run(
       `MATCH (c:Chunk)
        WHERE (toLower(c.text) CONTAINS toLower($me) OR ANY(a IN $meAliases WHERE toLower(c.text) CONTAINS toLower(a)))
@@ -554,7 +672,7 @@ app.get("/api/matchup", wrap(async (req, res) => {
     me,
     vs,
     kits: { me: meKit, vs: vsKit },
-    lines: { me: meLines, vs: vsLines },
+    lines: { me: meLinesB, vs: vsLinesB },
     counters: { answers, threats },
     exploits,
     sharedNotes,
