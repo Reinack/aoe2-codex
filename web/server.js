@@ -122,6 +122,44 @@ const LINE_MEMBERS = {
   "slinger":         ["slinger"],
 };
 
+// Roles del framework de composicion de 3 unidades (military.md — "Composicion
+// de 3 Unidades"): oro (power unit, cuesta oro), trash (sin oro, protege al oro
+// de su counter) y asedio (rompe edificios y ranged apilados). Default = oro.
+const LINE_ROLE = {
+  "skirmisher-line": "trash", "spearman-line": "trash", "scout-line": "trash",
+  "mangonel-line": "siege", "scorpion-line": "siege", "ram-line": "siege",
+  "bombard-cannon": "siege", "siege-elephant": "siege", "rocket-cart": "siege",
+};
+const lineRole = (id) => LINE_ROLE[id] || "gold";
+
+// Lineas navales: solo relevantes en mapas de agua (military.md confirma que el
+// naval es map-dependent). Se filtran en mapas terrestres.
+const NAVAL_LINES = new Set([
+  "galley-line", "fire-ship-line", "demo-ship", "hulk-line", "cannon-galleon",
+  "lou-chuan", "dromon", "catapult-galleon", "turtle-ship", "caravel",
+  "longboat", "thirisadai", "dragon-ship",
+]);
+const WATER_MAP_KW = ["island", "nomad", "migration", "four lakes", "shoreline",
+  "eastmus", "socotra", "archipelago", "water", "lake", "coastal", "team islands"];
+const isWaterMap = (map) => {
+  const m = (map || "").toLowerCase();
+  return WATER_MAP_KW.some((w) => m.includes(w));
+};
+
+// Recetas canonicas del vault (military.md): combos con nombre propio donde cada
+// pieza cubre el counter de la otra. Se destacan si tengo ambas y el rival no
+// puede contestar limpio.
+const CANONICAL_COMBOS = [
+  {
+    name: "Crossbow + Knights", parts: ["archer-line", "knight-line"], age: "Castle",
+    why: "Casi imparable: los knights limpian skirms/siege que matan a tus crossbow; los crossbow hacen trizas a las picas/monjes/camellos que matan a tus knights. El rival necesita dos ejercitos distintos.",
+  },
+  {
+    name: "Scouts + Archers", parts: ["scout-line", "archer-line"], age: "Feudal",
+    why: "El combo mas fuerte de Feudal: los arqueros matan lanceros, los scouts limpian skirms (que no danan scouts). Gana casi cualquier mezcla feudal.",
+  },
+];
+
 // Clases de las descripciones in-game ("Weak vs. Cavalry and Archery Units") →
 // líneas genéricas del counter graph. El orden importa: los términos compuestos
 // ('cavalry archer') se chequean antes que los genéricos ('cavalry', 'archer').
@@ -277,13 +315,20 @@ async function matchupCounterEdges(fromIds, toIds) {
 }
 
 // Buscador de huecos: una linea propia es un EXPLOIT cuando el rival no tiene
-// acceso a sus counters. Pregunta invertida vs matchupCounterEdges: aca miramos
-// los COUNTERS *entrantes* a cada linea mia y vemos cuales le faltan al rival.
-async function matchupExploits(meLines, vsLines) {
-  const meIds = meLines.map((x) => x.id);
-  if (!meIds.length) return { lines: [], combos: [] };
-  const vsHas = new Set(vsLines.map((x) => x.id));
-  const meLabels = new Map(meLines.map((x) => [x.id, x.label]));
+// acceso a sus counters. Pregunta invertida vs matchupCounterEdges: miramos los
+// COUNTERS *entrantes* a cada linea mia y cuales le faltan al rival. Sobre eso
+// armamos una composicion gold/trash/siege (military.md) y destacamos recetas
+// canonicas. En mapas terrestres se filtran las lineas navales.
+async function matchupExploits(meLines, vsLines, { map } = {}) {
+  const water = isWaterMap(map);
+  const keep = (l) => water || !NAVAL_LINES.has(l.id);
+  const myLines = meLines.filter(keep);
+  const oppLines = vsLines.filter(keep);
+  const meIds = myLines.map((x) => x.id);
+  if (!meIds.length) return { lines: [], recipes: [], composition: null };
+  const vsHas = new Set(oppLines.map((x) => x.id));
+  const meSet = new Set(meIds);
+  const meLabels = new Map(myLines.map((x) => [x.id, x.label]));
 
   const rows = await run(
     `MATCH (counter:Unit)-[r:COUNTERS]->(mine:Unit)
@@ -306,10 +351,7 @@ async function matchupExploits(meLines, vsLines) {
       weight: r.weight || 0, context: r.context || "general",
     });
   }
-
-  // Una linea propia sin counters curados igual es jugable: la incluimos como
-  // exploit "limpio" si no aparece en byLine (nadie la counterea en el grafo).
-  for (const l of meLines) {
+  for (const l of myLines) {
     if (!byLine.has(l.id)) byLine.set(l.id, { id: l.id, label: l.label, gaps: [], risks: [] });
   }
 
@@ -317,57 +359,74 @@ async function matchupExploits(meLines, vsLines) {
     const primaryRisk = l.risks.some((r) => r.weight >= 1.0);
     const solidRisk = l.risks.some((r) => r.weight >= 0.7 && r.weight < 1.0);
     const status = primaryRisk ? "red" : solidRisk ? "yellow" : "green";
-    return { ...l, status };
+    return { ...l, role: lineRole(l.id), status };
   });
-
-  // Orden: verde > amarillo > rojo; dentro, menos risks primero.
   const rank = { green: 0, yellow: 1, red: 2 };
-  lines.sort((a, b) => rank[a.status] - rank[b.status] || a.risks.length - b.risks.length);
+  lines.sort((a, b) => rank[a.status] - rank[b.status] || b.gaps.length - a.gaps.length);
+  const byId = new Map(lines.map((l) => [l.id, l]));
 
-  // Fase 2 — combos: por cada linea explotable con riesgo residual R, buscar otra
-  // linea propia que countere a R (edge COUNTERS saliente). Si existe, es sinergia.
-  const exploitable = lines.filter((l) => l.status !== "red");
-  const combos = [];
-  if (exploitable.length) {
-    const riskIds = [...new Set(exploitable.flatMap((l) => l.risks.map((r) => r.id)))];
-    let coverRows = [];
-    if (riskIds.length) {
-      coverRows = await run(
-        `MATCH (mine:Unit)-[r:COUNTERS]->(risk:Unit)
-         WHERE mine.id IN $meIds AND risk.id IN $riskIds
-         RETURN mine.id AS coverId, risk.id AS riskId, r.weight AS weight`,
-        { meIds, riskIds },
-      );
-    }
-    const coverByRisk = new Map();
+  // Cobertura: que lineas propias counterean a un riesgo dado (edge saliente).
+  const allRiskIds = [...new Set(lines.flatMap((l) => l.risks.map((r) => r.id)))];
+  const coverByRisk = new Map();
+  if (allRiskIds.length) {
+    const coverRows = await run(
+      `MATCH (mine:Unit)-[r:COUNTERS]->(risk:Unit)
+       WHERE mine.id IN $meIds AND risk.id IN $riskIds
+       RETURN mine.id AS coverId, risk.id AS riskId, r.weight AS weight`,
+      { meIds, riskIds: allRiskIds },
+    );
     for (const c of coverRows) {
       if (!coverByRisk.has(c.riskId)) coverByRisk.set(c.riskId, []);
       coverByRisk.get(c.riskId).push({ id: c.coverId, weight: c.weight || 0 });
     }
-    for (const base of exploitable) {
-      for (const risk of base.risks) {
-        const covers = (coverByRisk.get(risk.id) || []).filter((c) => c.id !== base.id);
-        if (!covers.length) continue;
-        covers.sort((a, b) => b.weight - a.weight);
-        const partner = covers[0];
-        combos.push({
-          base: base.label,
-          partner: meLabels.get(partner.id) || partner.id,
-          covers: risk.label,
-        });
-        break; // un combo por linea base alcanza
-      }
-      if (combos.length >= 3) break;
-    }
   }
 
-  return { lines: lines.slice(0, 6), combos };
+  // ── Composicion de 3 unidades (military.md) ───────────────────────────────
+  // Oro = mejor linea explotable que cuesta oro. Trash = la que cubre el riesgo
+  // residual del oro. Asedio = mejor linea de asedio disponible.
+  const exploitable = lines.filter((l) => l.status !== "red");
+  const gold = exploitable.find((l) => l.role === "gold") || exploitable[0] || null;
+  let composition = null;
+  if (gold) {
+    // Trash que cubre el riesgo principal del oro.
+    let trash = null, covers = null;
+    for (const risk of gold.risks) {
+      const cand = (coverByRisk.get(risk.id) || [])
+        .filter((c) => c.id !== gold.id && lineRole(c.id) === "trash")
+        .sort((a, b) => b.weight - a.weight)[0];
+      if (cand) { trash = byId.get(cand.id); covers = risk.label; break; }
+    }
+    // Fallback: cualquier trash disponible (proteccion generica).
+    if (!trash) trash = lines.find((l) => l.role === "trash" && l.status !== "red")
+      || lines.find((l) => l.role === "trash") || null;
+    // Asedio: preferir el que el rival no contesta limpio.
+    const siege = lines.find((l) => l.role === "siege" && l.status !== "red")
+      || lines.find((l) => l.role === "siege") || null;
+    composition = {
+      gold: gold.label,
+      trash: trash ? trash.label : null,
+      trashCovers: trash && covers ? covers : null,
+      siege: siege ? siege.label : null,
+    };
+  }
+
+  // ── Recetas canonicas ─────────────────────────────────────────────────────
+  const recipes = [];
+  for (const c of CANONICAL_COMBOS) {
+    if (!c.parts.every((p) => meSet.has(p))) continue;
+    // Solo si ninguna pieza esta hard-countereada (rival no contesta limpio).
+    if (c.parts.some((p) => byId.get(p)?.status === "red")) continue;
+    recipes.push({ name: c.name, age: c.age, why: c.why });
+  }
+
+  return { lines: lines.slice(0, 6), recipes, composition };
 }
 
 // --- matchup lab: civ vs civ briefing from graph data ----------------------
 app.get("/api/matchup", wrap(async (req, res) => {
   const me = await matchupCiv(req.query.me);
   const vs = await matchupCiv(req.query.vs);
+  const map = (req.query.map || "").toString().trim();
   if (!me || !vs) return res.status(404).json({ error: "civilizacion no encontrada" });
   if (me.slug === vs.slug) return res.status(400).json({ error: "elegi dos civilizaciones distintas" });
 
@@ -382,7 +441,7 @@ app.get("/api/matchup", wrap(async (req, res) => {
   const [answers, threats, exploits, sharedNotes] = await Promise.all([
     matchupCounterEdges(meIds, vsIds),
     matchupCounterEdges(vsIds, meIds),
-    matchupExploits(meLines, vsLines),
+    matchupExploits(meLines, vsLines, { map }),
     run(
       `MATCH (c:Chunk)
        WHERE (toLower(c.text) CONTAINS toLower($me) OR ANY(a IN $meAliases WHERE toLower(c.text) CONTAINS toLower(a)))

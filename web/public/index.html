@@ -296,6 +296,18 @@
   .mu-combos { margin-top:12px; border-top:1px dashed var(--line); padding-top:10px; }
   .mu-combos-title { font-size:11px; text-transform:uppercase; letter-spacing:.5px; color:var(--dim); margin-bottom:6px; }
   .mu-combo { font-size:13px; margin:5px 0; }
+  .mu-combo-canonical { background:#111820; border-radius:6px; padding:8px 11px; margin:6px 0; border-left:3px solid var(--gold); }
+  .mu-combo-name { font-size:13px; margin-bottom:4px; }
+  .mu-combo-why { font-size:12px; color:var(--dim); line-height:1.5; }
+  .mu-composition { background:#0d1117; border:1px solid var(--line); border-radius:8px; padding:10px 14px; margin-bottom:12px; }
+  .mu-comp-title { font-size:11px; text-transform:uppercase; letter-spacing:.5px; color:var(--dim); margin-bottom:8px; }
+  .mu-comp-slots { display:flex; gap:10px; flex-wrap:wrap; }
+  .mu-comp-slot { flex:1; min-width:100px; border-radius:6px; padding:8px 10px; display:flex; flex-direction:column; gap:2px; border:1px solid var(--line); }
+  .mu-comp-gold  { border-color:#3fb950; background:rgba(63,185,80,.08); }
+  .mu-comp-trash { border-color:#58a6ff; background:rgba(88,166,255,.08); }
+  .mu-comp-siege { border-color:#f85149; background:rgba(248,81,73,.08); }
+  .mu-comp-icon { font-size:16px; }
+  .mu-comp-role { font-size:10px; text-transform:uppercase; letter-spacing:.5px; color:var(--dim); margin-left:6px; }
   .mu-source { border-left:2px solid var(--gold); padding:6px 10px; margin:8px 0;
     color:var(--dim); font-size:12px; background:#111820; }
   .mu-source-link { cursor:pointer; text-decoration:underline dotted; color:var(--ink); }
@@ -629,6 +641,25 @@ function edgeRows(rows, empty) {
 function exploitRows(ex) {
   if (!ex?.lines?.length) return `<div class="mu-empty">Sin lineas propias detectadas para analizar.</div>`;
   const dot = { green: '🟢', yellow: '🟡', red: '🔴' };
+
+  // Composicion recomendada (gold/trash/siege)
+  let compHtml = '';
+  if (ex.composition && (ex.composition.gold || ex.composition.trash || ex.composition.siege)) {
+    const c = ex.composition;
+    const slot = (role, line, icon) => line
+      ? `<div class="mu-comp-slot mu-comp-${role}"><span class="mu-comp-icon">${icon}</span><b>${esc(typeof line === 'string' ? line : line.label)}</b><span class="mu-comp-role">${role}</span></div>`
+      : '';
+    compHtml = `<div class="mu-composition">
+      <div class="mu-comp-title">Composicion recomendada (gold + trash + siege)</div>
+      <div class="mu-comp-slots">
+        ${slot('gold', c.gold, '⚔️')}
+        ${slot('trash', c.trash, '🛡️')}
+        ${slot('siege', c.siege, '💥')}
+      </div>
+    </div>`;
+  }
+
+  // Lineas individuales con semaforo
   const rows = ex.lines.map(l => {
     const gaps = l.gaps?.length
       ? `<span class="mu-gap">el rival NO tiene: ${esc(l.gaps.map(g => g.label).join(", "))}</span>`
@@ -636,18 +667,26 @@ function exploitRows(ex) {
     const risks = l.risks?.length
       ? `<span class="mu-risk">⚠ ojo: tiene ${esc(l.risks.map(r => r.label).join(", "))}</span>`
       : '';
+    const role = l.role ? `<span class="mu-comp-role">${esc(l.role)}</span>` : '';
     return `<div class="mu-exploit mu-exploit-${l.status}">
-      <div class="mu-exploit-head">${dot[l.status]} <b>${esc(l.label)}</b></div>
+      <div class="mu-exploit-head">${dot[l.status] || '⚪'} <b>${esc(l.label)}</b>${role}</div>
       <div class="mu-exploit-body">${gaps}${risks}</div>
     </div>`;
   }).join("");
-  const combos = ex.combos?.length
-    ? `<div class="mu-combos"><div class="mu-combos-title">Combos sugeridos</div>${ex.combos.map(c =>
-        `<div class="mu-combo">⚔️ <b>${esc(c.base)}</b> + <b>${esc(c.partner)}</b>
-          <span class="mu-empty">— ${esc(c.partner)} cubre ${esc(c.covers)} que el rival usaria contra tus ${esc(c.base)}</span>
-        </div>`).join("")}</div>`
-    : '';
-  return rows + combos;
+
+  // Recetas canonicas detectadas (Crossbow+Knights, Scouts+Archers)
+  let recipesHtml = '';
+  if (ex.recipes?.length) {
+    recipesHtml = `<div class="mu-combos">
+      <div class="mu-combos-title">🔥 Combos canonicos disponibles en este matchup</div>
+      ${ex.recipes.map(r => `<div class="mu-combo mu-combo-canonical">
+        <div class="mu-combo-name">⚔️ <b>${esc(r.name)}</b> <span class="mu-comp-role">${esc(r.age)} Age</span></div>
+        <div class="mu-combo-why">${esc(r.why)}</div>
+      </div>`).join("")}
+    </div>`;
+  }
+
+  return compHtml + rows + recipesHtml;
 }
 
 function tierRows(rows) {
@@ -711,7 +750,8 @@ async function runMatchup() {
   if (!me || !vs) return;
   out.innerHTML = `<div class="mu-section wide"><div class="mu-empty">analizando...</div></div>`;
   chatBtn.disabled = true;
-  const d = await api(`/api/matchup?me=${encodeURIComponent(me)}&vs=${encodeURIComponent(vs)}`);
+  const map = document.getElementById("mu-map")?.value?.trim() || "";
+  const d = await api(`/api/matchup?me=${encodeURIComponent(me)}&vs=${encodeURIComponent(vs)}&map=${encodeURIComponent(map)}`);
   if (d.error) {
     out.innerHTML = `<div class="mu-section wide"><div class="mu-empty">${esc(d.error)}</div></div>`;
     return;
