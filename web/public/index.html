@@ -318,6 +318,32 @@
   .mu-source-link:hover { color:var(--gold); }
   @media(max-width:900px){ .mu-shell{ grid-template-columns:1fr; } .mu-grid{ grid-template-columns:1fr; } }
 
+  /* ── PLANES DE PARTIDA ───────────────────────────────────────────── */
+  .mup-plans { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+  @media(max-width:680px){ .mup-plans{ grid-template-columns:1fr; } }
+  .mup-col { display:flex; flex-direction:column; gap:8px; }
+  .mup-civ-head { font-size:14px; font-weight:700; color:var(--gold);
+    border-bottom:1px solid var(--line); padding-bottom:8px; margin-bottom:2px; }
+  .mup-card { background:#111820; border:1px solid var(--line); border-radius:8px;
+    padding:12px 14px; display:flex; flex-direction:column; gap:5px; }
+  .mup-card.plan-a { border-left:3px solid #3fb950; }
+  .mup-card.plan-b { border-left:3px solid var(--gold); }
+  .mup-plan-label { font-size:9px; font-weight:800; text-transform:uppercase;
+    letter-spacing:1px; }
+  .mup-card.plan-a .mup-plan-label { color:#3fb950; }
+  .mup-card.plan-b .mup-plan-label { color:var(--gold); }
+  .mup-plan-subtitle { font-size:10px; color:var(--dim); font-weight:400;
+    text-transform:none; letter-spacing:0; margin-left:4px; }
+  .mup-plan-main { font-size:15px; font-weight:700; color:var(--ink); line-height:1.3; margin-top:2px; }
+  .mup-plan-detail { display:flex; flex-direction:column; gap:3px; margin-top:3px; }
+  .mup-plan-gap    { font-size:12px; color:#3fb950; }
+  .mup-plan-recipe { font-size:12px; color:#6baed6; }
+  .mup-plan-uu     { font-size:12px; color:#9e9ac8; }
+  .mup-plan-risk   { font-size:12px; color:var(--gold); }
+  .mup-plan-trigger{ font-size:11px; color:var(--dim); font-style:italic; }
+  .mup-plan-pivot  { font-size:14px; font-weight:600; color:var(--ink); }
+  .mup-plan-empty  { font-size:12px; color:var(--dim); font-style:italic; }
+
   /* ── MOBILE ──────────────────────────────────────────────────────── */
   @media(max-width:768px) {
     #sidebar { display:none; }
@@ -715,6 +741,75 @@ function tierRows(rows) {
   return `<table>${rows.map(t => `<tr><td>${esc(t.list)}</td><td>${esc(t.tier)}</td></tr>`).join("")}</table>`;
 }
 
+function buildPlanCards(kit, exploits, answers, threats) {
+  const lines   = exploits?.lines   || [];
+  const comp    = exploits?.composition || null;
+  const recipes = exploits?.recipes || [];
+
+  // Plan A: mejor línea explotable + composición recomendada
+  const topLine   = lines.find(l => l.status !== 'red');
+  const planAMain = comp
+    ? [comp.gold, comp.trash, comp.siege].filter(Boolean).join(' + ')
+    : (topLine?.label || null);
+  const planAGap    = topLine?.gaps?.slice(0, 2).map(g => g.label).join(', ') || null;
+  const planARisk   = topLine?.risks?.[0]?.label || null;
+  const planARecipe = recipes.find(r => !r.risky);
+  const planAUU     = kit?.uniqueUnits?.[0]?.title || null;
+
+  // Plan B: segunda línea o recipe como pivote si Plan A es cerrado
+  const otherLine    = lines.find(l => l.id !== topLine?.id && l.status !== 'red');
+  const backupRecipe = recipes.find(r => r.name !== planARecipe?.name);
+  const strongAns    = answers?.filter(a => (a.weight || 0) >= 0.8)[0];
+  const strongThreat = threats?.filter(t => (t.weight || 0) >= 0.8)[0];
+
+  const planBTrigger = planARisk
+    ? `rival usa ${planARisk}`
+    : (strongThreat ? `rival presiona con ${strongThreat.from}` : null);
+  const planBPivot = otherLine?.label
+    || backupRecipe?.name
+    || (strongAns ? `${strongAns.from} → ${strongAns.target}` : null)
+    || null;
+  const planBGap = otherLine?.gaps?.[0]?.label || null;
+
+  return {
+    a: { main: planAMain, gap: planAGap, risk: planARisk, recipe: planARecipe?.name || null, uu: planAUU },
+    b: { trigger: planBTrigger, pivot: planBPivot, gap: planBGap },
+  };
+}
+
+function renderPlanCol(civTitle, kit, exploits, answers, threats) {
+  const { a, b } = buildPlanCards(kit, exploits, answers, threats);
+  return `<div class="mup-col">
+    <div class="mup-civ-head">${esc(civTitle)}</div>
+    <div class="mup-card plan-a">
+      <div class="mup-plan-label">Plan A <span class="mup-plan-subtitle">— Win condition</span></div>
+      ${a.main
+        ? `<div class="mup-plan-main">${esc(a.main)}</div>`
+        : `<div class="mup-plan-empty">Sin datos suficientes</div>`}
+      <div class="mup-plan-detail">
+        ${a.gap    ? `<span class="mup-plan-gap">✓ Hueco: rival sin ${esc(a.gap)}</span>`   : ''}
+        ${a.recipe ? `<span class="mup-plan-recipe">⚔ Combo: ${esc(a.recipe)}</span>`        : ''}
+        ${a.uu     ? `<span class="mup-plan-uu">★ UU Castle: ${esc(a.uu)}</span>`             : ''}
+        ${a.risk   ? `<span class="mup-plan-risk">⚠ Cerrado si: rival tiene ${esc(a.risk)}</span>` : ''}
+      </div>
+    </div>
+    <div class="mup-card plan-b">
+      <div class="mup-plan-label">Plan B <span class="mup-plan-subtitle">— Pivote</span></div>
+      ${b.trigger ? `<div class="mup-plan-trigger">Si: ${esc(b.trigger)}</div>` : ''}
+      ${b.pivot
+        ? `<div class="mup-plan-pivot">→ ${esc(b.pivot)}</div>`
+        : `<div class="mup-plan-empty">Adaptar en partida</div>`}
+      ${b.gap ? `<div class="mup-plan-detail"><span class="mup-plan-gap">✓ Sin counter: ${esc(b.gap)}</span></div>` : ''}
+    </div>
+  </div>`;
+}
+
+function renderPlans(d) {
+  const meCol = renderPlanCol(d.me.title, d.kits.me, d.exploits,   d.counters.answers, d.counters.threats);
+  const vsCol = renderPlanCol(d.vs.title, d.kits.vs, d.vsExploits, d.counters.threats, d.counters.answers);
+  return `<div class="mup-plans">${meCol}${vsCol}</div>`;
+}
+
 function renderMatchup(d) {
   const out = document.getElementById("mu-result");
   const map = document.getElementById("mu-map").value.trim();
@@ -730,8 +825,8 @@ function renderMatchup(d) {
       <h3 style="margin-top:12px">Tiers</h3>${tierRows(d.kits.vs.tiers)}
     </div>
     <div class="mu-section wide">
-      <h3>Plan inicial${map ? ` · ${esc(map)}` : ""}</h3>
-      <ol class="mu-plan">${(d.plan || []).map(x => `<li>${esc(x)}</li>`).join("") || "<li>Sin senales fuertes todavia: usa el grafo para explorar el cruce.</li>"}</ol>
+      <h3>Planes probables de partida${map ? ` · ${esc(map)}` : ""}</h3>
+      ${renderPlans(d)}
     </div>
     <div class="mu-section">
       <h3>Tus respuestas</h3>

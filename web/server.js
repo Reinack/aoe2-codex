@@ -602,6 +602,48 @@ async function matchupExploits(meLines, vsLines, { map } = {}) {
 }
 
 // --- matchup lab: civ vs civ briefing from graph data ----------------------
+function buildPlan(myKit, oppKit, myLines, myAnswers, myThreats, myExploits) {
+  const plan = [];
+  if (myLines.length) {
+    plan.push(`Apertura: lineas mas solidas son ${myLines.slice(0, 3).map((x) => x.label).join(", ")}.`);
+  }
+  const strongAnswers = myAnswers.filter((a) => (a.weight || 0) >= 0.8);
+  const modAnswers    = myAnswers.filter((a) => (a.weight || 0) < 0.8 && (a.weight || 0) >= 0.5);
+  if (strongAnswers.length) {
+    const extras = strongAnswers.length > 1 ? ` (${strongAnswers.length} counters fuertes disponibles)` : "";
+    plan.push(`Counter fuerte: ${strongAnswers[0].from} aplasta ${strongAnswers[0].target}${extras}.`);
+  } else if (modAnswers.length) {
+    plan.push(`Counter moderado: ${modAnswers[0].from} vs ${modAnswers[0].target} — funciona con micro.`);
+  } else if (!myAnswers.length && myLines.length) {
+    plan.push(`Sin counters directos curados — juga con las lineas disponibles y adapta en partida.`);
+  }
+  const strongThreats = myThreats.filter((t) => (t.weight || 0) >= 0.8);
+  if (strongThreats.length) {
+    plan.push(`Amenaza critica: ${strongThreats[0].from} destruye ${strongThreats[0].target} — respeta esto.`);
+  } else if (myThreats.length) {
+    plan.push(`Cuidado con ${myThreats[0].from} contra ${myThreats[0].target}.`);
+  }
+  const topExploit = myExploits.lines.find((l) => l.status === "green" && l.gaps.length);
+  if (topExploit) {
+    const missing = topExploit.gaps.slice(0, 2).map((g) => g.label).join(", ");
+    plan.push(`Hueco explotable: ${topExploit.label} — al rival le faltan sus counters (${missing}).`);
+  }
+  if (myKit.uniqueUnits.length) {
+    const uu = myKit.uniqueUnits[0].title;
+    plan.push(`UU (${uu}) entra en Castle Age — construi hacia eso si el matchup lo permite.`);
+  }
+  if (myKit.uniqueTechs.length) {
+    const ut = myKit.uniqueTechs.slice(0, 2).map((x) => x.title).join(" y ");
+    plan.push(`Techs unicas clave: ${ut}.`);
+  }
+  const myTier  = myKit.tiers.find((t) => t.list.toLowerCase().includes("arabia"));
+  const oppTier = oppKit.tiers.find((t) => t.list.toLowerCase().includes("arabia"));
+  if (myTier && oppTier && myTier.tier !== oppTier.tier) {
+    plan.push(`Tier Arabia: ${myTier.tier} vs rival ${oppTier.tier} — ajusta la agresividad en consecuencia.`);
+  }
+  return plan;
+}
+
 app.get("/api/matchup", wrap(async (req, res) => {
   const me = await matchupCiv(req.query.me);
   const vs = await matchupCiv(req.query.vs);
@@ -626,10 +668,11 @@ app.get("/api/matchup", wrap(async (req, res) => {
   });
   const meLinesB = enrichLines(meLines, slug_me, "propio");
   const vsLinesB = enrichLines(vsLines, slug_vs, "ajeno");
-  const [answers, threats, exploits, sharedNotes] = await Promise.all([
+  const [answers, threats, exploits, vsExploits, sharedNotes] = await Promise.all([
     matchupCounterEdges(meIds, vsIds),
     matchupCounterEdges(vsIds, meIds),
     matchupExploits(meLinesB, vsLinesB, { map }),
+    matchupExploits(vsLinesB, meLinesB, { map }),
     run(
       `MATCH (c:Chunk)
        WHERE (toLower(c.text) CONTAINS toLower($me) OR ANY(a IN $meAliases WHERE toLower(c.text) CONTAINS toLower(a)))
@@ -641,58 +684,8 @@ app.get("/api/matchup", wrap(async (req, res) => {
     ),
   ]);
 
-  const plan = [];
-
-  // Apertura: siempre mencionar las mejores lineas disponibles
-  if (meLines.length) {
-    plan.push(`Apertura: tus lineas mas solidas son ${meLines.slice(0, 3).map((x) => x.label).join(", ")}.`);
-  }
-
-  // Counter principal: distinguir fuerte (>=0.8) de moderado
-  const strongAnswers = answers.filter((a) => (a.weight || 0) >= 0.8);
-  const modAnswers = answers.filter((a) => (a.weight || 0) < 0.8 && (a.weight || 0) >= 0.5);
-  if (strongAnswers.length) {
-    const extras = strongAnswers.length > 1 ? ` (${strongAnswers.length} counters fuertes disponibles)` : "";
-    plan.push(`Counter fuerte: ${strongAnswers[0].from} aplasta ${strongAnswers[0].target}${extras}.`);
-  } else if (modAnswers.length) {
-    plan.push(`Counter moderado: ${modAnswers[0].from} vs ${modAnswers[0].target} — funciona con micro.`);
-  } else if (!answers.length && meLines.length) {
-    plan.push(`Sin counters directos curados — juga con las lineas disponibles y adapta en partida.`);
-  }
-
-  // Amenaza del rival: distinguir fuerte de moderada
-  const strongThreats = threats.filter((t) => (t.weight || 0) >= 0.8);
-  if (strongThreats.length) {
-    plan.push(`Amenaza critica del rival: ${strongThreats[0].from} destruye tus ${strongThreats[0].target} — respeta esto.`);
-  } else if (threats.length) {
-    plan.push(`Cuidado con ${threats[0].from} del rival contra tus ${threats[0].target}.`);
-  }
-
-  // Hueco principal: la linea propia que el rival no puede contestar
-  const topExploit = exploits.lines.find((l) => l.status === "green" && l.gaps.length);
-  if (topExploit) {
-    const missing = topExploit.gaps.slice(0, 2).map((g) => g.label).join(", ");
-    plan.push(`Hueco explotable: ${topExploit.label} — al rival le faltan sus counters (${missing}).`);
-  }
-
-  // UU con timing de Castle Age
-  if (meKit.uniqueUnits.length) {
-    const uu = meKit.uniqueUnits[0].title;
-    plan.push(`Tu UU (${uu}) entra en Castle Age — construi hacia eso si el matchup lo permite.`);
-  }
-
-  // Techs unicas como linea separada
-  if (meKit.uniqueTechs.length) {
-    const ut = meKit.uniqueTechs.slice(0, 2).map((x) => x.title).join(" y ");
-    plan.push(`Techs unicas clave: ${ut}.`);
-  }
-
-  // Comparacion de tier Arabia si difieren
-  const meTier = meKit.tiers.find((t) => t.list.toLowerCase().includes("arabia"));
-  const vsTier = vsKit.tiers.find((t) => t.list.toLowerCase().includes("arabia"));
-  if (meTier && vsTier && meTier.tier !== vsTier.tier) {
-    plan.push(`Tier Arabia: vos (${meTier.tier}) vs rival (${vsTier.tier}) — ajusta la agresividad en consecuencia.`);
-  }
+  const plan   = buildPlan(meKit, vsKit, meLinesB, answers, threats, exploits);
+  const planVs = buildPlan(vsKit, meKit, vsLinesB, threats, answers, vsExploits);
 
   res.json({
     me,
@@ -701,8 +694,10 @@ app.get("/api/matchup", wrap(async (req, res) => {
     lines: { me: meLinesB, vs: vsLinesB },
     counters: { answers, threats },
     exploits,
+    vsExploits,
     sharedNotes,
     plan,
+    planVs,
   });
 }));
 
