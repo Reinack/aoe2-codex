@@ -1,6 +1,7 @@
 // API REST sobre el grafo de conocimiento AoE2.
 import express from "express";
 import { spawn } from "node:child_process";
+import { readFileSync, readdirSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { run, driver } from "./db.js";
@@ -85,6 +86,27 @@ app.get("/api/civs", wrap(async (_req, res) => {
 // --- líneas genéricas del Counter Graph disponibles para una civ -----------
 // Mapeo línea (id de :Unit del counter graph) → tree_ids de sus miembros en el
 // árbol. Una civ tiene la línea si tiene HAS_UNIT a cualquiera de sus miembros
+// Mapa precargado: slug de civ → Set de tree_ids disponibles.
+// Lee los archivos JS del árbol al arrancar — evita depender de las relaciones
+// HAS_UNIT de Neo4j que pueden estar incompletas si ingest.mjs no se corrió.
+const CIV_AVAILABLE = (() => {
+  const civDir = join(__dirname, "public/tree/src/data/civ");
+  const map = new Map();
+  try {
+    for (const file of readdirSync(civDir).filter((f) => f.endsWith(".js"))) {
+      const slug = file.replace(".js", "");
+      const code = readFileSync(join(civDir, file), "utf8");
+      const m = code.match(/"available"\s*:\s*\[([\s\S]*?)\]/);
+      if (!m) continue;
+      const items = [...m[1].matchAll(/"([^"]+)"/g)].map((x) => x[1]);
+      if (items.length) map.set(slug, new Set(items));
+    }
+  } catch (e) {
+    console.error("[CIV_AVAILABLE] Error al cargar datos del árbol:", e.message);
+  }
+  return map;
+})();
+
 // (p.ej. Franks sin Arbalester igual tienen archer-line por Archer/Crossbowman).
 const LINE_MEMBERS = {
   "archer-line":     ["archer", "crossbow", "arbalester"],
@@ -126,9 +148,15 @@ const LINE_MEMBERS = {
 // de 3 Unidades"): oro (power unit, cuesta oro), trash (sin oro, protege al oro
 // de su counter) y asedio (rompe edificios y ranged apilados). Default = oro.
 const LINE_ROLE = {
+  // trash: sin costo de oro, protege a la unidad de oro de su counter
   "skirmisher-line": "trash", "spearman-line": "trash", "scout-line": "trash",
+  "eagle-warrior": "trash",      // equivalente al hussar en civs mesoamericanas
+  // siege: rompe edificios y unidades ranged apiladas
   "mangonel-line": "siege", "scorpion-line": "siege", "ram-line": "siege",
   "bombard-cannon": "siege", "siege-elephant": "siege", "rocket-cart": "siege",
+  "trebuchet": "siege",
+  // support: utility units — excluidas del slot "gold" de la composicion
+  "monk": "support",
 };
 const lineRole = (id) => LINE_ROLE[id] || "gold";
 
@@ -157,6 +185,18 @@ const CANONICAL_COMBOS = [
   {
     name: "Scouts + Archers", parts: ["scout-line", "archer-line"], age: "Feudal",
     why: "El combo mas fuerte de Feudal: los arqueros matan lanceros, los scouts limpian skirms (que no danan scouts). Gana casi cualquier mezcla feudal.",
+  },
+  {
+    name: "Paladin + Elite Skirm + Siege", parts: ["knight-line", "skirmisher-line"], age: "Imperial",
+    why: "Composicion clasica de late game (Hera): el Skirm mata halbardiers que countered al Paladin; el siege destruye edificios y unidades ranged apiladas. Requiere knight-line y skirm disponibles.",
+  },
+  {
+    name: "Arbalest + Halberdier + Bombard", parts: ["archer-line", "spearman-line", "bombard-cannon"], age: "Imperial",
+    why: "Arbalest domina infanteria y camellos; los Halbs matan caballeria que contesta arbalest; el Bombard destruye scorpions/onagers y torres. Composicion completa de late game.",
+  },
+  {
+    name: "Camello + Skirm + Siege", parts: ["camel-line", "skirmisher-line"], age: "Imperial",
+    why: "Composicion de civs con camellos (Saracenos, Hindustanis, Beduinos): el Camel anula caballeria rival; el Skirm cubre vs arqueros que countered a los camellos; el siege finaliza el juego.",
   },
 ];
 
@@ -272,22 +312,19 @@ async function matchupKit(path) {
   return { uniqueUnits: units, uniqueTechs: techs, tiers };
 }
 
-async function matchupLines(path) {
-  const allIds = [...new Set(Object.values(LINE_MEMBERS).flat())];
-  const rows = await run(
-    `MATCH (:Civ {path:$path})-[:HAS_UNIT]->(u)
-     WHERE u.tree_id IN $ids
-     RETURN DISTINCT u.tree_id AS id`,
-    { path, ids: allIds },
-  );
-  const have = new Set(rows.map((r) => r.id));
+async function matchupLines(civPath) {
+  // Extraer slug del path Neo4j ("civs/Franks.md" → "franks")
+  const slug = civPath.replace(/^civs\//, "").replace(/\.md$/, "").toLowerCase();
+  const available = CIV_AVAILABLE.get(slug);
+  if (!available) return [];
+
   const lineIds = Object.entries(LINE_MEMBERS)
-    .filter(([, members]) => members.some((m) => have.has(m)))
-    .map(([line]) => line);
+    .filter(([, members]) => members.some((m) => available.has(m)))
+    .map(([lineId]) => lineId);
   if (!lineIds.length) return [];
+
   const labels = await run(
-    `MATCH (u:Unit)
-     WHERE u.id IN $ids
+    `MATCH (u:Unit) WHERE u.id IN $ids
      RETURN u.id AS id, u.label AS label, u.img_key AS imgKey`,
     { ids: lineIds },
   );
@@ -385,7 +422,11 @@ async function matchupExploits(meLines, vsLines, { map } = {}) {
   // Oro = mejor linea explotable que cuesta oro. Trash = la que cubre el riesgo
   // residual del oro. Asedio = mejor linea de asedio disponible.
   const exploitable = lines.filter((l) => l.status !== "red");
-  const gold = exploitable.find((l) => l.role === "gold") || exploitable[0] || null;
+  // Slot gold: preferir una linea de oro no-red; si todas son red, tomar la mejor
+  // de igual forma — nunca usar siege/trash/support como fallback del slot oro.
+  const gold = exploitable.find((l) => l.role === "gold")
+    || lines.find((l) => l.role === "gold")
+    || null;
   let composition = null;
   if (gold) {
     // Trash que cubre el riesgo principal del oro.
@@ -414,9 +455,12 @@ async function matchupExploits(meLines, vsLines, { map } = {}) {
   const recipes = [];
   for (const c of CANONICAL_COMBOS) {
     if (!c.parts.every((p) => meSet.has(p))) continue;
-    // Solo si ninguna pieza esta hard-countereada (rival no contesta limpio).
-    if (c.parts.some((p) => byId.get(p)?.status === "red")) continue;
-    recipes.push({ name: c.name, age: c.age, why: c.why });
+    // Los combos canonicos siempre se muestran cuando la civ tiene acceso a todas
+    // las piezas — son fuertes precisamente por su sinergia, no por la fortaleza
+    // individual de cada unidad. Marcamos como "risky" si alguna pieza es roja
+    // para que el usuario sepa que el combo tiene riesgos en este matchup.
+    const risky = c.parts.some((p) => byId.get(p)?.status === "red");
+    recipes.push({ name: c.name, age: c.age, why: c.why, risky });
   }
 
   return { lines: lines.slice(0, 6), recipes, composition };

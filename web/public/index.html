@@ -680,7 +680,7 @@ function exploitRows(ex) {
     recipesHtml = `<div class="mu-combos">
       <div class="mu-combos-title">🔥 Combos canonicos disponibles en este matchup</div>
       ${ex.recipes.map(r => `<div class="mu-combo mu-combo-canonical">
-        <div class="mu-combo-name">⚔️ <b>${esc(r.name)}</b> <span class="mu-comp-role">${esc(r.age)} Age</span></div>
+        <div class="mu-combo-name">⚔️ <b>${esc(r.name)}</b> <span class="mu-comp-role">${esc(r.age)} Age</span>${r.risky ? ' <span class="mu-risk" title="Alguna pieza esta individualmente contrareada — el combo la cubre">⚠ riesgo</span>' : ''}</div>
         <div class="mu-combo-why">${esc(r.why)}</div>
       </div>`).join("")}
     </div>`;
