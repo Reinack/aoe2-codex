@@ -303,7 +303,9 @@ const CANONICAL_COMBOS = [
 // líneas genéricas del counter graph. El orden importa: los términos compuestos
 // ('cavalry archer') se chequean antes que los genéricos ('cavalry', 'archer').
 const CLASS_TO_LINES = [
+  // ── Archery — compuestos antes que sus componentes ──────────────────────────
   ['cavalry archer',  ['cavalry-archer']],
+  ['elephant archer', ['elephant-archer']],      // antes de 'archer' y 'elephant'
   ['mounted archer',  ['cavalry-archer']],
   ['foot archer',     ['archer-line']],
   ['archery unit',    ['archer-line']],
@@ -313,29 +315,53 @@ const CLASS_TO_LINES = [
   ['gunner',          ['hand-cannoneer']],
   ['gunpowder',       ['hand-cannoneer']],
   ['hand cannoneer',  ['hand-cannoneer']],
+  // ── Infantry ───────────────────────────────────────────────────────────────
   ['spearman',        ['spearman-line']],
   ['pikemen',         ['spearman-line']],
   ['halberdier',      ['spearman-line']],
   ['militia',         ['militia-line']],
   ['infantry',        ['militia-line']],
+  ['fire lancer',     ['fire-lancer']],          // antes de 'fire ship'/'fire galley'
+  // ── Cavalry ───────────────────────────────────────────────────────────────
+  ['steppe lancer',   ['steppe-lancer']],        // antes de 'cavalry'
   ['camel',           ['camel-line']],
   ['mounted unit',    ['knight-line']],
   ['cavalry',         ['knight-line']],
   ['monk',            ['monk']],
+  // ── Siege ─────────────────────────────────────────────────────────────────
   ['mangonel',        ['mangonel-line']],
   ['onager',          ['mangonel-line']],
   ['scorpion',        ['scorpion-line']],
-  ['siege weapon',    ['mangonel-line', 'bombard-cannon']],
-  ['siege',           ['mangonel-line', 'bombard-cannon']],
+  ['battering ram',   ['ram-line']],             // antes de 'ram'
+  ['bombard cannon',  ['bombard-cannon']],       // antes de 'bombard' / 'siege'
+  ['siege elephant',  ['siege-elephant']],       // antes de 'siege' y 'elephant'
+  ['armored elephant',['siege-elephant']],       // antes de 'elephant'
+  ['siege weapon',    ['mangonel-line', 'scorpion-line', 'bombard-cannon', 'ram-line', 'siege-elephant']],
+  ['siege',           ['mangonel-line', 'bombard-cannon', 'ram-line']],
+  ['ram',             ['ram-line']],
+  ['bombard',         ['bombard-cannon']],
+  ['rocket cart',     ['rocket-cart']],
+  // ── Other land ────────────────────────────────────────────────────────────
   ['eagle',           ['eagle-warrior']],
   ['elephant',        ['battle-elephant']],
+  ['close range',     ['militia-line']],
+  // ── Naval — compuestos antes que sus componentes ───────────────────────────
+  ['long range warship', ['cannon-galleon', 'catapult-galleon', 'lou-chuan', 'dromon']],
+  ['cannon galleon',  ['cannon-galleon']],       // antes de 'galleon'
+  ['catapult galleon',['catapult-galleon']],     // antes de 'galleon'
+  ['turtle ship',     ['turtle-ship']],
+  ['dragon ship',     ['dragon-ship']],
   ['demolition',      ['demo-ship']],
   ['fire ship',       ['fire-ship-line']],
   ['fire galley',     ['fire-ship-line']],
   ['war hulk',        ['hulk-line']],
   ['hulk',            ['hulk-line']],
   ['galley',          ['galley-line']],
-  ['close range',     ['militia-line']],
+  ['longboat',        ['longboat']],
+  ['caravel',         ['caravel']],
+  ['dromon',          ['dromon']],
+  ['lou chuan',       ['lou-chuan']],
+  ['thirisadai',      ['thirisadai']],
 ];
 function mapClassesToLines(phrase) {
   let p = phrase.toLowerCase();
