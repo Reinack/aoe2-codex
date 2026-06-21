@@ -14,6 +14,15 @@ const PORT = process.env.PORT || process.env.API_PORT || 3000;
 app.use(express.json());
 app.use(express.static(join(__dirname, "public")));   // sirve el frontend (5b)
 
+// Radares por civ (perfil de fuerza). Se generan desde el vault con
+// scripts/build-radar.mjs y se commitean: el deploy no monta el vault.
+let RADAR = {};
+try {
+  RADAR = JSON.parse(readFileSync(join(__dirname, "data", "radar.json"), "utf8"));
+} catch (e) {
+  console.error("[radar] no se pudo cargar data/radar.json:", e.message);
+}
+
 // Rate-limit simple en memoria para /api/chat: protege el crédito de Gemini en la
 // demo pública (cada chat = una llamada al LLM). Sin dependencias externas.
 const CHAT_WINDOW_MS = Number(process.env.CHAT_RL_WINDOW_MS || 600_000);   // 10 min
@@ -58,6 +67,14 @@ app.get("/api/stats", wrap(async (_req, res) => {
     RETURN notes, links, count(DISTINCT u) AS uu, count(DISTINCT t) AS ut`);
   res.json(r);
 }));
+
+// --- radares por civ (perfil de fuerza, generado desde el vault) ------------
+app.get("/api/civ-radar", (_req, res) => res.json(RADAR));
+app.get("/api/civ-radar/:slug", (req, res) => {
+  const r = RADAR[(req.params.slug || "").toLowerCase()];
+  if (!r) return res.status(404).json({ error: "sin radar para esa civilización" });
+  res.json(r);
+});
 
 // --- búsqueda (título o alias ES/MX) ---------------------------------------
 app.get("/api/search", wrap(async (req, res) => {
