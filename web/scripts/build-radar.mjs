@@ -11,7 +11,7 @@ const VAULT = process.env.VAULT_PATH || "D:\\Boveda\\Aoe";
 const civDir = join(VAULT, "civs");
 
 const PHASE = ["Dark", "Feudal", "Castle", "Imperial", "Abierto", "Cerrado", "Agua", "Nómada"];
-const CATE = ["Infantería", "Caballería", "Arqueros", "Asedio", "Naval", "Monjes", "Defensa", "Economía"];
+const CATE = ["Infantería", "Caballería", "Arqueros", "Asedio", "Naval", "Monjes", "Defensa", "Pólvora"];
 
 // Mapea filas "| Eje | ~7 | fuente |" -> { eje: 7 } (ignora el ~ de estimado).
 function parseTable(section) {
