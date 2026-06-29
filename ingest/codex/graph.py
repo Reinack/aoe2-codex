@@ -58,7 +58,7 @@ class CodexGraph:
 
     def upsert_note(
         self, note: ParsedNote, resolved_links: list[str],
-        unique_unit_civ_path: str | None = None,
+        unique_unit_civ_paths: list[str] | None = None,
         unique_tech_civ_path: str | None = None,
     ) -> None:
         """Inserta/actualiza la nota y reescribe sus aristas salientes de cero.
@@ -74,13 +74,13 @@ class CodexGraph:
         with self._driver.session() as s:
             s.execute_write(
                 self._upsert_tx, note, resolved_links, concepts, label,
-                unique_unit_civ_path, unique_tech_civ_path,
+                unique_unit_civ_paths or [], unique_tech_civ_path,
             )
 
     @staticmethod
     def _upsert_tx(
         tx, note: ParsedNote, links: list[str], concepts: list[dict], label: str,
-        unique_unit_civ_path: str | None = None,
+        unique_unit_civ_paths: list[str] | None = None,
         unique_tech_civ_path: str | None = None,
     ):
         # 1. upsert del nodo (n += $props añade propiedades de frontmatter)
@@ -153,15 +153,17 @@ class CodexGraph:
                 """,
                 path=note.relpath, ratings=note.ratings,
             )
-        # 6. (:Civ)-[:HAS_UNIQUE_UNIT]->(:Unit) — la arista que faltaba civ↔UU
-        if unique_unit_civ_path:
+        # 6. (:Civ)-[:HAS_UNIQUE_UNIT]->(:Unit) — la arista que faltaba civ↔UU.
+        #    Una UU puede pertenecer a varias civs (p.ej. Winged Hussar).
+        if unique_unit_civ_paths:
             tx.run(
                 """
                 MATCH (unit:Note {path:$path})
-                MATCH (civ:Note {path:$civ})
+                UNWIND $civs AS civPath
+                MATCH (civ:Note {path:civPath})
                 MERGE (civ)-[:HAS_UNIQUE_UNIT]->(unit)
                 """,
-                path=note.relpath, civ=unique_unit_civ_path,
+                path=note.relpath, civs=unique_unit_civ_paths,
             )
         # 7. (:Civ)-[:HAS_UNIQUE_TECH]->(:Tech)
         if unique_tech_civ_path:

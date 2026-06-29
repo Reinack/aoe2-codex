@@ -20,6 +20,9 @@ TIER_VALUE_RE = re.compile(r"\*\*Tier:\s*(.+?)\*\*")
 # Civ dueña de una unidad única:  "### Tecnologías únicas aplicables (Aztecs)"
 # Da el nombre EXACTO del archivo de civ (sin el problema demonym Aztec→Aztecs).
 UNIQUE_UNIT_CIV_RE = re.compile(r"aplicables\s*\(([^)]+)\)", re.IGNORECASE)
+# Tag inline que marca una unidad ÚNICA de verdad (excluye petard/trebuchet/etc.
+# que viven en units/unique/ pero las tienen casi todas las civs).
+UNIQUE_UNIT_TAG_RE = re.compile(r"(?:^|\s)#unique-unit(?:\s|$)", re.MULTILINE)
 # Civ dueña de una tech única: sección "## Civilizaciones con acceso" -> nombre civ
 ACCESS_SECTION_RE = re.compile(
     r"##\s+Civilizaciones con acceso\s*\n(.*?)(?:\n##\s|\Z)", re.DOTALL
@@ -36,7 +39,7 @@ class ParsedNote:
     concepts: list[str] = field(default_factory=list)  # títulos de secciones "## ##"
     ratings: list[dict] = field(default_factory=list)  # {list, value} de bloques "## Tier"
     props: dict = field(default_factory=dict)          # frontmatter escalar -> propiedades
-    unique_unit_civ: str | None = None                 # civ dueña, si es unidad única
+    unique_unit_civs: list[str] = field(default_factory=list)  # civs dueñas (1+) si es UU
     unique_tech_civ: str | None = None                 # civ dueña, si es tech única
     frontmatter: dict = field(default_factory=dict)
 
@@ -80,6 +83,32 @@ def _extract_ratings(body: str) -> list[dict]:
     return ratings
 
 
+def _civs_from_access_section(body: str) -> list[str]:
+    """Extrae los nombres de civ de la sección '## Civilizaciones con acceso'.
+
+    Formato del vault:
+        ## Civilizaciones con acceso
+        **1/53 civilizaciones**
+        Mongols
+    (o varias separadas por coma: 'Lithuanians, Poles'). Toma la primera línea de
+    contenido que no sea el conteo '**N/53**' ni markup, y la separa por comas.
+    """
+    m = ACCESS_SECTION_RE.search(body)
+    if not m:
+        return []
+    for raw_line in m.group(1).splitlines():
+        line = raw_line.strip()
+        if not line or line.startswith(("**", "|", "#", "<", "-", ">", "*")):
+            continue
+        civs = []
+        for part in line.split(","):
+            name = part.strip().strip("[]").strip()  # tolera [[Civ]]
+            if name:
+                civs.append(name)
+        return civs
+    return []
+
+
 def _safe_props(meta: dict) -> dict:
     """Frontmatter -> propiedades Neo4j (solo escalares y listas de escalares)."""
     out: dict = {}
@@ -103,12 +132,17 @@ def parse_note(abspath: Path, relpath: str) -> ParsedNote:
 
     note_type = relpath.split("/", 1)[0] if "/" in relpath else "root"
 
-    # Civ dueña, solo para notas de unidad única (units/unique/)
-    unique_unit_civ = None
-    if relpath.startswith("units/unique/"):
-        m = UNIQUE_UNIT_CIV_RE.search(body)
-        if m:
-            unique_unit_civ = m.group(1).strip()
+    # Civs dueñas, solo para notas de unidad única (units/unique/).
+    # Fuente primaria: sección "## Civilizaciones con acceso" (presente en TODAS
+    # las notas de UU y soporta UUs compartidas, p.ej. Winged Hussar → Lithuanians,
+    # Poles). Fallback al patrón "aplicables (X)" si esa sección no existe.
+    unique_unit_civs: list[str] = []
+    if relpath.startswith("units/unique/") and UNIQUE_UNIT_TAG_RE.search(body):
+        unique_unit_civs = _civs_from_access_section(body)
+        if not unique_unit_civs:
+            m = UNIQUE_UNIT_CIV_RE.search(body)
+            if m:
+                unique_unit_civs = [m.group(1).strip()]
 
     # Civ dueña, solo para notas de tech única (technologies/unique/)
     unique_tech_civ = None
@@ -141,7 +175,7 @@ def parse_note(abspath: Path, relpath: str) -> ParsedNote:
         concepts=[c.strip() for c in CONCEPT_RE.findall(body)],
         ratings=_extract_ratings(body),
         props=_safe_props(meta),
-        unique_unit_civ=unique_unit_civ,
+        unique_unit_civs=unique_unit_civs,
         unique_tech_civ=unique_tech_civ,
         frontmatter=dict(meta),
     )

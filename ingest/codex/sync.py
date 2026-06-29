@@ -65,12 +65,16 @@ def run_sync(cfg: Config, *, full: bool = False) -> None:
                     unresolved += 1
                 else:
                     resolved.append(hit)
-            # resolver la civ dueña de la unidad/tech única (-> civs/{X}.md)
-            uu_civ = resolver(note.unique_unit_civ) if note.unique_unit_civ else None
+            # resolver las civs dueñas de la unidad/tech única (-> civs/{X}.md)
+            uu_civs: list[str] = []
+            for name in note.unique_unit_civs:
+                p = resolver(name)
+                if p and p.startswith("civs/"):  # solo aristas a notas de civ
+                    uu_civs.append(p)
             ut_civ = resolver(note.unique_tech_civ) if note.unique_tech_civ else None
             if ut_civ and not ut_civ.startswith("civs/"):
                 ut_civ = None  # solo aristas a notas de civ
-            g.upsert_note(note, resolved, unique_unit_civ_path=uu_civ,
+            g.upsert_note(note, resolved, unique_unit_civ_paths=uu_civs,
                           unique_tech_civ_path=ut_civ)
             if i % 100 == 0 or i == len(diff.touched):
                 print(f"[up]   {i}/{len(diff.touched)} notas procesadas")
