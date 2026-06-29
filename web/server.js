@@ -23,6 +23,15 @@ try {
   console.error("[radar] no se pudo cargar data/radar.json:", e.message);
 }
 
+// Tier de Phosphor Rush (FC all-in en Arabia) por civ — tier list de Red Fosforu.
+// Generado con scripts/build-phosphor.mjs desde el vault y commiteado.
+let PHOSPHOR = {};
+try {
+  PHOSPHOR = JSON.parse(readFileSync(join(__dirname, "data", "phosphor.json"), "utf8"));
+} catch (e) {
+  console.error("[phosphor] no se pudo cargar data/phosphor.json:", e.message);
+}
+
 // Rate-limit simple en memoria para /api/chat: protege el crédito de Gemini en la
 // demo pública (cada chat = una llamada al LLM). Sin dependencias externas.
 const CHAT_WINDOW_MS = Number(process.env.CHAT_RL_WINDOW_MS || 600_000);   // 10 min
@@ -432,26 +441,26 @@ async function matchupCiv(slug) {
 }
 
 async function matchupKit(path) {
-  const units = await run(
-    `MATCH (:Civ {path:$path})-[:HAS_UNIQUE_UNIT]->(u)
-     WHERE NOT u.title STARTS WITH 'Elite'
-     RETURN u.title AS title, u.path AS path, u.tree_id AS treeId
-     ORDER BY u.title`,
+  // Una sola query: UU, UT y tiers de la civ en una round-trip (antes eran 3).
+  // collect() puede traer entradas nulas cuando un OPTIONAL MATCH no encaja;
+  // se filtran/ordenan en JS para conservar el shape y el orden originales.
+  const [row] = await run(
+    `MATCH (c:Civ {path:$path})
+     OPTIONAL MATCH (c)-[:HAS_UNIQUE_UNIT]->(u) WHERE NOT u.title STARTS WITH 'Elite'
+     WITH c, collect(DISTINCT {title:u.title, path:u.path, treeId:u.tree_id}) AS units
+     OPTIONAL MATCH (c)-[:HAS_UNIQUE_TECH]->(t)
+     WITH c, units, collect(DISTINCT {title:t.title, path:t.path, treeId:t.tree_id}) AS techs
+     OPTIONAL MATCH (c)-[r:RATED]->(tl:TierList)
+     RETURN units, techs, collect(DISTINCT {list:tl.name, tier:r.tier}) AS tiers`,
     { path },
   );
-  const techs = await run(
-    `MATCH (:Civ {path:$path})-[:HAS_UNIQUE_TECH]->(t)
-     RETURN t.title AS title, t.path AS path, t.tree_id AS treeId
-     ORDER BY t.title`,
-    { path },
-  );
-  const tiers = await run(
-    `MATCH (:Civ {path:$path})-[r:RATED]->(tl:TierList)
-     RETURN tl.name AS list, r.tier AS tier
-     ORDER BY tl.name`,
-    { path },
-  );
-  return { uniqueUnits: units, uniqueTechs: techs, tiers };
+  const byTitle = (a, b) => String(a.title).localeCompare(String(b.title));
+  const uniqueUnits = (row?.units ?? []).filter((x) => x.title).sort(byTitle);
+  const uniqueTechs = (row?.techs ?? []).filter((x) => x.title).sort(byTitle);
+  const tiers = (row?.tiers ?? [])
+    .filter((x) => x.list)
+    .sort((a, b) => String(a.list).localeCompare(String(b.list)));
+  return { uniqueUnits, uniqueTechs, tiers };
 }
 
 async function matchupLines(civPath) {
@@ -622,48 +631,51 @@ async function matchupExploits(meLines, vsLines, { map } = {}) {
 function buildPlan(myKit, oppKit, myLines, myAnswers, myThreats, myExploits) {
   const plan = [];
   if (myLines.length) {
-    plan.push(`Apertura: lineas mas solidas son ${myLines.slice(0, 3).map((x) => x.label).join(", ")}.`);
+    plan.push(`Abrí con tus líneas más sólidas: ${myLines.slice(0, 3).map((x) => x.label).join(", ")}.`);
   }
   const strongAnswers = myAnswers.filter((a) => (a.weight || 0) >= 0.8);
   const modAnswers    = myAnswers.filter((a) => (a.weight || 0) < 0.8 && (a.weight || 0) >= 0.5);
   if (strongAnswers.length) {
-    const extras = strongAnswers.length > 1 ? ` (${strongAnswers.length} counters fuertes disponibles)` : "";
-    plan.push(`Counter fuerte: ${strongAnswers[0].from} aplasta ${strongAnswers[0].target}${extras}.`);
+    const nExtra = strongAnswers.length - 1;
+    const extras = nExtra > 0 ? ` (y ${nExtra} ${nExtra > 1 ? "opciones" : "opción"} más para castigarlo)` : "";
+    plan.push(`Tu mejor respuesta: con ${strongAnswers[0].from} aplastás al ${strongAnswers[0].target}${extras}.`);
   } else if (modAnswers.length) {
-    plan.push(`Counter moderado: ${modAnswers[0].from} vs ${modAnswers[0].target} — funciona con micro.`);
+    plan.push(`Tenés un counter decente: ${modAnswers[0].from} contra ${modAnswers[0].target}, pero hay que micrearlo para que rinda.`);
   } else if (!myAnswers.length && myLines.length) {
-    plan.push(`Sin counters directos curados — juga con las lineas disponibles y adapta en partida.`);
+    plan.push(`No hay counters directos curados para este cruce: jugá con tus líneas y adaptá en partida.`);
   }
   const strongThreats = myThreats.filter((t) => (t.weight || 0) >= 0.8);
   if (strongThreats.length) {
-    plan.push(`Amenaza critica: ${strongThreats[0].from} destruye ${strongThreats[0].target} — respeta esto.`);
+    plan.push(`Cuidado serio: el ${strongThreats[0].from} del rival destroza a tu ${strongThreats[0].target}. Respetalo.`);
   } else if (myThreats.length) {
-    plan.push(`Cuidado con ${myThreats[0].from} contra ${myThreats[0].target}.`);
+    plan.push(`Ojo con el ${myThreats[0].from} rival contra tu ${myThreats[0].target}.`);
   }
   const topExploit = myExploits.lines.find((l) => l.status === "green" && l.gaps.length);
   if (topExploit) {
     const missing = topExploit.gaps.slice(0, 2).map((g) => g.label).join(", ");
-    plan.push(`Hueco explotable: ${topExploit.label} — al rival le faltan sus counters (${missing}).`);
+    plan.push(`Hueco para explotar: tu ${topExploit.label} pega justo donde al rival le faltan counters (${missing}).`);
   }
   if (myKit.uniqueUnits.length) {
     const uu = myKit.uniqueUnits[0].title;
-    plan.push(`UU (${uu}) entra en Castle Age — construi hacia eso si el matchup lo permite.`);
+    plan.push(`Apuntá a tu unidad única (${uu}): entra en Castle Age, construí hacia ella si el cruce lo permite.`);
   }
   if (myKit.uniqueTechs.length) {
     const ut = myKit.uniqueTechs.slice(0, 2).map((x) => x.title).join(" y ");
-    plan.push(`Techs unicas clave: ${ut}.`);
+    plan.push(`No te olvides de tus tecnologías únicas clave: ${ut}.`);
   }
   const myTier  = myKit.tiers.find((t) => t.list.toLowerCase().includes("arabia"));
   const oppTier = oppKit.tiers.find((t) => t.list.toLowerCase().includes("arabia"));
   if (myTier && oppTier && myTier.tier !== oppTier.tier) {
-    plan.push(`Tier Arabia: ${myTier.tier} vs rival ${oppTier.tier} — ajusta la agresividad en consecuencia.`);
+    plan.push(`En Arabia el ranking te pone en ${myTier.tier} vs ${oppTier.tier} del rival: ajustá la agresividad acorde.`);
   }
   return plan;
 }
 
 app.get("/api/matchup", wrap(async (req, res) => {
-  const me = await matchupCiv(req.query.me);
-  const vs = await matchupCiv(req.query.vs);
+  const [me, vs] = await Promise.all([
+    matchupCiv(req.query.me),
+    matchupCiv(req.query.vs),
+  ]);
   const map = (req.query.map || "").toString().trim();
   if (!me || !vs) return res.status(404).json({ error: "civilizacion no encontrada" });
   if (me.slug === vs.slug) return res.status(400).json({ error: "elegi dos civilizaciones distintas" });
@@ -704,6 +716,12 @@ app.get("/api/matchup", wrap(async (req, res) => {
   const plan   = buildPlan(meKit, vsKit, meLinesB, answers, threats, exploits);
   const planVs = buildPlan(vsKit, meKit, vsLinesB, threats, answers, vsExploits);
 
+  // Alerta de Phosphor Rush (FC all-in Arabia): tier de cada civ según Red Fosforu.
+  const phosphorRush = {
+    me: PHOSPHOR[me.slug] ? { civ: me.title, ...PHOSPHOR[me.slug] } : null,
+    vs: PHOSPHOR[vs.slug] ? { civ: vs.title, ...PHOSPHOR[vs.slug] } : null,
+  };
+
   res.json({
     me,
     vs,
@@ -715,6 +733,7 @@ app.get("/api/matchup", wrap(async (req, res) => {
     sharedNotes,
     plan,
     planVs,
+    phosphorRush,
   });
 }));
 
