@@ -32,6 +32,95 @@ try {
   console.error("[phosphor] no se pudo cargar data/phosphor.json:", e.message);
 }
 
+// Fortalezas/Debilidades autorales por civ — parseadas de las notas del vault con
+// scripts/build-civ-traits.mjs. Las "weaknesses" ya nombran las unidades faltantes.
+let CIV_TRAITS = {};
+try {
+  CIV_TRAITS = JSON.parse(readFileSync(join(__dirname, "data", "civ-traits.json"), "utf8"));
+} catch (e) {
+  console.error("[traits] no se pudo cargar data/civ-traits.json:", e.message);
+}
+
+// Reglas curadas: detectan unidades/techs faltantes en el texto de "Debilidades"
+// y dan (a) la implicancia para la PROPIA civ y (b) cómo el rival la explota.
+// 'demolition ship' se omite a propósito (irrelevante, por pedido del usuario).
+const MISSING_RULES = [
+  { re: /skirmisher de [eé]lite|elite skirmisher|sin .*skirmisher/i,
+    label: "Elite Skirmisher",
+    self: "sin Elite Skirmisher: sufrís contra masa de arqueros, salvo que tengas cab. fuerte o cav archers",
+    opp:  "no llega a Elite Skirmisher → tus arqueros lo castigan más" },
+  { re: /arbalest|thumb ?ring/i,
+    label: "Arbalester / Thumb Ring",
+    self: "arqueros flojos en Imperial (sin Arbalest/Thumb Ring), salvo cav archers",
+    opp:  "sus arqueros no escalan bien → podés pelear la guerra de arqueros" },
+  { re: /palad[ií]n/i,
+    label: "Paladín",
+    self: "sin Paladín: tu caballería pega un techo en Castle Age",
+    opp:  "su caballería no escala a Paladín → tus pikes/monjes sufren menos en el late" },
+  { re: /hussar/i,
+    label: "Hussar",
+    self: "sin Hussar: peor limpieza de asedio y raideo barato en Imperial",
+    opp:  "sin Hussar para limpiar tu asedio → presioná con mangoneles" },
+  { re: /halberd/i,
+    label: "Halberdero",
+    self: "sin Halberdero: muy vulnerable a caballería pesada (Paladín, Cataphract)",
+    opp:  "no tiene Halberdero → tu caballería pesada lo destroza" },
+  { re: /champion|two-?hand/i,
+    label: "Campeón",
+    self: "infantería tope-Castle (sin Campeón): no escala a Imperial",
+    opp:  "su infantería no llega a Campeón → tu infantería gana el late" },
+  { re: /hand ?cannon/i,
+    label: "Hand Cannoneer",
+    self: "sin Hand Cannoneer: menos respuesta a infantería masiva en Imperial",
+    opp:  "sin Hand Cannoneer → tu infantería masiva es más segura" },
+  { re: /siege onager|asedio limitad|siege limitad/i,
+    label: "Siege Onager / asedio",
+    self: "asedio limitado: te cuesta romper posiciones y arqueros masados",
+    opp:  "su asedio es limitado → podés massar arqueros bajo torres/posición" },
+  { re: /bombard|bbc/i,
+    label: "Bombard Cannon",
+    self: "sin Bombard Cannon: menos respuesta a asedio y posiciones en Imperial",
+    opp:  "sin Bombard Cannon → tus mangoneles/posición aguantan mejor" },
+  { re: /camel|camello/i,
+    label: "Camellos",
+    self: "sin Camellos: peor respuesta a la caballería pesada del rival",
+    opp:  "sin Camellos → tu caballería pesada es más segura contra él" },
+  { re: /bloodlines/i,
+    label: "Bloodlines",
+    self: "sin Bloodlines: tu caballería y scouts tienen menos HP",
+    opp:  "sin Bloodlines → su caballería es más frágil de lo normal" },
+  { re: /plate barding|plate mail/i,
+    label: "Armor de caballería",
+    self: "sin el último armor de caballería: tu cab. aguanta menos a distancia",
+    opp:  "le falta armor de caballería → tus arqueros le hacen más daño" },
+];
+
+// Una cláusula expresa AUSENCIA si arranca con "sin/no/falta/carece/without" o
+// menciona "limitad" → evita falsos positivos como "dependencia total del Paladín".
+const ABSENCE_RE = /(^|[\s,])(sin|no|falta|carece|without)\b|limitad/i;
+
+// Devuelve las unidades/techs faltantes de una civ con su implicancia, leyendo
+// SOLO las cláusulas de ausencia del texto de "Debilidades" (autoral).
+function civMissing(slug) {
+  const items = CIV_TRAITS[slug]?.weaknesses || [];
+  // Separa cada debilidad en sub-cláusulas por coma y conserva las de ausencia.
+  const negative = items
+    .flatMap((it) => it.split(/,|→/))
+    .map((s) => s.trim())
+    .filter((s) => ABSENCE_RE.test(s))
+    .join(" ; ");
+  if (!negative) return [];
+  const seen = new Set();
+  const out = [];
+  for (const r of MISSING_RULES) {
+    if (r.re.test(negative) && !seen.has(r.label)) {
+      seen.add(r.label);
+      out.push({ unit: r.label, self: r.self, opp: r.opp });
+    }
+  }
+  return out;
+}
+
 // Rate-limit simple en memoria para /api/chat: protege el crédito de Gemini en la
 // demo pública (cada chat = una llamada al LLM). Sin dependencias externas.
 const CHAT_WINDOW_MS = Number(process.env.CHAT_RL_WINDOW_MS || 600_000);   // 10 min
@@ -401,21 +490,22 @@ function mapClassesToLines(phrase) {
 }
 
 app.get("/api/civ-units", wrap(async (req, res) => {
-  const slug = (req.query.civ || "").trim();
+  const slug = (req.query.civ || "").trim().toLowerCase();
   if (!slug) return res.status(400).json({ error: "falta ?civ=" });
-  const path = `civs/${slug}.md`;
+  // Resolución case-insensitive: el path del nodo Civ es "civs/Britons.md".
   const [civ] = await run(
-    `MATCH (c:Civ {path:$path}) RETURN c.title AS title`, { path });
-  if (!civ) return res.status(404).json({ error: "civ no encontrada", path });
+    `MATCH (c:Civ) WHERE toLower(c.path) = toLower($path)
+     RETURN c.title AS title, c.path AS path`,
+    { path: `civs/${slug}.md` });
+  if (!civ) return res.status(404).json({ error: "civ no encontrada", slug });
+  const path = civ.path;
 
-  const allIds = [...new Set(Object.values(LINE_MEMBERS).flat())];
-  const rows = await run(
-    `MATCH (:Civ {path:$path})-[:HAS_UNIT]->(u)
-     WHERE u.tree_id IN $ids
-     RETURN DISTINCT u.tree_id AS id`, { path, ids: allIds });
-  const have = new Set(rows.map((r) => r.id));
+  // Disponibilidad desde el árbol vendorizado (CIV_AVAILABLE) — completo y no
+  // depende de las aristas HAS_UNIT del grafo (que el sync no recrea). Es la misma
+  // fuente que usa matchupLines.
+  const available = CIV_AVAILABLE.get(slug) || new Set();
   const units = Object.entries(LINE_MEMBERS)
-    .filter(([, members]) => members.some((m) => have.has(m)))
+    .filter(([, members]) => members.some((m) => available.has(m)))
     .map(([line]) => line);
 
   // Unidades únicas de la civ (sin las Elite — son la misma línea).
@@ -722,6 +812,13 @@ app.get("/api/matchup", wrap(async (req, res) => {
     vs: PHOSPHOR[vs.slug] ? { civ: vs.title, ...PHOSPHOR[vs.slug] } : null,
   };
 
+  // Fortalezas/Debilidades autorales + unidades faltantes con implicancia.
+  const traits = {
+    me: CIV_TRAITS[me.slug] || { strengths: [], weaknesses: [] },
+    vs: CIV_TRAITS[vs.slug] || { strengths: [], weaknesses: [] },
+  };
+  const missing = { me: civMissing(me.slug), vs: civMissing(vs.slug) };
+
   res.json({
     me,
     vs,
@@ -734,6 +831,8 @@ app.get("/api/matchup", wrap(async (req, res) => {
     plan,
     planVs,
     phosphorRush,
+    traits,
+    missing,
   });
 }));
 
