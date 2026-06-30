@@ -7,13 +7,14 @@ El nombre en inglés es la clave de join contra los títulos de las notas.
 from __future__ import annotations
 
 import json
+import os
 import re
 from pathlib import Path
 
-# Ruta a los locales descargados (ajustable por env si hace falta)
-DEFAULT_LOCALES = Path(
-    r"C:\Users\Usuario\Downloads\aoe2techtree-master\aoe2techtree-master\data\locales"
-)
+# Ruta a los locales de aoe2techtree (data/locales/{en,es,mx}/strings.json).
+# Configurable por la env var AOE2TECHTREE_LOCALES; por defecto se buscan en
+# ./data/locales relativo al directorio de trabajo.
+DEFAULT_LOCALES = Path(os.environ.get("AOE2TECHTREE_LOCALES", "data/locales"))
 
 
 def _clean(s: str) -> str:

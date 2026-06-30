@@ -208,3 +208,16 @@ el gasto de Gemini; conviene además dejar un spend cap bajo en AI Studio.
 - [x] Push a GitHub (privado) + migración a Gemini (deployable sin Ollama)
 - [x] Dockerfile + `render.yaml` para deploy (Aura + Render + Gemini)
 - [ ] Demo pública live
+
+## Atribuciones
+
+- El árbol tecnológico incluido en `web/public/tree/` proviene del proyecto
+  [aoe2techtree](https://github.com/SiegeEngineers/aoe2techtree) (SiegeEngineers),
+  distribuido bajo licencia **MIT**.
+- *Age of Empires II* y sus datos de juego son © **Microsoft Corporation**. Este es un
+  proyecto educativo/no comercial sin afiliación con Microsoft.
+- Código propio de este repositorio: licencia **MIT** (ver [`LICENSE`](LICENSE)).
+
+## Licencia
+
+[MIT](LICENSE) © Reinack
