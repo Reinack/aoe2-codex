@@ -211,11 +211,20 @@ el gasto de Gemini; conviene además dejar un spend cap bajo en AI Studio.
 
 ## Atribuciones
 
-- El árbol tecnológico incluido en `web/public/tree/` proviene del proyecto
-  [aoe2techtree](https://github.com/SiegeEngineers/aoe2techtree) (SiegeEngineers),
-  distribuido bajo licencia **MIT**.
-- *Age of Empires II* y sus datos de juego son © **Microsoft Corporation**. Este es un
-  proyecto educativo/no comercial sin afiliación con Microsoft.
+Este proyecto integra material de varias fuentes:
+
+- **Imágenes** (unidades, tecnologías, edificios) y **nombres localizados** (strings de juego
+  ES/MX, vía `data/locales`) provienen de
+  [aoe2techtree](https://github.com/SiegeEngineers/aoe2techtree) (SiegeEngineers, **MIT**).
+  La visualización del árbol en este repo es una **implementación propia**: usa esos recursos
+  pero no replica el funcionamiento del proyecto original.
+- Las **notas estratégicas / de conocimiento** que alimentan el GraphRAG se sintetizaron a
+  partir de la [AoE2 Wiki en Fandom](https://ageofempires.fandom.com) (**CC BY-SA**) y de
+  videos de creadores de contenido de la comunidad. El texto de esas notas **no** se incluye
+  en este repositorio (el vault personal es privado); el repo solo versiona datos **derivados**
+  (p. ej. `radar.json`, `civ-traits.json`).
+- *Age of Empires II*, sus imágenes, nombres y datos de juego son © **Microsoft Corporation**.
+  Proyecto educativo / no comercial, sin afiliación ni respaldo de Microsoft.
 - Código propio de este repositorio: licencia **MIT** (ver [`LICENSE`](LICENSE)).
 
 ## Licencia
