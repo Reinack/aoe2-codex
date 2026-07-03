@@ -11,9 +11,10 @@
     "techtree:ingest": "node techtree/ingest.mjs --write",
     "techtree:dry": "node techtree/ingest.mjs",
     "data:costs": "node scripts/build-item-costs.mjs",
+    "data:castleuus": "node scripts/build-castle-uus.mjs",
     "data:civmods": "node scripts/build-civ-mods.mjs",
     "data:ecotechs": "node scripts/build-eco-techs.mjs",
-    "data:eco": "node scripts/build-item-costs.mjs && node scripts/build-civ-mods.mjs && node scripts/build-eco-techs.mjs"
+    "data:eco": "node scripts/build-item-costs.mjs && node scripts/build-castle-uus.mjs && node scripts/build-civ-mods.mjs && node scripts/build-eco-techs.mjs"
   },
   "dependencies": {
     "express": "^4.19.2",

@@ -33,9 +33,21 @@ const ALL_UNIT_IDS = ITEMS.filter((i) => i.kind === "unit").map((i) => i.id);
 const ITEM_IDS = new Set(ITEMS.map((i) => i.id));
 const NON_MILITARY = new Set(["villager", "fishingship", "transportship", "tradecog", "tradecart"]);
 
-// imgPath → id, para resolver la UU propia de cada civ (viene por imgPic, no por id).
-const IMG_TO_ID = new Map(ITEMS.filter((i) => i.imgPath).map((i) => [i.imgPath, i.id]));
-const uuIdForPic = (pic) => (pic == null ? null : IMG_TO_ID.get(`img/Unit/${pic}.png`) || null);
+// Unidad única de Castillo por civ (nombre/costo/tiempo reales, ver build-castle-uus.mjs).
+// NOTA: se descartó resolver esto por imgPic (número de ícono) porque es frágil — dio
+// al menos un falso positivo real (Vietnamese resolvía a 'xolotl_warrior', un unit
+// azteca sin relación, por coincidencia de número de ícono).
+let CASTLE_UU = [];
+try {
+  CASTLE_UU = JSON.parse(readFileSync(join(WEB, "data", "castle-uu.json"), "utf8"));
+} catch (e) {
+  console.warn("[civ-mods] castle-uu.json no encontrado — correr build-castle-uus.mjs antes. " + e.message);
+}
+const CASTLE_UU_BY_CIV = new Map();
+for (const item of CASTLE_UU) {
+  if (!CASTLE_UU_BY_CIV.has(item.civSlug)) CASTLE_UU_BY_CIV.set(item.civSlug, []);
+  CASTLE_UU_BY_CIV.get(item.civSlug).push(item.id);
+}
 
 // ── Mapa scope → ids de unidad (para cost_modifier) ──────────────────────────
 const LINES = {
@@ -120,16 +132,12 @@ for (const [slug, civ] of Object.entries(t.CIVS)) {
   const rec = { cost: [], gen: [], uuCost: [], unlocks: [], buildable: [] };
   const bonuses = [...(civ.bonuses || [])];
 
-  // Construibilidad: `available` del árbol ∩ items reales, más la(s) UU propia(s)
-  // (resueltas por imgPic → id, porque en `available` figuran como placeholders
-  // "uniqueunit"/"eliteunique"). Incluye bonus de equipo/mercenarios que ya estén
-  // en `available` (genitour, kipchak, condottiero…).
+  // Construibilidad: `available` del árbol ∩ items reales (incluye bonus de equipo/
+  // mercenarios ya listados ahí: genitour, kipchak_c, condottiero…) + la unidad única
+  // de Castillo de la civ (castle-uu.json; en `available` figura solo como placeholder
+  // "uniqueunit"/"eliteunique" sin costo real, por eso se agrega aparte).
   const buildable = new Set((civ.available || []).filter((id) => ITEM_IDS.has(id)));
-  for (const uu of civ.uniqueUnits || []) {
-    const a = uuIdForPic(uu.imgPic), b = uuIdForPic(uu.eliteImgPic);
-    if (a) buildable.add(a);
-    if (b) buildable.add(b);
-  }
+  for (const id of CASTLE_UU_BY_CIV.get(slug) || []) buildable.add(id);
   rec.buildable = [...buildable].sort();
 
   for (const b of bonuses) {

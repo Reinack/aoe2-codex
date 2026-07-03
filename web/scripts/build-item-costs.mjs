@@ -44,6 +44,14 @@ const BUILDING_CATEGORY = {
 
 const t = await loadTree();
 
+// Correcciones puntuales: el árbol vendorizado trae costos incorrectos para estas 2
+// unidades únicas (verificado contra D:\Boveda\Aoe\counters\all-units-stats.md, que
+// extrae de empires2_x2_p1.dat). tarkan_s no necesita corrección (ya coincide).
+const COST_FIX = {
+  kipchak_c: { food: 0, wood: 60, gold: 35 },  // era { food: 40, gold: 35 }
+  huskarl_b: { food: 75, gold: 35 },           // era { food: 52, gold: 26 }
+};
+
 const items = [];
 for (const n of t.NODES) {
   if (SKIP.has(n.id)) continue;
@@ -51,7 +59,7 @@ for (const n of t.NODES) {
   const isBuilding = !!n.build_cost;
   if (!isUnit && !isBuilding) continue;
 
-  const cost = isUnit ? n.train_cost : n.build_cost;
+  const cost = COST_FIX[n.id] || (isUnit ? n.train_cost : n.build_cost);
   // Tiempo: unidades → `train` de unitStats; edificios → `build_time` del nodo.
   const stat = t.unitStats[n.id];
   let time = isUnit ? (stat && stat.train) : n.build_time;

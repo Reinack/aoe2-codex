@@ -1,0 +1,1668 @@
+[
+  {
+    "id": "castle_uu_armenians",
+    "name": "Composite Bowman",
+    "kind": "unit",
+    "category": "castle",
+    "variant": "unique",
+    "age": "castle",
+    "cost": {
+      "food": 0,
+      "wood": 35,
+      "gold": 45,
+      "stone": 0
+    },
+    "time": 12,
+    "imgPath": "img/Unit/407.png",
+    "civSlug": "armenians"
+  },
+  {
+    "id": "castle_uu_armenians_elite",
+    "name": "Elite Composite Bowman",
+    "kind": "unit",
+    "category": "castle",
+    "variant": "unique",
+    "age": "imperial",
+    "cost": {
+      "food": 0,
+      "wood": 35,
+      "gold": 45,
+      "stone": 0
+    },
+    "time": 10,
+    "imgPath": "img/Unit/522.png",
+    "civSlug": "armenians"
+  },
+  {
+    "id": "castle_uu_aztecs",
+    "name": "Jaguar Warrior",
+    "kind": "unit",
+    "category": "castle",
+    "variant": "unique",
+    "age": "castle",
+    "cost": {
+      "food": 60,
+      "wood": 0,
+      "gold": 30,
+      "stone": 0
+    },
+    "time": 12,
+    "imgPath": "img/Unit/110.png",
+    "civSlug": "aztecs"
+  },
+  {
+    "id": "castle_uu_aztecs_elite",
+    "name": "Elite Jaguar Warrior",
+    "kind": "unit",
+    "category": "castle",
+    "variant": "unique",
+    "age": "imperial",
+    "cost": {
+      "food": 60,
+      "wood": 0,
+      "gold": 30,
+      "stone": 0
+    },
+    "time": 12,
+    "imgPath": "img/Unit/486.png",
+    "civSlug": "aztecs"
+  },
+  {
+    "id": "castle_uu_bengalis",
+    "name": "Ratha",
+    "kind": "unit",
+    "category": "castle",
+    "variant": "unique",
+    "age": "castle",
+    "cost": {
+      "food": 0,
+      "wood": 60,
+      "gold": 60,
+      "stone": 0
+    },
+    "time": 20,
+    "imgPath": "img/Unit/389.png",
+    "civSlug": "bengalis"
+  },
+  {
+    "id": "castle_uu_bengalis_elite",
+    "name": "Elite Ratha",
+    "kind": "unit",
+    "category": "castle",
+    "variant": "unique",
+    "age": "imperial",
+    "cost": {
+      "food": 0,
+      "wood": 60,
+      "gold": 60,
+      "stone": 0
+    },
+    "time": 18,
+    "imgPath": "img/Unit/520.png",
+    "civSlug": "bengalis"
+  },
+  {
+    "id": "castle_uu_berbers",
+    "name": "Camel Archer",
+    "kind": "unit",
+    "category": "castle",
+    "variant": "unique",
+    "age": "castle",
+    "cost": {
+      "food": 0,
+      "wood": 50,
+      "gold": 60,
+      "stone": 0
+    },
+    "time": 25,
+    "imgPath": "img/Unit/191.png",
+    "civSlug": "berbers"
+  },
+  {
+    "id": "castle_uu_berbers_elite",
+    "name": "Elite Camel Archer",
+    "kind": "unit",
+    "category": "castle",
+    "variant": "unique",
+    "age": "imperial",
+    "cost": {
+      "food": 0,
+      "wood": 50,
+      "gold": 60,
+      "stone": 0
+    },
+    "time": 25,
+    "imgPath": "img/Unit/498.png",
+    "civSlug": "berbers"
+  },
+  {
+    "id": "castle_uu_bohemians",
+    "name": "Hussite Wagon",
+    "kind": "unit",
+    "category": "castle",
+    "variant": "unique",
+    "age": "castle",
+    "cost": {
+      "food": 0,
+      "wood": 110,
+      "gold": 70,
+      "stone": 0
+    },
+    "time": 30,
+    "imgPath": "img/Unit/370.png",
+    "civSlug": "bohemians"
+  },
+  {
+    "id": "castle_uu_bohemians_elite",
+    "name": "Elite Hussite Wagon",
+    "kind": "unit",
+    "category": "castle",
+    "variant": "unique",
+    "age": "imperial",
+    "cost": {
+      "food": 0,
+      "wood": 110,
+      "gold": 70,
+      "stone": 0
+    },
+    "time": 26,
+    "imgPath": "img/Unit/514.png",
+    "civSlug": "bohemians"
+  },
+  {
+    "id": "castle_uu_britons",
+    "name": "Longbowman",
+    "kind": "unit",
+    "category": "castle",
+    "variant": "unique",
+    "age": "castle",
+    "cost": {
+      "food": 0,
+      "wood": 35,
+      "gold": 40,
+      "stone": 0
+    },
+    "time": 18,
+    "imgPath": "img/Unit/41.png",
+    "civSlug": "britons"
+  },
+  {
+    "id": "castle_uu_britons_elite",
+    "name": "Elite Longbowman",
+    "kind": "unit",
+    "category": "castle",
+    "variant": "unique",
+    "age": "imperial",
+    "cost": {
+      "food": 0,
+      "wood": 35,
+      "gold": 40,
+      "stone": 0
+    },
+    "time": 18,
+    "imgPath": "img/Unit/472.png",
+    "civSlug": "britons"
+  },
+  {
+    "id": "castle_uu_bulgarians",
+    "name": "Konnik",
+    "kind": "unit",
+    "category": "castle",
+    "variant": "unique",
+    "age": "castle",
+    "cost": {
+      "food": 60,
+      "wood": 0,
+      "gold": 70,
+      "stone": 0
+    },
+    "time": 16,
+    "imgPath": "img/Unit/249.png",
+    "civSlug": "bulgarians"
+  },
+  {
+    "id": "castle_uu_bulgarians_elite",
+    "name": "Elite Konnik",
+    "kind": "unit",
+    "category": "castle",
+    "variant": "unique",
+    "age": "imperial",
+    "cost": {
+      "food": 60,
+      "wood": 0,
+      "gold": 70,
+      "stone": 0
+    },
+    "time": 16,
+    "imgPath": "img/Unit/506.png",
+    "civSlug": "bulgarians"
+  },
+  {
+    "id": "castle_uu_burgundians",
+    "name": "Coustillier",
+    "kind": "unit",
+    "category": "castle",
+    "variant": "unique",
+    "age": "castle",
+    "cost": {
+      "food": 55,
+      "wood": 0,
+      "gold": 55,
+      "stone": 0
+    },
+    "time": 15,
+    "imgPath": "img/Unit/355.png",
+    "civSlug": "burgundians"
+  },
+  {
+    "id": "castle_uu_burgundians_elite",
+    "name": "Elite Coustillier",
+    "kind": "unit",
+    "category": "castle",
+    "variant": "unique",
+    "age": "imperial",
+    "cost": {
+      "food": 55,
+      "wood": 0,
+      "gold": 55,
+      "stone": 0
+    },
+    "time": 14,
+    "imgPath": "img/Unit/511.png",
+    "civSlug": "burgundians"
+  },
+  {
+    "id": "castle_uu_burmese",
+    "name": "Arambai",
+    "kind": "unit",
+    "category": "castle",
+    "variant": "unique",
+    "age": "castle",
+    "cost": {
+      "food": 0,
+      "wood": 75,
+      "gold": 60,
+      "stone": 0
+    },
+    "time": 18,
+    "imgPath": "img/Unit/230.png",
+    "civSlug": "burmese"
+  },
+  {
+    "id": "castle_uu_burmese_elite",
+    "name": "Elite Arambai",
+    "kind": "unit",
+    "category": "castle",
+    "variant": "unique",
+    "age": "imperial",
+    "cost": {
+      "food": 0,
+      "wood": 75,
+      "gold": 60,
+      "stone": 0
+    },
+    "time": 18,
+    "imgPath": "img/Unit/504.png",
+    "civSlug": "burmese"
+  },
+  {
+    "id": "castle_uu_byzantines",
+    "name": "Cataphract",
+    "kind": "unit",
+    "category": "castle",
+    "variant": "unique",
+    "age": "castle",
+    "cost": {
+      "food": 70,
+      "wood": 0,
+      "gold": 75,
+      "stone": 0
+    },
+    "time": 20,
+    "imgPath": "img/Unit/35.png",
+    "civSlug": "byzantines"
+  },
+  {
+    "id": "castle_uu_byzantines_elite",
+    "name": "Elite Cataphract",
+    "kind": "unit",
+    "category": "castle",
+    "variant": "unique",
+    "age": "imperial",
+    "cost": {
+      "food": 70,
+      "wood": 0,
+      "gold": 75,
+      "stone": 0
+    },
+    "time": 20,
+    "imgPath": "img/Unit/476.png",
+    "civSlug": "byzantines"
+  },
+  {
+    "id": "castle_uu_celts",
+    "name": "Woad Raider",
+    "kind": "unit",
+    "category": "castle",
+    "variant": "unique",
+    "age": "castle",
+    "cost": {
+      "food": 70,
+      "wood": 0,
+      "gold": 25,
+      "stone": 0
+    },
+    "time": 10,
+    "imgPath": "img/Unit/47.png",
+    "civSlug": "celts"
+  },
+  {
+    "id": "castle_uu_celts_elite",
+    "name": "Elite Woad Raider",
+    "kind": "unit",
+    "category": "castle",
+    "variant": "unique",
+    "age": "imperial",
+    "cost": {
+      "food": 70,
+      "wood": 0,
+      "gold": 25,
+      "stone": 0
+    },
+    "time": 10,
+    "imgPath": "img/Unit/475.png",
+    "civSlug": "celts"
+  },
+  {
+    "id": "castle_uu_chinese",
+    "name": "Chu Ko Nu",
+    "kind": "unit",
+    "category": "castle",
+    "variant": "unique",
+    "age": "castle",
+    "cost": {
+      "food": 0,
+      "wood": 40,
+      "gold": 35,
+      "stone": 0
+    },
+    "time": 16,
+    "imgPath": "img/Unit/36.png",
+    "civSlug": "chinese"
+  },
+  {
+    "id": "castle_uu_chinese_elite",
+    "name": "Elite Chu Ko Nu",
+    "kind": "unit",
+    "category": "castle",
+    "variant": "unique",
+    "age": "imperial",
+    "cost": {
+      "food": 0,
+      "wood": 40,
+      "gold": 35,
+      "stone": 0
+    },
+    "time": 13,
+    "imgPath": "img/Unit/482.png",
+    "civSlug": "chinese"
+  },
+  {
+    "id": "castle_uu_dravidians",
+    "name": "Urumi Swordsman",
+    "kind": "unit",
+    "category": "castle",
+    "variant": "unique",
+    "age": "castle",
+    "cost": {
+      "food": 65,
+      "wood": 0,
+      "gold": 20,
+      "stone": 0
+    },
+    "time": 9,
+    "imgPath": "img/Unit/386.png",
+    "civSlug": "dravidians"
+  },
+  {
+    "id": "castle_uu_dravidians_elite",
+    "name": "Elite Urumi Swordsman",
+    "kind": "unit",
+    "category": "castle",
+    "variant": "unique",
+    "age": "imperial",
+    "cost": {
+      "food": 65,
+      "wood": 0,
+      "gold": 20,
+      "stone": 0
+    },
+    "time": 9,
+    "imgPath": "img/Unit/515.png",
+    "civSlug": "dravidians"
+  },
+  {
+    "id": "castle_uu_ethiopians",
+    "name": "Shotel Warrior",
+    "kind": "unit",
+    "category": "castle",
+    "variant": "unique",
+    "age": "castle",
+    "cost": {
+      "food": 50,
+      "wood": 0,
+      "gold": 30,
+      "stone": 0
+    },
+    "time": 8,
+    "imgPath": "img/Unit/195.png",
+    "civSlug": "ethiopians"
+  },
+  {
+    "id": "castle_uu_ethiopians_elite",
+    "name": "Elite Shotel Warrior",
+    "kind": "unit",
+    "category": "castle",
+    "variant": "unique",
+    "age": "imperial",
+    "cost": {
+      "food": 50,
+      "wood": 0,
+      "gold": 30,
+      "stone": 0
+    },
+    "time": 4,
+    "imgPath": "img/Unit/501.png",
+    "civSlug": "ethiopians"
+  },
+  {
+    "id": "castle_uu_franks",
+    "name": "Throwing Axeman",
+    "kind": "unit",
+    "category": "castle",
+    "variant": "unique",
+    "age": "castle",
+    "cost": {
+      "food": 55,
+      "wood": 0,
+      "gold": 25,
+      "stone": 0
+    },
+    "time": 13,
+    "imgPath": "img/Unit/46.png",
+    "civSlug": "franks"
+  },
+  {
+    "id": "castle_uu_franks_elite",
+    "name": "Elite Throwing Axeman",
+    "kind": "unit",
+    "category": "castle",
+    "variant": "unique",
+    "age": "imperial",
+    "cost": {
+      "food": 55,
+      "wood": 0,
+      "gold": 25,
+      "stone": 0
+    },
+    "time": 13,
+    "imgPath": "img/Unit/473.png",
+    "civSlug": "franks"
+  },
+  {
+    "id": "castle_uu_georgians",
+    "name": "Monaspa",
+    "kind": "unit",
+    "category": "castle",
+    "variant": "unique",
+    "age": "castle",
+    "cost": {
+      "food": 60,
+      "wood": 0,
+      "gold": 45,
+      "stone": 0
+    },
+    "time": 14,
+    "imgPath": "img/Unit/408.png",
+    "civSlug": "georgians"
+  },
+  {
+    "id": "castle_uu_georgians_elite",
+    "name": "Elite Monaspa",
+    "kind": "unit",
+    "category": "castle",
+    "variant": "unique",
+    "age": "imperial",
+    "cost": {
+      "food": 60,
+      "wood": 0,
+      "gold": 45,
+      "stone": 0
+    },
+    "time": 14,
+    "imgPath": "img/Unit/523.png",
+    "civSlug": "georgians"
+  },
+  {
+    "id": "castle_uu_gurjaras",
+    "name": "Chakram Thrower",
+    "kind": "unit",
+    "category": "castle",
+    "variant": "unique",
+    "age": "castle",
+    "cost": {
+      "food": 65,
+      "wood": 0,
+      "gold": 30,
+      "stone": 0
+    },
+    "time": 15,
+    "imgPath": "img/Unit/390.png",
+    "civSlug": "gurjaras"
+  },
+  {
+    "id": "castle_uu_gurjaras_elite",
+    "name": "Elite Chakram Thrower",
+    "kind": "unit",
+    "category": "castle",
+    "variant": "unique",
+    "age": "imperial",
+    "cost": {
+      "food": 65,
+      "wood": 0,
+      "gold": 30,
+      "stone": 0
+    },
+    "time": 15,
+    "imgPath": "img/Unit/517.png",
+    "civSlug": "gurjaras"
+  },
+  {
+    "id": "castle_uu_hindustanis",
+    "name": "Ghulam",
+    "kind": "unit",
+    "category": "castle",
+    "variant": "unique",
+    "age": "castle",
+    "cost": {
+      "food": 30,
+      "wood": 0,
+      "gold": 45,
+      "stone": 0
+    },
+    "time": 12,
+    "imgPath": "img/Unit/385.png",
+    "civSlug": "hindustanis"
+  },
+  {
+    "id": "castle_uu_hindustanis_elite",
+    "name": "Elite Ghulam",
+    "kind": "unit",
+    "category": "castle",
+    "variant": "unique",
+    "age": "imperial",
+    "cost": {
+      "food": 30,
+      "wood": 0,
+      "gold": 45,
+      "stone": 0
+    },
+    "time": 12,
+    "imgPath": "img/Unit/518.png",
+    "civSlug": "hindustanis"
+  },
+  {
+    "id": "castle_uu_incas",
+    "name": "Kamayuk",
+    "kind": "unit",
+    "category": "castle",
+    "variant": "unique",
+    "age": "castle",
+    "cost": {
+      "food": 60,
+      "wood": 0,
+      "gold": 30,
+      "stone": 0
+    },
+    "time": 10,
+    "imgPath": "img/Unit/97.png",
+    "civSlug": "incas"
+  },
+  {
+    "id": "castle_uu_incas_elite",
+    "name": "Elite Kamayuk",
+    "kind": "unit",
+    "category": "castle",
+    "variant": "unique",
+    "age": "imperial",
+    "cost": {
+      "food": 60,
+      "wood": 0,
+      "gold": 30,
+      "stone": 0
+    },
+    "time": 10,
+    "imgPath": "img/Unit/495.png",
+    "civSlug": "incas"
+  },
+  {
+    "id": "castle_uu_italians",
+    "name": "Genoese Crossbowman",
+    "kind": "unit",
+    "category": "castle",
+    "variant": "unique",
+    "age": "castle",
+    "cost": {
+      "food": 0,
+      "wood": 45,
+      "gold": 40,
+      "stone": 0
+    },
+    "time": 14,
+    "imgPath": "img/Unit/133.png",
+    "civSlug": "italians"
+  },
+  {
+    "id": "castle_uu_italians_elite",
+    "name": "Elite Genoese Crossbowman",
+    "kind": "unit",
+    "category": "castle",
+    "variant": "unique",
+    "age": "imperial",
+    "cost": {
+      "food": 0,
+      "wood": 45,
+      "gold": 40,
+      "stone": 0
+    },
+    "time": 14,
+    "imgPath": "img/Unit/492.png",
+    "civSlug": "italians"
+  },
+  {
+    "id": "castle_uu_japanese",
+    "name": "Samurai",
+    "kind": "unit",
+    "category": "castle",
+    "variant": "unique",
+    "age": "castle",
+    "cost": {
+      "food": 45,
+      "wood": 0,
+      "gold": 30,
+      "stone": 0
+    },
+    "time": 9,
+    "imgPath": "img/Unit/44.png",
+    "civSlug": "japanese"
+  },
+  {
+    "id": "castle_uu_japanese_elite",
+    "name": "Elite Samurai",
+    "kind": "unit",
+    "category": "castle",
+    "variant": "unique",
+    "age": "imperial",
+    "cost": {
+      "food": 45,
+      "wood": 0,
+      "gold": 30,
+      "stone": 0
+    },
+    "time": 9,
+    "imgPath": "img/Unit/483.png",
+    "civSlug": "japanese"
+  },
+  {
+    "id": "castle_uu_jurchens",
+    "name": "Iron Pagoda",
+    "kind": "unit",
+    "category": "castle",
+    "variant": "unique",
+    "age": "castle",
+    "cost": {
+      "food": 80,
+      "wood": 0,
+      "gold": 55,
+      "stone": 0
+    },
+    "time": 14,
+    "imgPath": "img/Unit/461.png",
+    "civSlug": "jurchens"
+  },
+  {
+    "id": "castle_uu_jurchens_elite",
+    "name": "Elite Iron Pagoda",
+    "kind": "unit",
+    "category": "castle",
+    "variant": "unique",
+    "age": "imperial",
+    "cost": {
+      "food": 80,
+      "wood": 0,
+      "gold": 55,
+      "stone": 0
+    },
+    "time": 14,
+    "imgPath": "img/Unit/524.png",
+    "civSlug": "jurchens"
+  },
+  {
+    "id": "castle_uu_khitans",
+    "name": "Liao Dao",
+    "kind": "unit",
+    "category": "castle",
+    "variant": "unique",
+    "age": "castle",
+    "cost": {
+      "food": 40,
+      "wood": 0,
+      "gold": 40,
+      "stone": 0
+    },
+    "time": 12,
+    "imgPath": "img/Unit/463.png",
+    "civSlug": "khitans"
+  },
+  {
+    "id": "castle_uu_khitans_elite",
+    "name": "Elite Liao Dao",
+    "kind": "unit",
+    "category": "castle",
+    "variant": "unique",
+    "age": "imperial",
+    "cost": {
+      "food": 40,
+      "wood": 0,
+      "gold": 40,
+      "stone": 0
+    },
+    "time": 12,
+    "imgPath": "img/Unit/525.png",
+    "civSlug": "khitans"
+  },
+  {
+    "id": "castle_uu_khmer",
+    "name": "Ballista Elephant",
+    "kind": "unit",
+    "category": "castle",
+    "variant": "unique",
+    "age": "castle",
+    "cost": {
+      "food": 100,
+      "wood": 0,
+      "gold": 80,
+      "stone": 0
+    },
+    "time": 25,
+    "imgPath": "img/Unit/231.png",
+    "civSlug": "khmer"
+  },
+  {
+    "id": "castle_uu_khmer_elite",
+    "name": "Elite Ballista Elephant",
+    "kind": "unit",
+    "category": "castle",
+    "variant": "unique",
+    "age": "imperial",
+    "cost": {
+      "food": 100,
+      "wood": 0,
+      "gold": 80,
+      "stone": 0
+    },
+    "time": 25,
+    "imgPath": "img/Unit/502.png",
+    "civSlug": "khmer"
+  },
+  {
+    "id": "castle_uu_koreans",
+    "name": "War Wagon",
+    "kind": "unit",
+    "category": "castle",
+    "variant": "unique",
+    "age": "castle",
+    "cost": {
+      "food": 0,
+      "wood": 200,
+      "gold": 60,
+      "stone": 0
+    },
+    "time": 21,
+    "imgPath": "img/Unit/117.png",
+    "civSlug": "koreans"
+  },
+  {
+    "id": "castle_uu_koreans_elite",
+    "name": "Elite War Wagon",
+    "kind": "unit",
+    "category": "castle",
+    "variant": "unique",
+    "age": "imperial",
+    "cost": {
+      "food": 0,
+      "wood": 200,
+      "gold": 60,
+      "stone": 0
+    },
+    "time": 21,
+    "imgPath": "img/Unit/490.png",
+    "civSlug": "koreans"
+  },
+  {
+    "id": "castle_uu_lithuanians",
+    "name": "Leitis",
+    "kind": "unit",
+    "category": "castle",
+    "variant": "unique",
+    "age": "castle",
+    "cost": {
+      "food": 70,
+      "wood": 0,
+      "gold": 50,
+      "stone": 0
+    },
+    "time": 20,
+    "imgPath": "img/Unit/253.png",
+    "civSlug": "lithuanians"
+  },
+  {
+    "id": "castle_uu_lithuanians_elite",
+    "name": "Elite Leitis",
+    "kind": "unit",
+    "category": "castle",
+    "variant": "unique",
+    "age": "imperial",
+    "cost": {
+      "food": 70,
+      "wood": 0,
+      "gold": 50,
+      "stone": 0
+    },
+    "time": 18,
+    "imgPath": "img/Unit/509.png",
+    "civSlug": "lithuanians"
+  },
+  {
+    "id": "castle_uu_magyars",
+    "name": "Magyar Huszar",
+    "kind": "unit",
+    "category": "castle",
+    "variant": "unique",
+    "age": "castle",
+    "cost": {
+      "food": 35,
+      "wood": 0,
+      "gold": 45,
+      "stone": 0
+    },
+    "time": 12,
+    "imgPath": "img/Unit/99.png",
+    "civSlug": "magyars"
+  },
+  {
+    "id": "castle_uu_magyars_elite",
+    "name": "Elite Magyar Huszar",
+    "kind": "unit",
+    "category": "castle",
+    "variant": "unique",
+    "age": "imperial",
+    "cost": {
+      "food": 35,
+      "wood": 0,
+      "gold": 45,
+      "stone": 0
+    },
+    "time": 12,
+    "imgPath": "img/Unit/493.png",
+    "civSlug": "magyars"
+  },
+  {
+    "id": "castle_uu_malay",
+    "name": "Karambit Warrior",
+    "kind": "unit",
+    "category": "castle",
+    "variant": "unique",
+    "age": "castle",
+    "cost": {
+      "food": 25,
+      "wood": 0,
+      "gold": 15,
+      "stone": 0
+    },
+    "time": 6,
+    "imgPath": "img/Unit/233.png",
+    "civSlug": "malay"
+  },
+  {
+    "id": "castle_uu_malay_elite",
+    "name": "Elite Karambit Warrior",
+    "kind": "unit",
+    "category": "castle",
+    "variant": "unique",
+    "age": "imperial",
+    "cost": {
+      "food": 25,
+      "wood": 0,
+      "gold": 15,
+      "stone": 0
+    },
+    "time": 6,
+    "imgPath": "img/Unit/503.png",
+    "civSlug": "malay"
+  },
+  {
+    "id": "castle_uu_malians",
+    "name": "Gbeto",
+    "kind": "unit",
+    "category": "castle",
+    "variant": "unique",
+    "age": "castle",
+    "cost": {
+      "food": 50,
+      "wood": 0,
+      "gold": 40,
+      "stone": 0
+    },
+    "time": 17,
+    "imgPath": "img/Unit/197.png",
+    "civSlug": "malians"
+  },
+  {
+    "id": "castle_uu_malians_elite",
+    "name": "Elite Gbeto",
+    "kind": "unit",
+    "category": "castle",
+    "variant": "unique",
+    "age": "imperial",
+    "cost": {
+      "food": 50,
+      "wood": 0,
+      "gold": 40,
+      "stone": 0
+    },
+    "time": 17,
+    "imgPath": "img/Unit/500.png",
+    "civSlug": "malians"
+  },
+  {
+    "id": "castle_uu_mapuche",
+    "name": "Kona",
+    "kind": "unit",
+    "category": "castle",
+    "variant": "unique",
+    "age": "castle",
+    "cost": {
+      "food": 65,
+      "wood": 0,
+      "gold": 40,
+      "stone": 0
+    },
+    "time": 14,
+    "imgPath": "img/Unit/545.png",
+    "civSlug": "mapuche"
+  },
+  {
+    "id": "castle_uu_mapuche_elite",
+    "name": "Elite Kona",
+    "kind": "unit",
+    "category": "castle",
+    "variant": "unique",
+    "age": "imperial",
+    "cost": {
+      "food": 65,
+      "wood": 0,
+      "gold": 40,
+      "stone": 0
+    },
+    "time": 14,
+    "imgPath": "img/Unit/546.png",
+    "civSlug": "mapuche"
+  },
+  {
+    "id": "castle_uu_mayans",
+    "name": "Plumed Archer",
+    "kind": "unit",
+    "category": "castle",
+    "variant": "unique",
+    "age": "castle",
+    "cost": {
+      "food": 0,
+      "wood": 55,
+      "gold": 55,
+      "stone": 0
+    },
+    "time": 16,
+    "imgPath": "img/Unit/108.png",
+    "civSlug": "mayans"
+  },
+  {
+    "id": "castle_uu_mayans_elite",
+    "name": "Elite Plumed Archer",
+    "kind": "unit",
+    "category": "castle",
+    "variant": "unique",
+    "age": "imperial",
+    "cost": {
+      "food": 0,
+      "wood": 55,
+      "gold": 55,
+      "stone": 0
+    },
+    "time": 16,
+    "imgPath": "img/Unit/488.png",
+    "civSlug": "mayans"
+  },
+  {
+    "id": "castle_uu_mongols",
+    "name": "Mangudai",
+    "kind": "unit",
+    "category": "castle",
+    "variant": "unique",
+    "age": "castle",
+    "cost": {
+      "food": 0,
+      "wood": 55,
+      "gold": 65,
+      "stone": 0
+    },
+    "time": 26,
+    "imgPath": "img/Unit/42.png",
+    "civSlug": "mongols"
+  },
+  {
+    "id": "castle_uu_mongols_elite",
+    "name": "Elite Mangudai",
+    "kind": "unit",
+    "category": "castle",
+    "variant": "unique",
+    "age": "imperial",
+    "cost": {
+      "food": 0,
+      "wood": 55,
+      "gold": 65,
+      "stone": 0
+    },
+    "time": 26,
+    "imgPath": "img/Unit/484.png",
+    "civSlug": "mongols"
+  },
+  {
+    "id": "castle_uu_muisca",
+    "name": "Guecha Warrior",
+    "kind": "unit",
+    "category": "castle",
+    "variant": "unique",
+    "age": "castle",
+    "cost": {
+      "food": 0,
+      "wood": 50,
+      "gold": 60,
+      "stone": 0
+    },
+    "time": 17,
+    "imgPath": "img/Unit/543.png",
+    "civSlug": "muisca"
+  },
+  {
+    "id": "castle_uu_muisca_elite",
+    "name": "Elite Guecha Warrior",
+    "kind": "unit",
+    "category": "castle",
+    "variant": "unique",
+    "age": "imperial",
+    "cost": {
+      "food": 0,
+      "wood": 50,
+      "gold": 60,
+      "stone": 0
+    },
+    "time": 17,
+    "imgPath": "img/Unit/544.png",
+    "civSlug": "muisca"
+  },
+  {
+    "id": "castle_uu_persians",
+    "name": "War Elephant",
+    "kind": "unit",
+    "category": "castle",
+    "variant": "unique",
+    "age": "castle",
+    "cost": {
+      "food": 170,
+      "wood": 0,
+      "gold": 85,
+      "stone": 0
+    },
+    "time": 25,
+    "imgPath": "img/Unit/43.png",
+    "civSlug": "persians"
+  },
+  {
+    "id": "castle_uu_persians_elite",
+    "name": "Elite War Elephant",
+    "kind": "unit",
+    "category": "castle",
+    "variant": "unique",
+    "age": "imperial",
+    "cost": {
+      "food": 170,
+      "wood": 0,
+      "gold": 85,
+      "stone": 0
+    },
+    "time": 25,
+    "imgPath": "img/Unit/481.png",
+    "civSlug": "persians"
+  },
+  {
+    "id": "castle_uu_poles",
+    "name": "Obuch",
+    "kind": "unit",
+    "category": "castle",
+    "variant": "unique",
+    "age": "castle",
+    "cost": {
+      "food": 55,
+      "wood": 0,
+      "gold": 20,
+      "stone": 0
+    },
+    "time": 12,
+    "imgPath": "img/Unit/369.png",
+    "civSlug": "poles"
+  },
+  {
+    "id": "castle_uu_poles_elite",
+    "name": "Elite Obuch",
+    "kind": "unit",
+    "category": "castle",
+    "variant": "unique",
+    "age": "imperial",
+    "cost": {
+      "food": 55,
+      "wood": 0,
+      "gold": 20,
+      "stone": 0
+    },
+    "time": 12,
+    "imgPath": "img/Unit/513.png",
+    "civSlug": "poles"
+  },
+  {
+    "id": "castle_uu_portuguese",
+    "name": "Organ Gun",
+    "kind": "unit",
+    "category": "castle",
+    "variant": "unique",
+    "age": "castle",
+    "cost": {
+      "food": 0,
+      "wood": 80,
+      "gold": 70,
+      "stone": 0
+    },
+    "time": 25,
+    "imgPath": "img/Unit/190.png",
+    "civSlug": "portuguese"
+  },
+  {
+    "id": "castle_uu_portuguese_elite",
+    "name": "Elite Organ Gun",
+    "kind": "unit",
+    "category": "castle",
+    "variant": "unique",
+    "age": "imperial",
+    "cost": {
+      "food": 0,
+      "wood": 80,
+      "gold": 70,
+      "stone": 0
+    },
+    "time": 21,
+    "imgPath": "img/Unit/496.png",
+    "civSlug": "portuguese"
+  },
+  {
+    "id": "castle_uu_romans",
+    "name": "Centurion",
+    "kind": "unit",
+    "category": "castle",
+    "variant": "unique",
+    "age": "castle",
+    "cost": {
+      "food": 75,
+      "wood": 0,
+      "gold": 85,
+      "stone": 0
+    },
+    "time": 24,
+    "imgPath": "img/Unit/405.png",
+    "civSlug": "romans"
+  },
+  {
+    "id": "castle_uu_romans_elite",
+    "name": "Elite Centurion",
+    "kind": "unit",
+    "category": "castle",
+    "variant": "unique",
+    "age": "imperial",
+    "cost": {
+      "food": 75,
+      "wood": 0,
+      "gold": 85,
+      "stone": 0
+    },
+    "time": 24,
+    "imgPath": "img/Unit/521.png",
+    "civSlug": "romans"
+  },
+  {
+    "id": "castle_uu_saracens",
+    "name": "Mameluke",
+    "kind": "unit",
+    "category": "castle",
+    "variant": "unique",
+    "age": "castle",
+    "cost": {
+      "food": 55,
+      "wood": 0,
+      "gold": 85,
+      "stone": 0
+    },
+    "time": 23,
+    "imgPath": "img/Unit/37.png",
+    "civSlug": "saracens"
+  },
+  {
+    "id": "castle_uu_saracens_elite",
+    "name": "Elite Mameluke",
+    "kind": "unit",
+    "category": "castle",
+    "variant": "unique",
+    "age": "imperial",
+    "cost": {
+      "food": 55,
+      "wood": 0,
+      "gold": 85,
+      "stone": 0
+    },
+    "time": 23,
+    "imgPath": "img/Unit/479.png",
+    "civSlug": "saracens"
+  },
+  {
+    "id": "castle_uu_shu",
+    "name": "White Feather Guard",
+    "kind": "unit",
+    "category": "castle",
+    "variant": "unique",
+    "age": "castle",
+    "cost": {
+      "food": 60,
+      "wood": 0,
+      "gold": 15,
+      "stone": 0
+    },
+    "time": 11,
+    "imgPath": "img/Unit/434.png",
+    "civSlug": "shu"
+  },
+  {
+    "id": "castle_uu_shu_elite",
+    "name": "Elite White Feather Guard",
+    "kind": "unit",
+    "category": "castle",
+    "variant": "unique",
+    "age": "imperial",
+    "cost": {
+      "food": 60,
+      "wood": 0,
+      "gold": 15,
+      "stone": 0
+    },
+    "time": 11,
+    "imgPath": "img/Unit/527.png",
+    "civSlug": "shu"
+  },
+  {
+    "id": "castle_uu_sicilians",
+    "name": "Serjeant",
+    "kind": "unit",
+    "category": "castle",
+    "variant": "unique",
+    "age": "castle",
+    "cost": {
+      "food": 55,
+      "wood": 0,
+      "gold": 25,
+      "stone": 0
+    },
+    "time": 12,
+    "imgPath": "img/Unit/356.png",
+    "civSlug": "sicilians"
+  },
+  {
+    "id": "castle_uu_sicilians_elite",
+    "name": "Elite Serjeant",
+    "kind": "unit",
+    "category": "castle",
+    "variant": "unique",
+    "age": "imperial",
+    "cost": {
+      "food": 55,
+      "wood": 0,
+      "gold": 25,
+      "stone": 0
+    },
+    "time": 12,
+    "imgPath": "img/Unit/512.png",
+    "civSlug": "sicilians"
+  },
+  {
+    "id": "castle_uu_slavs",
+    "name": "Boyar",
+    "kind": "unit",
+    "category": "castle",
+    "variant": "unique",
+    "age": "castle",
+    "cost": {
+      "food": 60,
+      "wood": 0,
+      "gold": 70,
+      "stone": 0
+    },
+    "time": 15,
+    "imgPath": "img/Unit/114.png",
+    "civSlug": "slavs"
+  },
+  {
+    "id": "castle_uu_slavs_elite",
+    "name": "Elite Boyar",
+    "kind": "unit",
+    "category": "castle",
+    "variant": "unique",
+    "age": "imperial",
+    "cost": {
+      "food": 60,
+      "wood": 0,
+      "gold": 70,
+      "stone": 0
+    },
+    "time": 15,
+    "imgPath": "img/Unit/494.png",
+    "civSlug": "slavs"
+  },
+  {
+    "id": "castle_uu_spanish",
+    "name": "Conquistador",
+    "kind": "unit",
+    "category": "castle",
+    "variant": "unique",
+    "age": "castle",
+    "cost": {
+      "food": 70,
+      "wood": 0,
+      "gold": 60,
+      "stone": 0
+    },
+    "time": 24,
+    "imgPath": "img/Unit/106.png",
+    "civSlug": "spanish"
+  },
+  {
+    "id": "castle_uu_spanish_elite",
+    "name": "Elite Conquistador",
+    "kind": "unit",
+    "category": "castle",
+    "variant": "unique",
+    "age": "imperial",
+    "cost": {
+      "food": 70,
+      "wood": 0,
+      "gold": 60,
+      "stone": 0
+    },
+    "time": 24,
+    "imgPath": "img/Unit/489.png",
+    "civSlug": "spanish"
+  },
+  {
+    "id": "castle_uu_tatars",
+    "name": "Keshik",
+    "kind": "unit",
+    "category": "castle",
+    "variant": "unique",
+    "age": "castle",
+    "cost": {
+      "food": 60,
+      "wood": 0,
+      "gold": 40,
+      "stone": 0
+    },
+    "time": 17,
+    "imgPath": "img/Unit/251.png",
+    "civSlug": "tatars"
+  },
+  {
+    "id": "castle_uu_tatars_elite",
+    "name": "Elite Keshik",
+    "kind": "unit",
+    "category": "castle",
+    "variant": "unique",
+    "age": "imperial",
+    "cost": {
+      "food": 60,
+      "wood": 0,
+      "gold": 40,
+      "stone": 0
+    },
+    "time": 15,
+    "imgPath": "img/Unit/507.png",
+    "civSlug": "tatars"
+  },
+  {
+    "id": "castle_uu_teutons",
+    "name": "Teutonic Knight",
+    "kind": "unit",
+    "category": "castle",
+    "variant": "unique",
+    "age": "castle",
+    "cost": {
+      "food": 85,
+      "wood": 0,
+      "gold": 30,
+      "stone": 0
+    },
+    "time": 12,
+    "imgPath": "img/Unit/45.png",
+    "civSlug": "teutons"
+  },
+  {
+    "id": "castle_uu_teutons_elite",
+    "name": "Elite Teutonic Knight",
+    "kind": "unit",
+    "category": "castle",
+    "variant": "unique",
+    "age": "imperial",
+    "cost": {
+      "food": 85,
+      "wood": 0,
+      "gold": 30,
+      "stone": 0
+    },
+    "time": 12,
+    "imgPath": "img/Unit/477.png",
+    "civSlug": "teutons"
+  },
+  {
+    "id": "castle_uu_tupi",
+    "name": "Ibirapema Warrior",
+    "kind": "unit",
+    "category": "castle",
+    "variant": "unique",
+    "age": "castle",
+    "cost": {
+      "food": 30,
+      "wood": 0,
+      "gold": 60,
+      "stone": 0
+    },
+    "time": 24,
+    "imgPath": "img/Unit/549.png",
+    "civSlug": "tupi"
+  },
+  {
+    "id": "castle_uu_tupi_elite",
+    "name": "Elite Ibirapema Warrior",
+    "kind": "unit",
+    "category": "castle",
+    "variant": "unique",
+    "age": "imperial",
+    "cost": {
+      "food": 30,
+      "wood": 0,
+      "gold": 60,
+      "stone": 0
+    },
+    "time": 24,
+    "imgPath": "img/Unit/550.png",
+    "civSlug": "tupi"
+  },
+  {
+    "id": "castle_uu_turks",
+    "name": "Janissary",
+    "kind": "unit",
+    "category": "castle",
+    "variant": "unique",
+    "age": "castle",
+    "cost": {
+      "food": 60,
+      "wood": 0,
+      "gold": 55,
+      "stone": 0
+    },
+    "time": 21,
+    "imgPath": "img/Unit/39.png",
+    "civSlug": "turks"
+  },
+  {
+    "id": "castle_uu_turks_elite",
+    "name": "Elite Janissary",
+    "kind": "unit",
+    "category": "castle",
+    "variant": "unique",
+    "age": "imperial",
+    "cost": {
+      "food": 60,
+      "wood": 0,
+      "gold": 55,
+      "stone": 0
+    },
+    "time": 21,
+    "imgPath": "img/Unit/480.png",
+    "civSlug": "turks"
+  },
+  {
+    "id": "castle_uu_vietnamese",
+    "name": "Rattan Archer",
+    "kind": "unit",
+    "category": "castle",
+    "variant": "unique",
+    "age": "castle",
+    "cost": {
+      "food": 0,
+      "wood": 50,
+      "gold": 45,
+      "stone": 0
+    },
+    "time": 16,
+    "imgPath": "img/Unit/232.png",
+    "civSlug": "vietnamese"
+  },
+  {
+    "id": "castle_uu_vietnamese_elite",
+    "name": "Elite Rattan Archer",
+    "kind": "unit",
+    "category": "castle",
+    "variant": "unique",
+    "age": "imperial",
+    "cost": {
+      "food": 0,
+      "wood": 50,
+      "gold": 45,
+      "stone": 0
+    },
+    "time": 16,
+    "imgPath": "img/Unit/505.png",
+    "civSlug": "vietnamese"
+  },
+  {
+    "id": "castle_uu_vikings",
+    "name": "Berserk",
+    "kind": "unit",
+    "category": "castle",
+    "variant": "unique",
+    "age": "castle",
+    "cost": {
+      "food": 65,
+      "wood": 0,
+      "gold": 20,
+      "stone": 0
+    },
+    "time": 14,
+    "imgPath": "img/Unit/38.png",
+    "civSlug": "vikings"
+  },
+  {
+    "id": "castle_uu_vikings_elite",
+    "name": "Elite Berserk",
+    "kind": "unit",
+    "category": "castle",
+    "variant": "unique",
+    "age": "imperial",
+    "cost": {
+      "food": 65,
+      "wood": 0,
+      "gold": 20,
+      "stone": 0
+    },
+    "time": 12,
+    "imgPath": "img/Unit/485.png",
+    "civSlug": "vikings"
+  },
+  {
+    "id": "castle_uu_wei",
+    "name": "Tiger Cavalry",
+    "kind": "unit",
+    "category": "castle",
+    "variant": "unique",
+    "age": "castle",
+    "cost": {
+      "food": 60,
+      "wood": 0,
+      "gold": 80,
+      "stone": 0
+    },
+    "time": 15,
+    "imgPath": "img/Unit/432.png",
+    "civSlug": "wei"
+  },
+  {
+    "id": "castle_uu_wei_elite",
+    "name": "Elite Tiger Cavalry",
+    "kind": "unit",
+    "category": "castle",
+    "variant": "unique",
+    "age": "imperial",
+    "cost": {
+      "food": 60,
+      "wood": 0,
+      "gold": 80,
+      "stone": 0
+    },
+    "time": 15,
+    "imgPath": "img/Unit/526.png",
+    "civSlug": "wei"
+  }
+]

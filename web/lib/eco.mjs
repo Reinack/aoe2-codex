@@ -14,7 +14,10 @@ import { fileURLToPath } from "node:url";
 const DATA = join(dirname(fileURLToPath(import.meta.url)), "..", "data");
 const readJson = (f) => JSON.parse(readFileSync(join(DATA, f), "utf8"));
 
-const ITEMS = readJson("item-costs.json");
+// item-costs = catálogo derivado del árbol; castle-uu = unidad única de Castillo por
+// civ (nombre/costo real, ver build-castle-uus.mjs — el árbol la modela como
+// placeholder sin costo). Se combinan en un único catálogo de items.
+const ITEMS = [...readJson("item-costs.json"), ...readJson("castle-uu.json")];
 const CIV_MODS = readJson("civ-mods.json");
 const ECO_TECHS = readJson("eco-techs.json");
 const ECO_MODEL = readJson("eco-model.json");
