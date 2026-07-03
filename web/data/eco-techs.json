@@ -1,0 +1,367 @@
+{
+  "demand": {
+    "shipwright": {
+      "name": "Shipwright",
+      "affects": [
+        "navy",
+        "fishingship",
+        "tradecog"
+      ],
+      "mod": {
+        "cost_pct": -20,
+        "production_speed_pct": 54
+      }
+    },
+    "conscription": {
+      "name": "Conscription",
+      "affects": [
+        "infantry",
+        "foot_archer",
+        "mounted_archer",
+        "cavalry"
+      ],
+      "mod": {
+        "production_speed_pct": 33
+      }
+    },
+    "berbers_uniquetech1": {
+      "name": "Berber Cavalry",
+      "affects": [
+        "castle"
+      ],
+      "mod": {
+        "production_speed_pct": 25
+      }
+    },
+    "bohemians_uniquetech2": {
+      "name": "Hussite Wagenburg",
+      "affects": [
+        "religious"
+      ],
+      "mod": {
+        "replace_gold_with_food": true
+      }
+    },
+    "cumans_uniquetech1": {
+      "name": "Cuman Horse Archers",
+      "affects": [
+        "scout",
+        "lightcav",
+        "hussar",
+        "steppe_lancer",
+        "elite_steppe_lancer",
+        "cavarcher",
+        "hcavarcher"
+      ],
+      "mod": {
+        "production_speed_pct": 100
+      }
+    },
+    "franks_uniquetech2": {
+      "name": "Frankish Cavalry",
+      "affects": [
+        "stable"
+      ],
+      "mod": {
+        "production_speed_pct": 40
+      }
+    },
+    "goths_uniquetech2": {
+      "name": "Ironsides",
+      "affects": [
+        "barracks"
+      ],
+      "mod": {
+        "production_speed_pct": 100
+      }
+    },
+    "gurjaras_uniquetech1": {
+      "name": "Battle Wagons",
+      "affects": [
+        "infantry"
+      ],
+      "mod": {
+        "food_cost_pct": -25
+      }
+    },
+    "italians_uniquetech1": {
+      "name": "Italian Battle Line",
+      "affects": [
+        "trade_units"
+      ],
+      "mod": {
+        "trade_cost_pct": -50
+      }
+    },
+    "magyars_uniquetech1": {
+      "name": "Magyar Cavalry",
+      "affects": [
+        "uniqueunit",
+        "eliteunique"
+      ],
+      "mod": {
+        "replace_gold_with_food": true
+      }
+    },
+    "malay_uniquetech2": {
+      "name": "Malay War Wagon",
+      "affects": [
+        "militia",
+        "manatarms",
+        "longsword",
+        "twohanded",
+        "champion"
+      ],
+      "mod": {
+        "replace_gold_with_food": true
+      }
+    },
+    "mapuche_uniquetech2": {
+      "name": "Mapuche Cavalry",
+      "affects": [
+        "castle"
+      ],
+      "mod": {
+        "cost_pct": -15
+      }
+    },
+    "persians_uniquetech1": {
+      "name": "Persian Battle Elephant",
+      "affects": [
+        "archer",
+        "crossbow",
+        "arbalester"
+      ],
+      "mod": {
+        "replace_gold_with_wood": true
+      }
+    },
+    "poles_uniquetech1": {
+      "name": "Polish Hussars",
+      "affects": [
+        "knight",
+        "cavalier",
+        "paladin"
+      ],
+      "mod": {
+        "gold_cost_pct": -60
+      }
+    },
+    "romans_uniquetech2": {
+      "name": "Legionary",
+      "affects": [
+        "militia",
+        "manatarms",
+        "longsword",
+        "twohanded",
+        "champion",
+        "knight",
+        "cavalier",
+        "paladin",
+        "uniqueunit",
+        "eliteunique"
+      ],
+      "mod": {
+        "production_speed_pct": 50
+      }
+    }
+  },
+  "supply": {
+    "husbandry": {
+      "name": "Husbandry",
+      "affects": [
+        "mounted"
+      ],
+      "mod": {
+        "speed_pct": 10
+      }
+    },
+    "squires": {
+      "name": "Squires",
+      "affects": [
+        "infantry"
+      ],
+      "mod": {
+        "speed_pct": 10
+      }
+    },
+    "drydock": {
+      "name": "Dry Dock",
+      "affects": [
+        "navy",
+        "fishingship",
+        "tradecog"
+      ],
+      "mod": {
+        "speed_pct": 15
+      }
+    },
+    "clinker_construction": {
+      "name": "Clinker Construction",
+      "affects": [
+        "navy",
+        "fishingship",
+        "tradecog"
+      ],
+      "mod": {
+        "speed_pct": 10
+      }
+    },
+    "carvel_hull": {
+      "name": "Carvel Hull",
+      "affects": [
+        "navy",
+        "fishingship",
+        "tradecog"
+      ],
+      "mod": {
+        "speed_pct": 10
+      }
+    },
+    "fishing_lines": {
+      "name": "Fishing Lines",
+      "affects": [
+        "fishingship"
+      ],
+      "mod": {
+        "gather_speed_pct": 10,
+        "carry_capacity": 5
+      }
+    },
+    "gillnets": {
+      "name": "Gillnets",
+      "affects": [
+        "fishingship"
+      ],
+      "mod": {
+        "gather_speed_pct": 10,
+        "carry_capacity": 5
+      }
+    },
+    "fervor": {
+      "name": "Fervor",
+      "affects": [
+        "monk",
+        "warrior_priest"
+      ],
+      "mod": {
+        "speed_pct": 15
+      }
+    },
+    "wheelbarrow": {
+      "name": "Wheelbarrow",
+      "affects": [
+        "villager"
+      ],
+      "mod": {
+        "speed_pct": 10
+      }
+    },
+    "handcart": {
+      "name": "Hand Cart",
+      "affects": [
+        "villager"
+      ],
+      "mod": {
+        "speed_pct": 10
+      }
+    },
+    "doublebitaxe_m": {
+      "name": "Double-Bit Axe",
+      "affects": [
+        "villager"
+      ],
+      "mod": {
+        "gather_speed_pct": 20
+      }
+    },
+    "bowsaw_m": {
+      "name": "Bow Saw",
+      "affects": [
+        "villager"
+      ],
+      "mod": {
+        "gather_speed_pct": 20
+      }
+    },
+    "twomansaw_m": {
+      "name": "Two-Man Saw",
+      "affects": [
+        "villager"
+      ],
+      "mod": {
+        "gather_speed_pct": 10
+      }
+    },
+    "goldmining_m": {
+      "name": "Gold Mining",
+      "affects": [
+        "villager"
+      ],
+      "mod": {
+        "gather_speed_pct": 15
+      }
+    },
+    "goldshaft_m": {
+      "name": "Gold Shaft Mining",
+      "affects": [
+        "villager"
+      ],
+      "mod": {
+        "gather_speed_pct": 15
+      }
+    },
+    "stonemining_m": {
+      "name": "Stone Mining",
+      "affects": [
+        "villager"
+      ],
+      "mod": {
+        "gather_speed_pct": 15
+      }
+    },
+    "stoneshaft_m": {
+      "name": "Stone Shaft Mining",
+      "affects": [
+        "villager"
+      ],
+      "mod": {
+        "gather_speed_pct": 15
+      }
+    },
+    "bohemians_uniquetech1": {
+      "name": "Hussite Wagenburg",
+      "affects": [
+        "handcannon",
+        "bombcannon",
+        "houfnice",
+        "cannongalleon",
+        "elitecannon"
+      ],
+      "mod": {
+        "speed_pct": 15
+      }
+    },
+    "mongols_uniquetech2": {
+      "name": "Mongol Composite Bow",
+      "affects": [
+        "siege"
+      ],
+      "mod": {
+        "speed_pct": 50
+      }
+    },
+    "muisca_uniquetech1": {
+      "name": "Muisca Cavalry",
+      "affects": [
+        "champiscout",
+        "champirunner",
+        "champiwarrior",
+        "elitechampi"
+      ],
+      "mod": {
+        "speed_pct": 15
+      }
+    }
+  }
+}

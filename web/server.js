@@ -5,6 +5,7 @@ import { readFileSync, readdirSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { run, driver } from "./db.js";
+import { solve as ecoSolve, catalog as ecoCatalog } from "./lib/eco.mjs";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const app = express();
@@ -172,6 +173,35 @@ app.get("/api/civ-radar/:slug", (req, res) => {
   const r = RADAR[(req.params.slug || "").toLowerCase()];
   if (!r) return res.status(404).json({ error: "sin radar para esa civilización" });
   res.json(r);
+});
+
+// --- calculadora de producción / modelo económico --------------------------
+// Datos y matemática viven en ./lib/eco.mjs (sobre web/data/*.json). Sin Neo4j.
+app.get("/api/eco-catalog", (_req, res) => {
+  try { res.json(ecoCatalog()); }
+  catch (e) { console.error(e); res.status(500).json({ error: String(e.message || e) }); }
+});
+
+// Acepta GET (?items=<json>&age=&civ=&techs=<json>&supply=<json>) o POST (body JSON).
+app.all("/api/production", (req, res) => {
+  try {
+    const src = req.method === "POST" ? (req.body || {}) : req.query;
+    const parse = (v, def) => {
+      if (v == null) return def;
+      if (typeof v !== "string") return v;
+      try { return JSON.parse(v); } catch { return def; }
+    };
+    const items = parse(src.items, []);
+    const techs = parse(src.techs, []);
+    const supply = parse(src.supply, null);
+    if (!Array.isArray(items) || items.length === 0) {
+      return res.status(400).json({ error: "Falta 'items' (lista de {id, lines})." });
+    }
+    res.json(ecoSolve({ items, age: src.age || "feudal", civ: src.civ || null, techs, supply }));
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ error: String(e.message || e) });
+  }
 });
 
 // --- búsqueda (título o alias ES/MX) ---------------------------------------

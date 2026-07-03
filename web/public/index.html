@@ -401,6 +401,9 @@ fetch('/tree/src/data/img_map.js').then(r=>r.text()).then(t=>{
   <a class="sb-item" data-view="tree">
     <span class="sb-icon">🌳</span><span class="sb-label">Tech Tree</span>
   </a>
+  <a class="sb-item" data-view="calc">
+    <span class="sb-icon">🧮</span><span class="sb-label">Calculadora</span>
+  </a>
 </nav>
 
 <!-- MOBILE NAV -->
@@ -419,6 +422,9 @@ fetch('/tree/src/data/img_map.js').then(r=>r.text()).then(t=>{
   </a>
   <a class="mn-item" data-view="tree">
     <span class="mn-icon">🌳</span>Tech Tree
+  </a>
+  <a class="mn-item" data-view="calc">
+    <span class="mn-icon">🧮</span>Calc
   </a>
 </nav>
 
@@ -548,6 +554,137 @@ fetch('/tree/src/data/img_map.js').then(r=>r.text()).then(t=>{
       <div id="cy-counters"></div>
     </div>
   </div>
+
+  <!-- VIEW: CALCULADORA DE PRODUCCIÓN ─────────────────────────────────── -->
+  <div id="view-calc" class="view" style="display:none">
+    <style>
+      #view-calc { padding:18px 24px; }
+      .calc-controls { display:flex; gap:14px; flex-wrap:wrap; align-items:flex-end; margin-bottom:16px; }
+      .calc-controls label { display:flex; flex-direction:column; gap:4px; font-size:12px; color:var(--dim); }
+      .calc-controls select, #view-calc select { background:var(--panel); border:1px solid var(--line);
+        color:var(--ink); padding:8px 10px; border-radius:8px; font-size:14px; }
+      .calc-title { font-size:13px; text-transform:uppercase; letter-spacing:.5px; color:var(--dim); margin:0 0 10px; }
+      .calc-grid { display:grid; grid-template-columns:1fr 1fr; gap:18px; }
+      @media(max-width:900px){ .calc-grid{ grid-template-columns:1fr; } }
+      .calc-panel { background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:14px; }
+      .calc-add { display:flex; gap:8px; margin-bottom:12px; }
+      .calc-add select { flex:1; }
+      .calc-btn { background:#1f2630; border:1px solid var(--line); color:var(--ink);
+        padding:8px 12px; border-radius:8px; cursor:pointer; font-size:14px; }
+      .calc-btn:hover { border-color:var(--gold); }
+      .calc-btn.primary { background:var(--gold); color:#111; border-color:var(--gold); font-weight:600; }
+      .calc-row { display:flex; align-items:center; gap:10px; padding:8px 0; border-top:1px solid var(--line); }
+      .calc-row:first-child { border-top:none; }
+      .calc-row .nm { flex:1; font-size:14px; }
+      .calc-row .nm small { color:var(--dim); font-size:11px; display:block; }
+      .calc-step { display:flex; align-items:center; gap:6px; }
+      .calc-step button { width:26px; height:26px; border-radius:6px; border:1px solid var(--line);
+        background:#1f2630; color:var(--ink); cursor:pointer; font-size:15px; line-height:1; }
+      .calc-step button:hover { border-color:var(--gold); }
+      .calc-step .n { min-width:20px; text-align:center; font-weight:600; }
+      .calc-x { color:var(--dim); cursor:pointer; font-size:16px; padding:0 4px; }
+      .calc-x:hover { color:#f85149; }
+      .calc-empty { color:var(--dim); font-size:13px; padding:10px 0; }
+      .calc-total { font-size:15px; margin-bottom:12px; }
+      .calc-total b { font-size:26px; color:var(--gold); }
+      .res-row { display:grid; grid-template-columns:70px 1fr 46px; align-items:center; gap:10px; margin:9px 0; }
+      .res-row .lbl { font-size:13px; text-transform:capitalize; }
+      .res-row .lbl small { color:var(--dim); display:block; font-size:10px; text-transform:none; }
+      .res-bar { height:20px; background:#0e1116; border-radius:5px; overflow:hidden; border:1px solid var(--line); }
+      .res-bar > span { display:block; height:100%; }
+      .res-v { text-align:right; font-weight:700; font-size:16px; }
+      .res-row.bottleneck .res-v { color:#f0883e; }
+      .food span{background:var(--green);} .wood span{background:#b98a4b;}
+      .gold span{background:var(--gold);} .stone span{background:#8b949e;}
+      .calc-notes { margin-top:12px; padding-top:10px; border-top:1px solid var(--line);
+        font-size:12px; color:var(--dim); }
+      .calc-notes div { margin:5px 0; }
+      #calc-supply { margin-bottom:16px; background:var(--panel); border:1px solid var(--line);
+        border-radius:10px; padding:0 14px; }
+      #calc-supply summary { cursor:pointer; padding:13px 0; font-size:13px; color:var(--ink);
+        text-transform:uppercase; letter-spacing:.5px; }
+      .sup-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:14px; padding:6px 0 14px; }
+      .sup-res label { display:block; font-size:12px; color:var(--dim); margin-bottom:5px; text-transform:capitalize; }
+      .sup-res select { width:100%; }
+      .sup-techs { padding:10px 0 14px; border-top:1px solid var(--line); }
+      .sup-techs label { display:inline-flex; align-items:center; gap:5px; font-size:12px;
+        margin:0 12px 6px 0; color:var(--dim); cursor:pointer; }
+      .sup-pass { display:flex; gap:14px; flex-wrap:wrap; padding:10px 0 14px; border-top:1px solid var(--line); }
+      .sup-pass label { display:flex; align-items:center; gap:6px; font-size:12px; color:var(--dim); }
+      .sup-pass input, .contrib-row input { width:60px; background:#0e1116; border:1px solid var(--line); color:var(--ink);
+        padding:6px 8px; border-radius:6px; }
+      /* iconos */
+      .ic { width:24px; height:24px; object-fit:contain; vertical-align:middle; image-rendering:auto; }
+      .ric { width:14px; height:14px; object-fit:contain; vertical-align:-2px; }
+      .emblem { width:22px; height:22px; object-fit:contain; vertical-align:middle; }
+      /* picker de iconos */
+      .pick-cat { font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:.4px;
+        color:var(--dim); margin:10px 0 6px; }
+      .pick-grid { display:flex; flex-wrap:wrap; gap:6px; }
+      .pick-b { width:60px; display:flex; flex-direction:column; align-items:center; gap:3px;
+        padding:6px 2px; border:1px solid var(--line); border-radius:8px; background:#1b2029;
+        cursor:pointer; transition:.1s; }
+      .pick-b:hover { border-color:var(--gold); background:#222a35; }
+      .pick-b.on { border-color:var(--gold); box-shadow:inset 0 0 0 1px var(--gold); }
+      .pick-b .lb { font-size:10px; color:var(--dim); text-align:center; line-height:1.1;
+        max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+      .pick-b .badge { position:relative; }
+      .pick-b .cnt { position:absolute; top:-6px; right:-8px; background:var(--gold); color:#111;
+        font-size:10px; font-weight:700; border-radius:8px; padding:0 4px; min-width:14px; text-align:center; }
+      .pick-b.regional { border-left:2px solid var(--blue); }
+      .pick-b.unique { border-left:2px solid var(--purple); }
+      .contrib-row { display:flex; align-items:center; gap:6px; margin:6px 0; }
+      .contrib-row select { flex:1; }
+      .contrib-add { margin-top:8px; }
+    </style>
+    <div class="calc-controls">
+      <label>Civilización
+        <span style="display:flex;align-items:center;gap:8px">
+          <img id="calc-civ-emblem" class="emblem" alt="" style="display:none">
+          <select id="calc-civ"><option value="">Genérica (sin bonos)</option></select>
+        </span>
+      </label>
+      <label>Edad
+        <select id="calc-age">
+          <option value="dark">Oscura</option>
+          <option value="feudal" selected>Feudal</option>
+          <option value="castle">Castillos</option>
+          <option value="imperial">Imperial</option>
+        </select>
+      </label>
+      <button class="calc-btn" id="calc-reset">Limpiar</button>
+    </div>
+
+    <details id="calc-supply">
+      <summary>⚙️ Economía — fuentes, tecnologías e ingreso pasivo (por defecto: economía estándar de la edad)</summary>
+      <div class="calc-title" style="margin-top:12px">Fuente de relleno por recurso (marginal)</div>
+      <div class="sup-grid" id="calc-sup-sources"></div>
+      <div class="sup-techs" id="calc-sup-contrib">
+        <div style="font-size:12px;color:var(--dim);margin-bottom:8px">Recolectores fijos que ya tenés (podés mezclar varias fuentes)</div>
+        <div id="contrib-list"></div>
+        <button class="calc-btn contrib-add" id="contrib-add">+ Agregar fuente</button>
+      </div>
+      <div class="sup-techs" id="calc-sup-techs"></div>
+      <div class="sup-pass" id="calc-sup-pass">
+        <label>🏛️ Reliquias <input type="number" min="0" id="sup-relics" value="0"></label>
+        <label>🐫 Trade carts <input type="number" min="0" id="sup-trade" value="0"></label>
+        <label>🏯 Feitorias <input type="number" min="0" id="sup-feitoria" value="0"></label>
+      </div>
+    </details>
+
+    <div class="calc-grid">
+      <div class="calc-panel">
+        <h3 class="calc-title">Producción a sostener</h3>
+        <div id="calc-selected"><div class="calc-empty">Elegí unidades/edificios abajo. Cada línea = un edificio produciendo sin parar.</div></div>
+        <div id="calc-picker"></div>
+      </div>
+
+      <div class="calc-panel">
+        <h3 class="calc-title">Aldeanos necesarios</h3>
+        <div id="calc-result"><div class="calc-empty">Elegí qué producir para calcular.</div></div>
+      </div>
+    </div>
+  </div>
 </div><!-- #main -->
 
 <script>
@@ -565,6 +702,7 @@ function switchView(name) {
     const f = document.getElementById('tree-frame');
     if (f.src === 'about:blank') f.src = '/tree/';
   }
+  if (name === 'calc') initCalc();
 }
 
 function openCivInTree(slug) {
@@ -1762,6 +1900,255 @@ document.getElementById('graph-back').onclick = () => {
 };
 
 function openInGraph(path) { loadGraph(path); }
+
+// ── CALCULADORA DE PRODUCCIÓN ───────────────────────────────────────────
+const RES_ORDER = ['food', 'wood', 'gold', 'stone'];
+const RES_ES = { food: 'Comida', wood: 'Madera', gold: 'Oro', stone: 'Piedra' };
+const CAT_ES = {
+  barracks: 'Cuartel', archery: 'Arquería', stable: 'Establo', siege: 'Asedio',
+  dock: 'Muelle', monastery: 'Monasterio', castle: 'Castillo', market: 'Mercado',
+  tc: 'Town Center', economy: 'Edificios · economía', military: 'Edificios · militar',
+  defense: 'Edificios · defensa', special: 'Edificios · especial',
+};
+const CAT_ORDER = ['barracks','archery','stable','siege','dock','monastery','castle','market',
+                   'tc','economy','military','defense','special'];
+// Iconos (servidos same-origin desde el árbol vendorizado y /img/civs).
+const UIMG = p => p ? `/tree/${p}` : '/tree/img/missing.png';
+const RIMG = r => `/tree/img/${r}.png`;
+const EMB  = slug => `/img/civs/${encodeURIComponent(slug)}.png`;
+const resIco = r => `<img class="ric" src="${RIMG(r)}" alt="${RES_ES[r]}" title="${RES_ES[r]}">`;
+
+let CALC = null;               // catálogo de /api/eco-catalog
+let calcInited = false;
+const calcState = {
+  civ: '', age: 'feudal', items: {},           // items: { id: lines }
+  supply: { bySource: {}, techs: [], contributors: [], passive: { relics: 0, tradeCarts: 0, feitorias: 0 } },
+};
+
+async function initCalc() {
+  if (calcInited) return;
+  calcInited = true;
+  CALC = await api('/api/eco-catalog');
+  CALC._byId = Object.fromEntries(CALC.items.map(i => [i.id, i]));
+
+  // Selector de civ.
+  const civSel = document.getElementById('calc-civ');
+  CALC.civs.forEach(c => {
+    const o = document.createElement('option');
+    o.value = c; o.textContent = c.charAt(0).toUpperCase() + c.slice(1);
+    civSel.appendChild(o);
+  });
+
+  buildSupplyPanel();
+
+  civSel.onchange = () => {
+    calcState.civ = civSel.value;
+    const emb = document.getElementById('calc-civ-emblem');
+    if (civSel.value) { emb.src = EMB(civSel.value); emb.style.display = ''; }
+    else emb.style.display = 'none';
+    renderPicker(); recalc();
+  };
+  document.getElementById('calc-age').onchange = e => { calcState.age = e.target.value; refreshSupplyDefaults(); recalc(); };
+  document.getElementById('calc-reset').onclick = () => { calcState.items = {}; renderSelected(); renderPicker(); recalc(); };
+  ['sup-relics','sup-trade','sup-feitoria'].forEach(id => { document.getElementById(id).oninput = readPassive; });
+  document.getElementById('contrib-add').onclick = addContributor;
+
+  renderPicker();
+  renderSelected();
+  refreshSupplyDefaults();
+}
+
+// Grilla de iconos, agrupada por categoría, filtrada por lo construible de la civ.
+function renderPicker() {
+  const box = document.getElementById('calc-picker');
+  const buildable = calcState.civ ? new Set(CALC.buildable[calcState.civ] || []) : null;
+  const visible = CALC.items.filter(it => {
+    if (buildable) return buildable.has(it.id);
+    return it.variant !== 'unique';           // sin civ: ocultar UUs (evita las 50+ únicas)
+  });
+  const groups = {};
+  visible.forEach(it => { (groups[it.category] ||= []).push(it); });
+  box.innerHTML = CAT_ORDER.filter(c => groups[c]).map(cat => {
+    const btns = groups[cat].sort((a,b) => a.name.localeCompare(b.name)).map(it => {
+      const n = calcState.items[it.id] || 0;
+      return `<button class="pick-b ${it.variant} ${n ? 'on' : ''}" data-add="${it.id}" title="${esc(it.name)}">
+        <span class="badge"><img class="ic" src="${UIMG(it.imgPath)}" alt="" onerror="this.src='/tree/img/missing.png'">${n ? `<span class="cnt">${n}</span>` : ''}</span>
+        <span class="lb">${esc(it.name)}</span>
+      </button>`;
+    }).join('');
+    return `<div class="pick-cat">${CAT_ES[cat] || cat}</div><div class="pick-grid">${btns}</div>`;
+  }).join('') || '<div class="calc-empty">Esta civilización no tiene items construibles cargados.</div>';
+  box.querySelectorAll('[data-add]').forEach(b => b.onclick = () => {
+    const id = b.dataset.add;
+    calcState.items[id] = (calcState.items[id] || 0) + 1;
+    renderSelected(); renderPicker(); recalc();
+  });
+}
+
+function buildSupplyPanel() {
+  // Fuente de relleno por recurso.
+  const wrap = document.getElementById('calc-sup-sources');
+  wrap.innerHTML = '';
+  RES_ORDER.forEach(res => {
+    const opts = Object.entries(CALC.sources).filter(([, s]) => s.resource === res);
+    if (!opts.length) return;
+    const div = document.createElement('div');
+    div.className = 'sup-res';
+    div.innerHTML = `<label>${resIco(res)} ${RES_ES[res]}</label>`;
+    const sel = document.createElement('select');
+    sel.dataset.res = res;
+    sel.innerHTML = `<option value="">(estándar de la edad)</option>` +
+      opts.map(([id, s]) => `<option value="${id}">${esc(s.label)}</option>`).join('');
+    sel.onchange = () => {
+      if (sel.value) calcState.supply.bySource[res] = sel.value;
+      else delete calcState.supply.bySource[res];
+      recalc();
+    };
+    div.appendChild(sel);
+    wrap.appendChild(div);
+  });
+
+  // Techs de recolección (toggles).
+  const tw = document.getElementById('calc-sup-techs');
+  tw.innerHTML = '<div style="font-size:12px;color:var(--dim);margin-bottom:8px">Tecnologías de recolección</div>';
+  const TECH_ORDER = ['doublebitaxe_m','bowsaw_m','twomansaw_m','goldmining_m','goldshaft_m',
+    'stonemining_m','stoneshaft_m','wheelbarrow','handcart','fishing_lines','gillnets'];
+  TECH_ORDER.filter(id => CALC.supplyTechs[id]).forEach(id => {
+    const lab = document.createElement('label');
+    lab.innerHTML = `<input type="checkbox" value="${id}"> ${esc(CALC.supplyTechs[id].name)}`;
+    lab.querySelector('input').onchange = e => {
+      const t = calcState.supply.techs;
+      if (e.target.checked) t.push(id); else t.splice(t.indexOf(id), 1);
+      recalc();
+    };
+    tw.appendChild(lab);
+  });
+
+  renderContributors();
+}
+
+// Recolectores fijos (multi-fuente): filas [fuente][nº aldeanos][x].
+function renderContributors() {
+  const list = document.getElementById('contrib-list');
+  const srcOpts = Object.entries(CALC.sources)
+    .map(([id, s]) => `<option value="${id}">${esc(s.label)}</option>`).join('');
+  list.innerHTML = calcState.supply.contributors.map((c, i) => `
+    <div class="contrib-row">
+      <select data-ci="${i}">${srcOpts.replace(`value="${c.source}"`, `value="${c.source}" selected`)}</select>
+      <input type="number" min="0" data-cn="${i}" value="${c.count}">
+      <span class="calc-x" data-cx="${i}">✕</span>
+    </div>`).join('');
+  list.querySelectorAll('[data-ci]').forEach(s => s.onchange = () => { calcState.supply.contributors[s.dataset.ci].source = s.value; recalc(); });
+  list.querySelectorAll('[data-cn]').forEach(n => n.oninput = () => { calcState.supply.contributors[n.dataset.cn].count = Math.max(0, parseInt(n.value||'0',10)||0); recalc(); });
+  list.querySelectorAll('[data-cx]').forEach(x => x.onclick = () => { calcState.supply.contributors.splice(+x.dataset.cx, 1); renderContributors(); recalc(); });
+}
+function addContributor() {
+  const first = Object.keys(CALC.sources)[0];
+  calcState.supply.contributors.push({ source: first, count: 3 });
+  renderContributors(); recalc();
+}
+
+function refreshSupplyDefaults() {
+  const def = CALC.defaults[calcState.age];
+  const note = document.querySelector('#calc-supply summary');
+  if (def && note) {
+    note.textContent = `⚙️ Economía — por defecto: ${(def.techs || []).map(t => CALC.supplyTechs[t]?.name || t).join(', ') || 'sin techs'} (${calcState.age})`;
+  }
+}
+
+function readPassive() {
+  const n = id => Math.max(0, parseInt(document.getElementById(id).value || '0', 10) || 0);
+  calcState.supply.passive = { relics: n('sup-relics'), tradeCarts: n('sup-trade'), feitorias: n('sup-feitoria') };
+  recalc();
+}
+
+function renderSelected() {
+  const box = document.getElementById('calc-selected');
+  const ids = Object.keys(calcState.items);
+  if (!ids.length) {
+    box.innerHTML = '<div class="calc-empty">Elegí unidades/edificios abajo. Cada línea = un edificio produciendo sin parar.</div>';
+    return;
+  }
+  box.innerHTML = ids.map(id => {
+    const it = CALC._byId[id]; if (!it) return '';
+    const cost = RES_ORDER.filter(r => it.cost[r]).map(r => `${it.cost[r]}${resIco(r)}`).join(' ');
+    return `<div class="calc-row">
+      <img class="ic" src="${UIMG(it.imgPath)}" alt="" onerror="this.src='/tree/img/missing.png'">
+      <div class="nm">${esc(it.name)} <small>${cost} · ${it.time}s · ${it.kind === 'unit' ? 'unidad' : 'edificio'}</small></div>
+      <div class="calc-step">
+        <button data-dec="${id}">−</button>
+        <span class="n">${calcState.items[id]}</span>
+        <button data-inc="${id}">+</button>
+      </div>
+      <span class="calc-x" data-del="${id}">✕</span>
+    </div>`;
+  }).join('');
+  const upd = () => { renderSelected(); renderPicker(); recalc(); };
+  box.querySelectorAll('[data-inc]').forEach(b => b.onclick = () => { calcState.items[b.dataset.inc]++; upd(); });
+  box.querySelectorAll('[data-dec]').forEach(b => b.onclick = () => {
+    const id = b.dataset.dec;
+    if (--calcState.items[id] <= 0) delete calcState.items[id];
+    upd();
+  });
+  box.querySelectorAll('[data-del]').forEach(b => b.onclick = () => { delete calcState.items[b.dataset.del]; upd(); });
+}
+
+let calcTimer = null;
+function recalc() {
+  clearTimeout(calcTimer);
+  calcTimer = setTimeout(doRecalc, 120);   // debounce
+}
+async function doRecalc() {
+  const items = Object.entries(calcState.items).map(([id, lines]) => ({ id, lines }));
+  const out = document.getElementById('calc-result');
+  if (!items.length) { out.innerHTML = '<div class="calc-empty">Elegí qué producir para calcular.</div>'; return; }
+  const body = { items, age: calcState.age, civ: calcState.civ || null, techs: [], supply: calcState.supply };
+  let r;
+  try {
+    r = await fetch('/api/production', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body),
+    }).then(x => x.json());
+  } catch (e) { out.innerHTML = `<div class="calc-empty">Error: ${esc(String(e))}</div>`; return; }
+  if (r.error) { out.innerHTML = `<div class="calc-empty">${esc(r.error)}</div>`; return; }
+  renderResult(r);
+}
+
+function renderResult(r) {
+  const vOf = res => r.perResource[res].fillVillagers;
+  const maxV = Math.max(1, ...RES_ORDER.map(res => vOf(res) || 0));
+  const rows = RES_ORDER.map(res => {
+    const d = r.perResource[res];
+    if (!d.demandPerMin && !vOf(res)) return '';
+    const v = vOf(res) == null ? '∞' : vOf(res);
+    const pct = vOf(res) ? Math.round((vOf(res) / maxV) * 100) : 0;
+    const srcLabel = CALC.sources[d.fillSource] ? CALC.sources[d.fillSource].label : d.fillSource;
+    const extra = (res === 'wood' && d.reseedPerMin) ? ` · incl. ${d.reseedPerMin} reseed` : '';
+    const fixed = d.fixedIncomePerMin ? ` · −${d.fixedIncomePerMin} fijo` : '';
+    return `<div class="res-row ${res} ${r.bottleneck === res ? 'bottleneck' : ''}">
+      <div class="lbl">${resIco(res)} ${RES_ES[res]}<small>${esc(srcLabel)} · ${d.ratePerMin}/min</small></div>
+      <div class="res-bar"><span style="width:${pct}%"></span></div>
+      <div class="res-v" title="${d.demandPerMin}/min${extra}${fixed}">${v}</div>
+    </div>`;
+  }).join('');
+
+  const contrib = (r.contributors || []).length
+    ? `<div>Fijos: ${r.contributors.map(c => `${c.count}× ${esc(c.label)}`).join(', ')} (${r.contributorVillagers} aldeanos)</div>` : '';
+  const reseedNote = r.reseedWood && r.reseedWood.totalPerMin
+    ? `<div>🌲 Reseed de granjas/trampas: ~${r.reseedWood.totalPerMin} madera/min (por eso suma madera).</div>` : '';
+  const notes = (r.heuristics || []).map(h => `<div>• ${esc(h)}</div>`).join('');
+  const ai = ({dark:0,feudal:1,castle:2,imperial:3})[calcState.age];
+  const civNote = r.appliedCivMods ? `<div>Bonos aplicados: ${r.appliedCivMods.filter(m=>m.type!=='gen'||true).map(m =>
+    m.type === 'cost' ? `${m.scope} ${m.resource} ×${m.valueByAge[ai]}`
+    : m.type === 'gen' ? `${m.scope}→${m.stat}` : `desbloquea ${m.scope}`).join(', ')}</div>` : '';
+
+  const split = r.contributorVillagers
+    ? `<span style="color:var(--dim);font-size:12px"> (${r.contributorVillagers} fijos + ${r.fillVillagers} relleno)</span>` : '';
+  document.getElementById('calc-result').innerHTML = `
+    <div class="calc-total">Total: <b>${r.total}</b> aldeanos${split}
+      <span style="color:var(--dim);font-size:12px">· cuello de botella: ${RES_ES[r.bottleneck]}</span></div>
+    ${rows}
+    <div class="calc-notes">${contrib}${reseedNote}${notes}${civNote}</div>`;
+}
 
 // ── INIT ───────────────────────────────────────────────────────────────
 init();

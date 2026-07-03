@@ -1,0 +1,2453 @@
+[
+  {
+    "id": "arbalester",
+    "name": "Arbalester",
+    "kind": "unit",
+    "category": "archery",
+    "variant": "generic",
+    "age": "imperial",
+    "cost": {
+      "food": 0,
+      "wood": 25,
+      "gold": 45,
+      "stone": 0
+    },
+    "time": 27,
+    "imgPath": "img/Unit/90.png"
+  },
+  {
+    "id": "archer",
+    "name": "Archer",
+    "kind": "unit",
+    "category": "archery",
+    "variant": "generic",
+    "age": "feudal",
+    "cost": {
+      "food": 0,
+      "wood": 25,
+      "gold": 45,
+      "stone": 0
+    },
+    "time": 35,
+    "imgPath": "img/Unit/17.png"
+  },
+  {
+    "id": "bolas_rider",
+    "name": "Bolas Rider",
+    "kind": "unit",
+    "category": "archery",
+    "variant": "unique",
+    "age": "castle",
+    "cost": {
+      "food": 0,
+      "wood": 45,
+      "gold": 50,
+      "stone": 0
+    },
+    "time": 30,
+    "imgPath": "img/Unit/547.png",
+    "timeApprox": true
+  },
+  {
+    "id": "cavarcher",
+    "name": "Cavalry Archer",
+    "kind": "unit",
+    "category": "archery",
+    "variant": "generic",
+    "age": "castle",
+    "cost": {
+      "food": 0,
+      "wood": 40,
+      "gold": 60,
+      "stone": 0
+    },
+    "time": 34,
+    "imgPath": "img/Unit/19.png"
+  },
+  {
+    "id": "crossbow",
+    "name": "Crossbowman",
+    "kind": "unit",
+    "category": "archery",
+    "variant": "generic",
+    "age": "castle",
+    "cost": {
+      "food": 0,
+      "wood": 25,
+      "gold": 45,
+      "stone": 0
+    },
+    "time": 27,
+    "imgPath": "img/Unit/18.png"
+  },
+  {
+    "id": "elephant_archer",
+    "name": "Elephant Archer",
+    "kind": "unit",
+    "category": "archery",
+    "variant": "regional",
+    "age": "castle",
+    "cost": {
+      "food": 100,
+      "wood": 0,
+      "gold": 70,
+      "stone": 0
+    },
+    "time": 25,
+    "imgPath": "img/Unit/393.png"
+  },
+  {
+    "id": "elite_elephant_archer",
+    "name": "Elite Elephant Archer",
+    "kind": "unit",
+    "category": "archery",
+    "variant": "regional",
+    "age": "imperial",
+    "cost": {
+      "food": 100,
+      "wood": 0,
+      "gold": 70,
+      "stone": 0
+    },
+    "time": 25,
+    "imgPath": "img/Unit/93.png"
+  },
+  {
+    "id": "eliteskirm",
+    "name": "Elite Skirmisher",
+    "kind": "unit",
+    "category": "archery",
+    "variant": "generic",
+    "age": "castle",
+    "cost": {
+      "food": 35,
+      "wood": 25,
+      "gold": 0,
+      "stone": 0
+    },
+    "time": 22,
+    "imgPath": "img/Unit/21.png"
+  },
+  {
+    "id": "genitour",
+    "name": "Genitour",
+    "kind": "unit",
+    "category": "archery",
+    "variant": "unique",
+    "age": "castle",
+    "cost": {
+      "food": 50,
+      "wood": 35,
+      "gold": 0,
+      "stone": 0
+    },
+    "time": 25,
+    "imgPath": "img/Unit/201.png"
+  },
+  {
+    "id": "grenadier",
+    "name": "Grenadier",
+    "kind": "unit",
+    "category": "archery",
+    "variant": "unique",
+    "age": "castle",
+    "cost": {
+      "food": 35,
+      "wood": 0,
+      "gold": 65,
+      "stone": 0
+    },
+    "time": 21,
+    "imgPath": "img/Unit/462.png"
+  },
+  {
+    "id": "handcannon",
+    "name": "Hand Cannoneer",
+    "kind": "unit",
+    "category": "archery",
+    "variant": "generic",
+    "age": "imperial",
+    "cost": {
+      "food": 45,
+      "wood": 0,
+      "gold": 50,
+      "stone": 0
+    },
+    "time": 34,
+    "imgPath": "img/Unit/22.png"
+  },
+  {
+    "id": "hcavarcher",
+    "name": "Heavy Cav Archer",
+    "kind": "unit",
+    "category": "archery",
+    "variant": "generic",
+    "age": "imperial",
+    "cost": {
+      "food": 0,
+      "wood": 40,
+      "gold": 60,
+      "stone": 0
+    },
+    "time": 27,
+    "imgPath": "img/Unit/71.png"
+  },
+  {
+    "id": "imp_skirmisher",
+    "name": "Imperial Skirmisher",
+    "kind": "unit",
+    "category": "archery",
+    "variant": "unique",
+    "age": "imperial",
+    "cost": {
+      "food": 35,
+      "wood": 25,
+      "gold": 0,
+      "stone": 0
+    },
+    "time": 22,
+    "imgPath": "img/Unit/229.png"
+  },
+  {
+    "id": "skirmisher",
+    "name": "Skirmisher",
+    "kind": "unit",
+    "category": "archery",
+    "variant": "generic",
+    "age": "feudal",
+    "cost": {
+      "food": 35,
+      "wood": 25,
+      "gold": 0,
+      "stone": 0
+    },
+    "time": 22,
+    "imgPath": "img/Unit/20.png"
+  },
+  {
+    "id": "slinger",
+    "name": "Slinger",
+    "kind": "unit",
+    "category": "archery",
+    "variant": "regional",
+    "age": "castle",
+    "cost": {
+      "food": 70,
+      "wood": 10,
+      "gold": 0,
+      "stone": 0
+    },
+    "time": 25,
+    "imgPath": "img/Unit/143.png"
+  },
+  {
+    "id": "xianbei_raider",
+    "name": "Xianbei Raider",
+    "kind": "unit",
+    "category": "archery",
+    "variant": "unique",
+    "age": "castle",
+    "cost": {
+      "food": 0,
+      "wood": 60,
+      "gold": 25,
+      "stone": 0
+    },
+    "time": 26,
+    "imgPath": "img/Unit/433.png"
+  },
+  {
+    "id": "champirunner",
+    "name": "Champi Runner",
+    "kind": "unit",
+    "category": "barracks",
+    "variant": "regional",
+    "age": "feudal",
+    "cost": {
+      "food": 50,
+      "wood": 0,
+      "gold": 25,
+      "stone": 0
+    },
+    "time": 40,
+    "imgPath": "img/Unit/555.png"
+  },
+  {
+    "id": "champiscout",
+    "name": "Champi Scout",
+    "kind": "unit",
+    "category": "barracks",
+    "variant": "regional",
+    "age": "dark",
+    "cost": {
+      "food": 50,
+      "wood": 0,
+      "gold": 25,
+      "stone": 0
+    },
+    "time": 45,
+    "imgPath": "img/Unit/540.png"
+  },
+  {
+    "id": "champiwarrior",
+    "name": "Champi Warrior",
+    "kind": "unit",
+    "category": "barracks",
+    "variant": "regional",
+    "age": "castle",
+    "cost": {
+      "food": 50,
+      "wood": 0,
+      "gold": 25,
+      "stone": 0
+    },
+    "time": 26,
+    "imgPath": "img/Unit/541.png"
+  },
+  {
+    "id": "champion",
+    "name": "Champion",
+    "kind": "unit",
+    "category": "barracks",
+    "variant": "generic",
+    "age": "imperial",
+    "cost": {
+      "food": 60,
+      "wood": 0,
+      "gold": 20,
+      "stone": 0
+    },
+    "time": 21,
+    "imgPath": "img/Unit/72.png"
+  },
+  {
+    "id": "condottiero",
+    "name": "Condottiero",
+    "kind": "unit",
+    "category": "barracks",
+    "variant": "unique",
+    "age": "imperial",
+    "cost": {
+      "food": 50,
+      "wood": 0,
+      "gold": 35,
+      "stone": 0
+    },
+    "time": 18,
+    "imgPath": "img/Unit/134.png"
+  },
+  {
+    "id": "eaglescout",
+    "name": "Eagle Scout",
+    "kind": "unit",
+    "category": "barracks",
+    "variant": "unique",
+    "age": "feudal",
+    "cost": {
+      "food": 20,
+      "wood": 0,
+      "gold": 50,
+      "stone": 0
+    },
+    "time": 50,
+    "imgPath": "img/Unit/109.png"
+  },
+  {
+    "id": "eaglewarrior",
+    "name": "Eagle Warrior",
+    "kind": "unit",
+    "category": "barracks",
+    "variant": "regional",
+    "age": "castle",
+    "cost": {
+      "food": 20,
+      "wood": 0,
+      "gold": 50,
+      "stone": 0
+    },
+    "time": 35,
+    "imgPath": "img/Unit/148.png"
+  },
+  {
+    "id": "elitechampi",
+    "name": "Elite Champi Warrior",
+    "kind": "unit",
+    "category": "barracks",
+    "variant": "regional",
+    "age": "imperial",
+    "cost": {
+      "food": 50,
+      "wood": 0,
+      "gold": 25,
+      "stone": 0
+    },
+    "time": 21,
+    "imgPath": "img/Unit/542.png"
+  },
+  {
+    "id": "eliteeagle",
+    "name": "Elite Eagle Warrior",
+    "kind": "unit",
+    "category": "barracks",
+    "variant": "regional",
+    "age": "imperial",
+    "cost": {
+      "food": 20,
+      "wood": 0,
+      "gold": 50,
+      "stone": 0
+    },
+    "time": 20,
+    "imgPath": "img/Unit/149.png"
+  },
+  {
+    "id": "elite_fire_lancer",
+    "name": "Elite Fire Lancer",
+    "kind": "unit",
+    "category": "barracks",
+    "variant": "regional",
+    "age": "imperial",
+    "cost": {
+      "food": 0,
+      "wood": 45,
+      "gold": 45,
+      "stone": 0
+    },
+    "time": 25,
+    "imgPath": "img/Unit/458.png"
+  },
+  {
+    "id": "fire_lancer",
+    "name": "Fire Lancer",
+    "kind": "unit",
+    "category": "barracks",
+    "variant": "regional",
+    "age": "castle",
+    "cost": {
+      "food": 0,
+      "wood": 45,
+      "gold": 45,
+      "stone": 0
+    },
+    "time": 35,
+    "imgPath": "img/Unit/457.png"
+  },
+  {
+    "id": "flemish_militia",
+    "name": "Flemish Militia",
+    "kind": "unit",
+    "category": "barracks",
+    "variant": "unique",
+    "age": "feudal",
+    "cost": {
+      "food": 30,
+      "wood": 0,
+      "gold": 25,
+      "stone": 0
+    },
+    "time": 14,
+    "imgPath": "img/Unit/354.png"
+  },
+  {
+    "id": "halberdier",
+    "name": "Halberdier",
+    "kind": "unit",
+    "category": "barracks",
+    "variant": "generic",
+    "age": "imperial",
+    "cost": {
+      "food": 35,
+      "wood": 25,
+      "gold": 0,
+      "stone": 0
+    },
+    "time": 22,
+    "imgPath": "img/Unit/104.png"
+  },
+  {
+    "id": "huskarl_b",
+    "name": "Huskarl",
+    "kind": "unit",
+    "category": "barracks",
+    "variant": "unique",
+    "age": "castle",
+    "cost": {
+      "food": 52,
+      "wood": 0,
+      "gold": 26,
+      "stone": 0
+    },
+    "time": 16,
+    "imgPath": "img/Unit/50.png"
+  },
+  {
+    "id": "ibirapema",
+    "name": "Ibirapema Warrior",
+    "kind": "unit",
+    "category": "barracks",
+    "variant": "unique",
+    "age": "castle",
+    "cost": {
+      "food": 40,
+      "wood": 0,
+      "gold": 20,
+      "stone": 0
+    },
+    "time": 30,
+    "imgPath": "img/Unit/551.png",
+    "timeApprox": true
+  },
+  {
+    "id": "jian_swordsman",
+    "name": "Jian Swordsman",
+    "kind": "unit",
+    "category": "barracks",
+    "variant": "unique",
+    "age": "castle",
+    "cost": {
+      "food": 45,
+      "wood": 0,
+      "gold": 50,
+      "stone": 0
+    },
+    "time": 35,
+    "imgPath": "img/Unit/437.png"
+  },
+  {
+    "id": "legionary",
+    "name": "Legionary",
+    "kind": "unit",
+    "category": "barracks",
+    "variant": "unique",
+    "age": "imperial",
+    "cost": {
+      "food": 60,
+      "wood": 0,
+      "gold": 20,
+      "stone": 0
+    },
+    "time": 16,
+    "imgPath": "img/Unit/139.png"
+  },
+  {
+    "id": "longsword",
+    "name": "Long Swordsman",
+    "kind": "unit",
+    "category": "barracks",
+    "variant": "generic",
+    "age": "castle",
+    "cost": {
+      "food": 60,
+      "wood": 0,
+      "gold": 20,
+      "stone": 0
+    },
+    "time": 21,
+    "imgPath": "img/Unit/13.png"
+  },
+  {
+    "id": "manatarms",
+    "name": "Man-at-Arms",
+    "kind": "unit",
+    "category": "barracks",
+    "variant": "generic",
+    "age": "feudal",
+    "cost": {
+      "food": 60,
+      "wood": 0,
+      "gold": 20,
+      "stone": 0
+    },
+    "time": 21,
+    "imgPath": "img/Unit/10.png"
+  },
+  {
+    "id": "militia",
+    "name": "Militia",
+    "kind": "unit",
+    "category": "barracks",
+    "variant": "generic",
+    "age": "dark",
+    "cost": {
+      "food": 60,
+      "wood": 0,
+      "gold": 20,
+      "stone": 0
+    },
+    "time": 21,
+    "imgPath": "img/Unit/8.png"
+  },
+  {
+    "id": "pikeman",
+    "name": "Pikeman",
+    "kind": "unit",
+    "category": "barracks",
+    "variant": "generic",
+    "age": "castle",
+    "cost": {
+      "food": 35,
+      "wood": 25,
+      "gold": 0,
+      "stone": 0
+    },
+    "time": 22,
+    "imgPath": "img/Unit/11.png"
+  },
+  {
+    "id": "spearman",
+    "name": "Spearman",
+    "kind": "unit",
+    "category": "barracks",
+    "variant": "generic",
+    "age": "feudal",
+    "cost": {
+      "food": 35,
+      "wood": 25,
+      "gold": 0,
+      "stone": 0
+    },
+    "time": 22,
+    "imgPath": "img/Unit/31.png"
+  },
+  {
+    "id": "temple_guard",
+    "name": "Temple Guard",
+    "kind": "unit",
+    "category": "barracks",
+    "variant": "unique",
+    "age": "castle",
+    "cost": {
+      "food": 50,
+      "wood": 0,
+      "gold": 30,
+      "stone": 0
+    },
+    "time": 30,
+    "imgPath": "img/Unit/553.png",
+    "timeApprox": true
+  },
+  {
+    "id": "twohanded",
+    "name": "Two-Handed Swordsman",
+    "kind": "unit",
+    "category": "barracks",
+    "variant": "generic",
+    "age": "imperial",
+    "cost": {
+      "food": 60,
+      "wood": 0,
+      "gold": 20,
+      "stone": 0
+    },
+    "time": 21,
+    "imgPath": "img/Unit/12.png"
+  },
+  {
+    "id": "kipchak_c",
+    "name": "Kipchak",
+    "kind": "unit",
+    "category": "castle",
+    "variant": "unique",
+    "age": "imperial",
+    "cost": {
+      "food": 40,
+      "wood": 0,
+      "gold": 35,
+      "stone": 0
+    },
+    "time": 20,
+    "imgPath": "img/Unit/252.png"
+  },
+  {
+    "id": "petard",
+    "name": "Petard",
+    "kind": "unit",
+    "category": "castle",
+    "variant": "generic",
+    "age": "castle",
+    "cost": {
+      "food": 65,
+      "wood": 0,
+      "gold": 35,
+      "stone": 0
+    },
+    "time": 25,
+    "imgPath": "img/Unit/113.png"
+  },
+  {
+    "id": "trebuchet",
+    "name": "Trebuchet",
+    "kind": "unit",
+    "category": "castle",
+    "variant": "generic",
+    "age": "imperial",
+    "cost": {
+      "food": 0,
+      "wood": 200,
+      "gold": 200,
+      "stone": 0
+    },
+    "time": 50,
+    "imgPath": "img/Unit/29.png"
+  },
+  {
+    "id": "cannongalleon",
+    "name": "Cannon Galleon",
+    "kind": "unit",
+    "category": "dock",
+    "variant": "generic",
+    "age": "imperial",
+    "cost": {
+      "food": 0,
+      "wood": 200,
+      "gold": 150,
+      "stone": 0
+    },
+    "time": 46,
+    "imgPath": "img/Unit/55.png"
+  },
+  {
+    "id": "caravel_d",
+    "name": "Caravel",
+    "kind": "unit",
+    "category": "dock",
+    "variant": "unique",
+    "age": "castle",
+    "cost": {
+      "food": 0,
+      "wood": 90,
+      "gold": 40,
+      "stone": 0
+    },
+    "time": 36,
+    "imgPath": "img/Unit/198.png"
+  },
+  {
+    "id": "carrack",
+    "name": "Carrack",
+    "kind": "unit",
+    "category": "dock",
+    "variant": "generic",
+    "age": "imperial",
+    "cost": {
+      "food": 0,
+      "wood": 75,
+      "gold": 35,
+      "stone": 0
+    },
+    "time": 60,
+    "imgPath": "img/Unit/567.png"
+  },
+  {
+    "id": "catapult_gall",
+    "name": "Catapult Galley",
+    "kind": "unit",
+    "category": "dock",
+    "variant": "regional",
+    "age": "imperial",
+    "cost": {
+      "food": 0,
+      "wood": 200,
+      "gold": 150,
+      "stone": 0
+    },
+    "time": 80,
+    "imgPath": "img/Unit/591.png"
+  },
+  {
+    "id": "demoraft",
+    "name": "Demolition Raft",
+    "kind": "unit",
+    "category": "dock",
+    "variant": "generic",
+    "age": "feudal",
+    "cost": {
+      "food": 0,
+      "wood": 70,
+      "gold": 50,
+      "stone": 0
+    },
+    "time": 45,
+    "imgPath": "img/Unit/202.png"
+  },
+  {
+    "id": "demoship",
+    "name": "Demolition Ship",
+    "kind": "unit",
+    "category": "dock",
+    "variant": "generic",
+    "age": "castle",
+    "cost": {
+      "food": 0,
+      "wood": 70,
+      "gold": 50,
+      "stone": 0
+    },
+    "time": 31,
+    "imgPath": "img/Unit/84.png"
+  },
+  {
+    "id": "dragon_ship",
+    "name": "Dragon Ship",
+    "kind": "unit",
+    "category": "dock",
+    "variant": "unique",
+    "age": "imperial",
+    "cost": {
+      "food": 0,
+      "wood": 75,
+      "gold": 45,
+      "stone": 0
+    },
+    "time": 60,
+    "imgPath": "img/Unit/178.png"
+  },
+  {
+    "id": "dromon",
+    "name": "Dromon",
+    "kind": "unit",
+    "category": "dock",
+    "variant": "regional",
+    "age": "imperial",
+    "cost": {
+      "food": 0,
+      "wood": 175,
+      "gold": 150,
+      "stone": 0
+    },
+    "time": 60,
+    "imgPath": "img/Unit/406.png"
+  },
+  {
+    "id": "elitecannon",
+    "name": "Elite Cannon Galleon",
+    "kind": "unit",
+    "category": "dock",
+    "variant": "generic",
+    "age": "imperial",
+    "cost": {
+      "food": 0,
+      "wood": 200,
+      "gold": 150,
+      "stone": 0
+    },
+    "time": 70,
+    "imgPath": "img/Unit/298.png"
+  },
+  {
+    "id": "fastfireship",
+    "name": "Fast Fire Ship",
+    "kind": "unit",
+    "category": "dock",
+    "variant": "generic",
+    "age": "imperial",
+    "cost": {
+      "food": 0,
+      "wood": 75,
+      "gold": 45,
+      "stone": 0
+    },
+    "time": 60,
+    "imgPath": "img/Unit/85.png"
+  },
+  {
+    "id": "firegalley",
+    "name": "Fire Galley",
+    "kind": "unit",
+    "category": "dock",
+    "variant": "generic",
+    "age": "feudal",
+    "cost": {
+      "food": 0,
+      "wood": 75,
+      "gold": 45,
+      "stone": 0
+    },
+    "time": 49,
+    "imgPath": "img/Unit/203.png"
+  },
+  {
+    "id": "fireship",
+    "name": "Fire Ship",
+    "kind": "unit",
+    "category": "dock",
+    "variant": "generic",
+    "age": "castle",
+    "cost": {
+      "food": 0,
+      "wood": 75,
+      "gold": 45,
+      "stone": 0
+    },
+    "time": 60,
+    "imgPath": "img/Unit/86.png"
+  },
+  {
+    "id": "fishingship",
+    "name": "Fishing Ship",
+    "kind": "unit",
+    "category": "dock",
+    "variant": "generic",
+    "age": "dark",
+    "cost": {
+      "food": 0,
+      "wood": 75,
+      "gold": 0,
+      "stone": 0
+    },
+    "time": 40,
+    "imgPath": "img/Unit/24.png"
+  },
+  {
+    "id": "galleon",
+    "name": "Galleon",
+    "kind": "unit",
+    "category": "dock",
+    "variant": "generic",
+    "age": "imperial",
+    "cost": {
+      "food": 0,
+      "wood": 90,
+      "gold": 30,
+      "stone": 0
+    },
+    "time": 60,
+    "imgPath": "img/Unit/60.png"
+  },
+  {
+    "id": "galley",
+    "name": "Galley",
+    "kind": "unit",
+    "category": "dock",
+    "variant": "generic",
+    "age": "feudal",
+    "cost": {
+      "food": 0,
+      "wood": 90,
+      "gold": 30,
+      "stone": 0
+    },
+    "time": 36,
+    "imgPath": "img/Unit/87.png"
+  },
+  {
+    "id": "heavydemo",
+    "name": "Heavy Demolition Ship",
+    "kind": "unit",
+    "category": "dock",
+    "variant": "generic",
+    "age": "imperial",
+    "cost": {
+      "food": 0,
+      "wood": 70,
+      "gold": 50,
+      "stone": 0
+    },
+    "time": 31,
+    "imgPath": "img/Unit/83.png"
+  },
+  {
+    "id": "hulk",
+    "name": "Hulk",
+    "kind": "unit",
+    "category": "dock",
+    "variant": "generic",
+    "age": "feudal",
+    "cost": {
+      "food": 0,
+      "wood": 75,
+      "gold": 35,
+      "stone": 0
+    },
+    "time": 42,
+    "imgPath": "img/Unit/566.png"
+  },
+  {
+    "id": "longboat",
+    "name": "Longboat",
+    "kind": "unit",
+    "category": "dock",
+    "variant": "unique",
+    "age": "castle",
+    "cost": {
+      "food": 0,
+      "wood": 75,
+      "gold": 40,
+      "stone": 0
+    },
+    "time": 36,
+    "imgPath": "img/Unit/40.png"
+  },
+  {
+    "id": "lou_chuan",
+    "name": "Lou Chuan",
+    "kind": "unit",
+    "category": "dock",
+    "variant": "regional",
+    "age": "imperial",
+    "cost": {
+      "food": 0,
+      "wood": 250,
+      "gold": 225,
+      "stone": 0
+    },
+    "time": 60,
+    "imgPath": "img/Unit/431.png"
+  },
+  {
+    "id": "thirisadai",
+    "name": "Thirisadai",
+    "kind": "unit",
+    "category": "dock",
+    "variant": "unique",
+    "age": "imperial",
+    "cost": {
+      "food": 0,
+      "wood": 300,
+      "gold": 250,
+      "stone": 0
+    },
+    "time": 60,
+    "imgPath": "img/Unit/387.png"
+  },
+  {
+    "id": "tradecog",
+    "name": "Trade Cog",
+    "kind": "unit",
+    "category": "dock",
+    "variant": "generic",
+    "age": "feudal",
+    "cost": {
+      "food": 0,
+      "wood": 100,
+      "gold": 50,
+      "stone": 0
+    },
+    "time": 36,
+    "imgPath": "img/Unit/23.png"
+  },
+  {
+    "id": "transportship",
+    "name": "Transport Ship",
+    "kind": "unit",
+    "category": "dock",
+    "variant": "generic",
+    "age": "dark",
+    "cost": {
+      "food": 0,
+      "wood": 125,
+      "gold": 50,
+      "stone": 0
+    },
+    "time": 46,
+    "imgPath": "img/Unit/95.png"
+  },
+  {
+    "id": "turtle_ship",
+    "name": "Turtle Ship",
+    "kind": "unit",
+    "category": "dock",
+    "variant": "unique",
+    "age": "castle",
+    "cost": {
+      "food": 0,
+      "wood": 180,
+      "gold": 180,
+      "stone": 0
+    },
+    "time": 50,
+    "imgPath": "img/Unit/116.png"
+  },
+  {
+    "id": "wargalley",
+    "name": "War Galley",
+    "kind": "unit",
+    "category": "dock",
+    "variant": "generic",
+    "age": "castle",
+    "cost": {
+      "food": 0,
+      "wood": 90,
+      "gold": 30,
+      "stone": 0
+    },
+    "time": 60,
+    "imgPath": "img/Unit/25.png"
+  },
+  {
+    "id": "war_hulk",
+    "name": "War Hulk",
+    "kind": "unit",
+    "category": "dock",
+    "variant": "generic",
+    "age": "castle",
+    "cost": {
+      "food": 0,
+      "wood": 75,
+      "gold": 35,
+      "stone": 0
+    },
+    "time": 60,
+    "imgPath": "img/Unit/565.png"
+  },
+  {
+    "id": "tradecart",
+    "name": "Trade Cart",
+    "kind": "unit",
+    "category": "market",
+    "variant": "generic",
+    "age": "feudal",
+    "cost": {
+      "food": 0,
+      "wood": 100,
+      "gold": 50,
+      "stone": 0
+    },
+    "time": 51,
+    "imgPath": "img/Unit/34.png"
+  },
+  {
+    "id": "missionary",
+    "name": "Missionary",
+    "kind": "unit",
+    "category": "monastery",
+    "variant": "unique",
+    "age": "castle",
+    "cost": {
+      "food": 0,
+      "wood": 0,
+      "gold": 100,
+      "stone": 0
+    },
+    "time": 51,
+    "imgPath": "img/Unit/107.png"
+  },
+  {
+    "id": "monk",
+    "name": "Monk",
+    "kind": "unit",
+    "category": "monastery",
+    "variant": "generic",
+    "age": "castle",
+    "cost": {
+      "food": 0,
+      "wood": 0,
+      "gold": 100,
+      "stone": 0
+    },
+    "time": 51,
+    "imgPath": "img/Unit/33.png"
+  },
+  {
+    "id": "warrior_priest",
+    "name": "Warrior Priest",
+    "kind": "unit",
+    "category": "monastery",
+    "variant": "unique",
+    "age": "castle",
+    "cost": {
+      "food": 40,
+      "wood": 0,
+      "gold": 50,
+      "stone": 0
+    },
+    "time": 30,
+    "imgPath": "img/Unit/409.png"
+  },
+  {
+    "id": "armored_elephant",
+    "name": "Armored Elephant",
+    "kind": "unit",
+    "category": "siege",
+    "variant": "regional",
+    "age": "castle",
+    "cost": {
+      "food": 120,
+      "wood": 0,
+      "gold": 95,
+      "stone": 0
+    },
+    "time": 36,
+    "imgPath": "img/Unit/394.png"
+  },
+  {
+    "id": "batteringram",
+    "name": "Battering Ram",
+    "kind": "unit",
+    "category": "siege",
+    "variant": "generic",
+    "age": "castle",
+    "cost": {
+      "food": 0,
+      "wood": 160,
+      "gold": 75,
+      "stone": 0
+    },
+    "time": 36,
+    "imgPath": "img/Unit/74.png"
+  },
+  {
+    "id": "bombcannon",
+    "name": "Bombard Cannon",
+    "kind": "unit",
+    "category": "siege",
+    "variant": "generic",
+    "age": "imperial",
+    "cost": {
+      "food": 0,
+      "wood": 225,
+      "gold": 225,
+      "stone": 0
+    },
+    "time": 56,
+    "imgPath": "img/Unit/30.png"
+  },
+  {
+    "id": "cappedram",
+    "name": "Capped Ram",
+    "kind": "unit",
+    "category": "siege",
+    "variant": "generic",
+    "age": "imperial",
+    "cost": {
+      "food": 0,
+      "wood": 160,
+      "gold": 75,
+      "stone": 0
+    },
+    "time": 36,
+    "imgPath": "img/Unit/63.png"
+  },
+  {
+    "id": "flaming_camel",
+    "name": "Flaming Camel",
+    "kind": "unit",
+    "category": "siege",
+    "variant": "unique",
+    "age": "imperial",
+    "cost": {
+      "food": 75,
+      "wood": 0,
+      "gold": 30,
+      "stone": 0
+    },
+    "time": 25,
+    "imgPath": "img/Unit/270.png"
+  },
+  {
+    "id": "heavy_rocket_cart",
+    "name": "Heavy Rocket Cart",
+    "kind": "unit",
+    "category": "siege",
+    "variant": "regional",
+    "age": "imperial",
+    "cost": {
+      "food": 0,
+      "wood": 135,
+      "gold": 155,
+      "stone": 0
+    },
+    "time": 40,
+    "imgPath": "img/Unit/460.png"
+  },
+  {
+    "id": "heavyscorpion",
+    "name": "Heavy Scorpion",
+    "kind": "unit",
+    "category": "siege",
+    "variant": "generic",
+    "age": "imperial",
+    "cost": {
+      "food": 0,
+      "wood": 75,
+      "gold": 75,
+      "stone": 0
+    },
+    "time": 30,
+    "imgPath": "img/Unit/89.png"
+  },
+  {
+    "id": "houfnice",
+    "name": "Houfnice",
+    "kind": "unit",
+    "category": "siege",
+    "variant": "unique",
+    "age": "imperial",
+    "cost": {
+      "food": 0,
+      "wood": 225,
+      "gold": 225,
+      "stone": 0
+    },
+    "time": 56,
+    "imgPath": "img/Unit/372.png"
+  },
+  {
+    "id": "mangonel",
+    "name": "Mangonel",
+    "kind": "unit",
+    "category": "siege",
+    "variant": "generic",
+    "age": "castle",
+    "cost": {
+      "food": 0,
+      "wood": 160,
+      "gold": 135,
+      "stone": 0
+    },
+    "time": 46,
+    "imgPath": "img/Unit/27.png"
+  },
+  {
+    "id": "mounted_treb",
+    "name": "Mounted Trebuchet",
+    "kind": "unit",
+    "category": "siege",
+    "variant": "unique",
+    "age": "imperial",
+    "cost": {
+      "food": 0,
+      "wood": 200,
+      "gold": 200,
+      "stone": 0
+    },
+    "time": 50,
+    "imgPath": "img/Unit/464.png"
+  },
+  {
+    "id": "onager",
+    "name": "Onager",
+    "kind": "unit",
+    "category": "siege",
+    "variant": "generic",
+    "age": "imperial",
+    "cost": {
+      "food": 0,
+      "wood": 160,
+      "gold": 135,
+      "stone": 0
+    },
+    "time": 46,
+    "imgPath": "img/Unit/101.png"
+  },
+  {
+    "id": "rocket_cart",
+    "name": "Rocket Cart",
+    "kind": "unit",
+    "category": "siege",
+    "variant": "regional",
+    "age": "castle",
+    "cost": {
+      "food": 0,
+      "wood": 135,
+      "gold": 155,
+      "stone": 0
+    },
+    "time": 40,
+    "imgPath": "img/Unit/459.png"
+  },
+  {
+    "id": "scorpion",
+    "name": "Scorpion",
+    "kind": "unit",
+    "category": "siege",
+    "variant": "generic",
+    "age": "castle",
+    "cost": {
+      "food": 0,
+      "wood": 75,
+      "gold": 75,
+      "stone": 0
+    },
+    "time": 30,
+    "imgPath": "img/Unit/80.png"
+  },
+  {
+    "id": "siege_elephant",
+    "name": "Siege Elephant",
+    "kind": "unit",
+    "category": "siege",
+    "variant": "regional",
+    "age": "imperial",
+    "cost": {
+      "food": 120,
+      "wood": 0,
+      "gold": 95,
+      "stone": 0
+    },
+    "time": 36,
+    "imgPath": "img/Unit/395.png"
+  },
+  {
+    "id": "siegeonager",
+    "name": "Siege Onager",
+    "kind": "unit",
+    "category": "siege",
+    "variant": "generic",
+    "age": "imperial",
+    "cost": {
+      "food": 0,
+      "wood": 160,
+      "gold": 135,
+      "stone": 0
+    },
+    "time": 46,
+    "imgPath": "img/Unit/102.png"
+  },
+  {
+    "id": "siegeram",
+    "name": "Siege Ram",
+    "kind": "unit",
+    "category": "siege",
+    "variant": "generic",
+    "age": "imperial",
+    "cost": {
+      "food": 0,
+      "wood": 160,
+      "gold": 75,
+      "stone": 0
+    },
+    "time": 36,
+    "imgPath": "img/Unit/73.png"
+  },
+  {
+    "id": "siegetower",
+    "name": "Siege Tower",
+    "kind": "unit",
+    "category": "siege",
+    "variant": "generic",
+    "age": "castle",
+    "cost": {
+      "food": 0,
+      "wood": 200,
+      "gold": 160,
+      "stone": 0
+    },
+    "time": 36,
+    "imgPath": "img/Unit/212.png"
+  },
+  {
+    "id": "traction_treb",
+    "name": "Traction Trebuchet",
+    "kind": "unit",
+    "category": "siege",
+    "variant": "regional",
+    "age": "imperial",
+    "cost": {
+      "food": 0,
+      "wood": 175,
+      "gold": 210,
+      "stone": 0
+    },
+    "time": 70,
+    "imgPath": "img/Unit/428.png"
+  },
+  {
+    "id": "war_chariot_s",
+    "name": "War Chariot",
+    "kind": "unit",
+    "category": "siege",
+    "variant": "unique",
+    "age": "castle",
+    "cost": {
+      "food": 65,
+      "wood": 0,
+      "gold": 90,
+      "stone": 0
+    },
+    "time": 28,
+    "imgPath": "img/Unit/435.png"
+  },
+  {
+    "id": "battleeleph",
+    "name": "Battle Elephant",
+    "kind": "unit",
+    "category": "stable",
+    "variant": "regional",
+    "age": "castle",
+    "cost": {
+      "food": 100,
+      "wood": 0,
+      "gold": 70,
+      "stone": 0
+    },
+    "time": 24,
+    "imgPath": "img/Unit/228.png"
+  },
+  {
+    "id": "camel",
+    "name": "Camel Rider",
+    "kind": "unit",
+    "category": "stable",
+    "variant": "regional",
+    "age": "castle",
+    "cost": {
+      "food": 55,
+      "wood": 0,
+      "gold": 60,
+      "stone": 0
+    },
+    "time": 22,
+    "imgPath": "img/Unit/78.png"
+  },
+  {
+    "id": "camel_scout",
+    "name": "Camel Scout",
+    "kind": "unit",
+    "category": "stable",
+    "variant": "regional",
+    "age": "feudal",
+    "cost": {
+      "food": 55,
+      "wood": 0,
+      "gold": 60,
+      "stone": 0
+    },
+    "time": 22,
+    "imgPath": "img/Unit/392.png"
+  },
+  {
+    "id": "cavalier",
+    "name": "Cavalier",
+    "kind": "unit",
+    "category": "stable",
+    "variant": "generic",
+    "age": "imperial",
+    "cost": {
+      "food": 60,
+      "wood": 0,
+      "gold": 75,
+      "stone": 0
+    },
+    "time": 30,
+    "imgPath": "img/Unit/49.png"
+  },
+  {
+    "id": "eliteeleph",
+    "name": "Elite Battle Elephant",
+    "kind": "unit",
+    "category": "stable",
+    "variant": "regional",
+    "age": "imperial",
+    "cost": {
+      "food": 100,
+      "wood": 0,
+      "gold": 70,
+      "stone": 0
+    },
+    "time": 24,
+    "imgPath": "img/Unit/246.png"
+  },
+  {
+    "id": "elite_shrivamsha",
+    "name": "Elite Shrivamsha Rider",
+    "kind": "unit",
+    "category": "stable",
+    "variant": "unique",
+    "age": "imperial",
+    "cost": {
+      "food": 70,
+      "wood": 0,
+      "gold": 30,
+      "stone": 0
+    },
+    "time": 20,
+    "imgPath": "img/Unit/519.png"
+  },
+  {
+    "id": "elite_steppe_lancer",
+    "name": "Elite Steppe Lancer",
+    "kind": "unit",
+    "category": "stable",
+    "variant": "regional",
+    "age": "imperial",
+    "cost": {
+      "food": 70,
+      "wood": 0,
+      "gold": 40,
+      "stone": 0
+    },
+    "time": 20,
+    "imgPath": "img/Unit/274.png"
+  },
+  {
+    "id": "heavycamel",
+    "name": "Heavy Camel Rider",
+    "kind": "unit",
+    "category": "stable",
+    "variant": "regional",
+    "age": "imperial",
+    "cost": {
+      "food": 55,
+      "wood": 0,
+      "gold": 60,
+      "stone": 0
+    },
+    "time": 22,
+    "imgPath": "img/Unit/79.png"
+  },
+  {
+    "id": "heavy_hei_guang",
+    "name": "Heavy Hei Guang",
+    "kind": "unit",
+    "category": "stable",
+    "variant": "regional",
+    "age": "imperial",
+    "cost": {
+      "food": 65,
+      "wood": 0,
+      "gold": 65,
+      "stone": 0
+    },
+    "time": 28,
+    "imgPath": "img/Unit/430.png"
+  },
+  {
+    "id": "hei_guang",
+    "name": "Hei Guang Cavalry",
+    "kind": "unit",
+    "category": "stable",
+    "variant": "regional",
+    "age": "castle",
+    "cost": {
+      "food": 65,
+      "wood": 0,
+      "gold": 65,
+      "stone": 0
+    },
+    "time": 28,
+    "imgPath": "img/Unit/429.png"
+  },
+  {
+    "id": "hussar",
+    "name": "Hussar",
+    "kind": "unit",
+    "category": "stable",
+    "variant": "generic",
+    "age": "imperial",
+    "cost": {
+      "food": 80,
+      "wood": 0,
+      "gold": 0,
+      "stone": 0
+    },
+    "time": 30,
+    "imgPath": "img/Unit/103.png"
+  },
+  {
+    "id": "imp_camel",
+    "name": "Imperial Camel Rider",
+    "kind": "unit",
+    "category": "stable",
+    "variant": "regional",
+    "age": "imperial",
+    "cost": {
+      "food": 55,
+      "wood": 0,
+      "gold": 60,
+      "stone": 0
+    },
+    "time": 20,
+    "imgPath": "img/Unit/185.png"
+  },
+  {
+    "id": "knight",
+    "name": "Knight",
+    "kind": "unit",
+    "category": "stable",
+    "variant": "generic",
+    "age": "castle",
+    "cost": {
+      "food": 60,
+      "wood": 0,
+      "gold": 75,
+      "stone": 0
+    },
+    "time": 30,
+    "imgPath": "img/Unit/1.png"
+  },
+  {
+    "id": "lightcav",
+    "name": "Light Cavalry",
+    "kind": "unit",
+    "category": "stable",
+    "variant": "generic",
+    "age": "castle",
+    "cost": {
+      "food": 80,
+      "wood": 0,
+      "gold": 0,
+      "stone": 0
+    },
+    "time": 30,
+    "imgPath": "img/Unit/91.png"
+  },
+  {
+    "id": "paladin",
+    "name": "Paladin",
+    "kind": "unit",
+    "category": "stable",
+    "variant": "generic",
+    "age": "imperial",
+    "cost": {
+      "food": 60,
+      "wood": 0,
+      "gold": 75,
+      "stone": 0
+    },
+    "time": 30,
+    "imgPath": "img/Unit/2.png"
+  },
+  {
+    "id": "savar",
+    "name": "Savar",
+    "kind": "unit",
+    "category": "stable",
+    "variant": "unique",
+    "age": "imperial",
+    "cost": {
+      "food": 60,
+      "wood": 0,
+      "gold": 75,
+      "stone": 0
+    },
+    "time": 30,
+    "imgPath": "img/Unit/410.png"
+  },
+  {
+    "id": "scout",
+    "name": "Scout Cavalry",
+    "kind": "unit",
+    "category": "stable",
+    "variant": "generic",
+    "age": "feudal",
+    "cost": {
+      "food": 80,
+      "wood": 0,
+      "gold": 0,
+      "stone": 0
+    },
+    "time": 30,
+    "imgPath": "img/Unit/64.png"
+  },
+  {
+    "id": "shrivamsha",
+    "name": "Shrivamsha Rider",
+    "kind": "unit",
+    "category": "stable",
+    "variant": "unique",
+    "age": "castle",
+    "cost": {
+      "food": 70,
+      "wood": 0,
+      "gold": 30,
+      "stone": 0
+    },
+    "time": 20,
+    "imgPath": "img/Unit/391.png"
+  },
+  {
+    "id": "steppe_lancer",
+    "name": "Steppe Lancer",
+    "kind": "unit",
+    "category": "stable",
+    "variant": "regional",
+    "age": "castle",
+    "cost": {
+      "food": 70,
+      "wood": 0,
+      "gold": 40,
+      "stone": 0
+    },
+    "time": 24,
+    "imgPath": "img/Unit/273.png"
+  },
+  {
+    "id": "tarkan_s",
+    "name": "Tarkan",
+    "kind": "unit",
+    "category": "stable",
+    "variant": "unique",
+    "age": "castle",
+    "cost": {
+      "food": 60,
+      "wood": 0,
+      "gold": 60,
+      "stone": 0
+    },
+    "time": 26,
+    "imgPath": "img/Unit/105.png"
+  },
+  {
+    "id": "winged_hussar",
+    "name": "Winged Hussar",
+    "kind": "unit",
+    "category": "stable",
+    "variant": "regional",
+    "age": "imperial",
+    "cost": {
+      "food": 80,
+      "wood": 0,
+      "gold": 0,
+      "stone": 0
+    },
+    "time": 30,
+    "imgPath": "img/Unit/371.png"
+  },
+  {
+    "id": "xolotl_warrior",
+    "name": "Xolotl Warrior",
+    "kind": "unit",
+    "category": "stable",
+    "variant": "regional",
+    "age": "castle",
+    "cost": {
+      "food": 60,
+      "wood": 0,
+      "gold": 75,
+      "stone": 0
+    },
+    "time": 30,
+    "imgPath": "img/Unit/232.png"
+  },
+  {
+    "id": "villager",
+    "name": "Villager",
+    "kind": "unit",
+    "category": "tc",
+    "variant": "generic",
+    "age": "dark",
+    "cost": {
+      "food": 50,
+      "wood": 0,
+      "gold": 0,
+      "stone": 0
+    },
+    "time": 25,
+    "imgPath": "img/Unit/15.png"
+  },
+  {
+    "id": "donjon",
+    "name": "Donjon",
+    "kind": "building",
+    "category": "defense",
+    "variant": "unique",
+    "age": "feudal",
+    "cost": {
+      "food": 0,
+      "wood": 50,
+      "gold": 0,
+      "stone": 175
+    },
+    "time": 83,
+    "imgPath": "img/Building/101.png"
+  },
+  {
+    "id": "palisadewall",
+    "name": "Empalizada",
+    "kind": "building",
+    "category": "defense",
+    "variant": "generic",
+    "age": "dark",
+    "cost": {
+      "food": 0,
+      "wood": 2,
+      "gold": 0,
+      "stone": 0
+    },
+    "time": 6,
+    "imgPath": "img/Building/30.png"
+  },
+  {
+    "id": "krepost",
+    "name": "Krepost",
+    "kind": "building",
+    "category": "defense",
+    "variant": "unique",
+    "age": "castle",
+    "cost": {
+      "food": 0,
+      "wood": 0,
+      "gold": 0,
+      "stone": 350
+    },
+    "time": 150,
+    "imgPath": "img/Building/96.png"
+  },
+  {
+    "id": "stonewall",
+    "name": "Muro de Piedra",
+    "kind": "building",
+    "category": "defense",
+    "variant": "generic",
+    "age": "feudal",
+    "cost": {
+      "food": 0,
+      "wood": 0,
+      "gold": 0,
+      "stone": 5
+    },
+    "time": 10,
+    "imgPath": "img/Building/31.png"
+  },
+  {
+    "id": "fortifiedwall",
+    "name": "Muro Fortificado",
+    "kind": "building",
+    "category": "defense",
+    "variant": "generic",
+    "age": "castle",
+    "cost": {
+      "food": 0,
+      "wood": 0,
+      "gold": 0,
+      "stone": 5
+    },
+    "time": 10,
+    "imgPath": "img/Building/32.png"
+  },
+  {
+    "id": "gate",
+    "name": "Puerta",
+    "kind": "building",
+    "category": "defense",
+    "variant": "generic",
+    "age": "feudal",
+    "cost": {
+      "food": 0,
+      "wood": 0,
+      "gold": 0,
+      "stone": 30
+    },
+    "time": 70,
+    "imgPath": "img/Building/36.png"
+  },
+  {
+    "id": "palisadegate",
+    "name": "Puerta Empaliz.",
+    "kind": "building",
+    "category": "defense",
+    "variant": "generic",
+    "age": "dark",
+    "cost": {
+      "food": 0,
+      "wood": 20,
+      "gold": 0,
+      "stone": 0
+    },
+    "time": 30,
+    "imgPath": "img/Building/44.png"
+  },
+  {
+    "id": "outpost",
+    "name": "Puesto Avanz.",
+    "kind": "building",
+    "category": "defense",
+    "variant": "generic",
+    "age": "dark",
+    "cost": {
+      "food": 0,
+      "wood": 25,
+      "gold": 0,
+      "stone": 5
+    },
+    "time": 15,
+    "imgPath": "img/Building/38.png"
+  },
+  {
+    "id": "bombardtower",
+    "name": "Torre Bombarda",
+    "kind": "building",
+    "category": "defense",
+    "variant": "generic",
+    "age": "imperial",
+    "cost": {
+      "food": 0,
+      "wood": 0,
+      "gold": 100,
+      "stone": 125
+    },
+    "time": 80,
+    "imgPath": "img/Building/42.png"
+  },
+  {
+    "id": "guardtower",
+    "name": "Torre Guardia",
+    "kind": "building",
+    "category": "defense",
+    "variant": "generic",
+    "age": "castle",
+    "cost": {
+      "food": 0,
+      "wood": 35,
+      "gold": 0,
+      "stone": 125
+    },
+    "time": 80,
+    "imgPath": "img/Building/27.png"
+  },
+  {
+    "id": "watchtower",
+    "name": "Torre Vigía",
+    "kind": "building",
+    "category": "defense",
+    "variant": "generic",
+    "age": "feudal",
+    "cost": {
+      "food": 0,
+      "wood": 35,
+      "gold": 0,
+      "stone": 125
+    },
+    "time": 80,
+    "imgPath": "img/Building/25.png"
+  },
+  {
+    "id": "keep",
+    "name": "Torreón",
+    "kind": "building",
+    "category": "defense",
+    "variant": "generic",
+    "age": "imperial",
+    "cost": {
+      "food": 0,
+      "wood": 35,
+      "gold": 0,
+      "stone": 125
+    },
+    "time": 80,
+    "imgPath": "img/Building/26.png"
+  },
+  {
+    "id": "tahsili",
+    "name": "Asentamiento",
+    "kind": "building",
+    "category": "economy",
+    "variant": "regional",
+    "age": "dark",
+    "cost": {
+      "food": 0,
+      "wood": 125,
+      "gold": 0,
+      "stone": 0
+    },
+    "time": 40,
+    "imgPath": "img/Building/98.png"
+  },
+  {
+    "id": "tc_castle",
+    "name": "C.U. adicional",
+    "kind": "building",
+    "category": "economy",
+    "variant": "generic",
+    "age": "castle",
+    "cost": {
+      "food": 0,
+      "wood": 275,
+      "gold": 0,
+      "stone": 100
+    },
+    "time": 150,
+    "imgPath": "img/Building/28.png"
+  },
+  {
+    "id": "lumber",
+    "name": "Camp. Maderero",
+    "kind": "building",
+    "category": "economy",
+    "variant": "generic",
+    "age": "dark",
+    "cost": {
+      "food": 0,
+      "wood": 100,
+      "gold": 0,
+      "stone": 0
+    },
+    "time": 35,
+    "imgPath": "img/Building/40.png"
+  },
+  {
+    "id": "mining",
+    "name": "Camp. Minero",
+    "kind": "building",
+    "category": "economy",
+    "variant": "generic",
+    "age": "dark",
+    "cost": {
+      "food": 0,
+      "wood": 100,
+      "gold": 0,
+      "stone": 0
+    },
+    "time": 35,
+    "imgPath": "img/Building/39.png"
+  },
+  {
+    "id": "caravanserai",
+    "name": "Caravanserai",
+    "kind": "building",
+    "category": "economy",
+    "variant": "regional",
+    "age": "imperial",
+    "cost": {
+      "food": 0,
+      "wood": 175,
+      "gold": 0,
+      "stone": 50
+    },
+    "time": 60,
+    "imgPath": "img/Building/103.png"
+  },
+  {
+    "id": "house",
+    "name": "Casa",
+    "kind": "building",
+    "category": "economy",
+    "variant": "generic",
+    "age": "dark",
+    "cost": {
+      "food": 0,
+      "wood": 25,
+      "gold": 0,
+      "stone": 0
+    },
+    "time": 25,
+    "imgPath": "img/Building/11.png"
+  },
+  {
+    "id": "tc",
+    "name": "Centro Urbano",
+    "kind": "building",
+    "category": "economy",
+    "variant": "generic",
+    "age": "dark",
+    "cost": {
+      "food": 0,
+      "wood": 275,
+      "gold": 0,
+      "stone": 100
+    },
+    "time": 150,
+    "imgPath": "img/Building/28.png"
+  },
+  {
+    "id": "feitoria",
+    "name": "Feitoria",
+    "kind": "building",
+    "category": "economy",
+    "variant": "unique",
+    "age": "imperial",
+    "cost": {
+      "food": 0,
+      "wood": 0,
+      "gold": 350,
+      "stone": 300
+    },
+    "time": 120,
+    "imgPath": "img/Building/84.png"
+  },
+  {
+    "id": "folwark",
+    "name": "Folwark",
+    "kind": "building",
+    "category": "economy",
+    "variant": "generic",
+    "age": "dark",
+    "cost": {
+      "food": 0,
+      "wood": 100,
+      "gold": 0,
+      "stone": 0
+    },
+    "time": 40,
+    "imgPath": "img/Building/86.png"
+  },
+  {
+    "id": "farm",
+    "name": "Granja",
+    "kind": "building",
+    "category": "economy",
+    "variant": "generic",
+    "age": "dark",
+    "cost": {
+      "food": 0,
+      "wood": 60,
+      "gold": 0,
+      "stone": 0
+    },
+    "time": 15,
+    "imgPath": "img/Building/35.png"
+  },
+  {
+    "id": "blacksmith",
+    "name": "Herrería",
+    "kind": "building",
+    "category": "economy",
+    "variant": "generic",
+    "age": "feudal",
+    "cost": {
+      "food": 0,
+      "wood": 150,
+      "gold": 0,
+      "stone": 0
+    },
+    "time": 40,
+    "imgPath": "img/Building/4.png"
+  },
+  {
+    "id": "market",
+    "name": "Mercado",
+    "kind": "building",
+    "category": "economy",
+    "variant": "generic",
+    "age": "feudal",
+    "cost": {
+      "food": 0,
+      "wood": 175,
+      "gold": 0,
+      "stone": 0
+    },
+    "time": 60,
+    "imgPath": "img/Building/16.png"
+  },
+  {
+    "id": "mill",
+    "name": "Molino",
+    "kind": "building",
+    "category": "economy",
+    "variant": "generic",
+    "age": "dark",
+    "cost": {
+      "food": 0,
+      "wood": 100,
+      "gold": 0,
+      "stone": 0
+    },
+    "time": 35,
+    "imgPath": "img/Building/19.png"
+  },
+  {
+    "id": "mulecart",
+    "name": "Mula de Carga",
+    "kind": "building",
+    "category": "economy",
+    "variant": "regional",
+    "age": "dark",
+    "cost": {
+      "food": 0,
+      "wood": 100,
+      "gold": 0,
+      "stone": 0
+    },
+    "time": 25,
+    "imgPath": "img/Building/89.png"
+  },
+  {
+    "id": "pasture",
+    "name": "Pasto",
+    "kind": "building",
+    "category": "economy",
+    "variant": "regional",
+    "age": "dark",
+    "cost": {
+      "food": 0,
+      "wood": 110,
+      "gold": 0,
+      "stone": 0
+    },
+    "time": 22,
+    "imgPath": "img/Building/87.png"
+  },
+  {
+    "id": "harbor",
+    "name": "Puerto",
+    "kind": "building",
+    "category": "economy",
+    "variant": "generic",
+    "age": "castle",
+    "cost": {
+      "food": 0,
+      "wood": 150,
+      "gold": 0,
+      "stone": 0
+    },
+    "time": 35,
+    "imgPath": "img/Building/56.png"
+  },
+  {
+    "id": "fishtrap",
+    "name": "Trampa Peces",
+    "kind": "building",
+    "category": "economy",
+    "variant": "generic",
+    "age": "dark",
+    "cost": {
+      "food": 0,
+      "wood": 100,
+      "gold": 0,
+      "stone": 0
+    },
+    "time": 40,
+    "imgPath": "img/Building/41.png"
+  },
+  {
+    "id": "university",
+    "name": "Universidad",
+    "kind": "building",
+    "category": "economy",
+    "variant": "generic",
+    "age": "castle",
+    "cost": {
+      "food": 0,
+      "wood": 200,
+      "gold": 0,
+      "stone": 0
+    },
+    "time": 60,
+    "imgPath": "img/Building/33.png"
+  },
+  {
+    "id": "castle",
+    "name": "Castillo",
+    "kind": "building",
+    "category": "military",
+    "variant": "generic",
+    "age": "castle",
+    "cost": {
+      "food": 0,
+      "wood": 0,
+      "gold": 0,
+      "stone": 650
+    },
+    "time": 200,
+    "imgPath": "img/Building/7.png"
+  },
+  {
+    "id": "barracks",
+    "name": "Cuartel",
+    "kind": "building",
+    "category": "military",
+    "variant": "generic",
+    "age": "dark",
+    "cost": {
+      "food": 0,
+      "wood": 175,
+      "gold": 0,
+      "stone": 0
+    },
+    "time": 50,
+    "imgPath": "img/Building/2.png"
+  },
+  {
+    "id": "stable",
+    "name": "Establo",
+    "kind": "building",
+    "category": "military",
+    "variant": "generic",
+    "age": "feudal",
+    "cost": {
+      "food": 0,
+      "wood": 175,
+      "gold": 0,
+      "stone": 0
+    },
+    "time": 50,
+    "imgPath": "img/Building/23.png"
+  },
+  {
+    "id": "archery",
+    "name": "Galería de Tiro",
+    "kind": "building",
+    "category": "military",
+    "variant": "generic",
+    "age": "feudal",
+    "cost": {
+      "food": 0,
+      "wood": 175,
+      "gold": 0,
+      "stone": 0
+    },
+    "time": 50,
+    "imgPath": "img/Building/0.png"
+  },
+  {
+    "id": "fortified_church",
+    "name": "Iglesia Fort.",
+    "kind": "building",
+    "category": "military",
+    "variant": "regional",
+    "age": "castle",
+    "cost": {
+      "food": 0,
+      "wood": 200,
+      "gold": 0,
+      "stone": 0
+    },
+    "time": 40,
+    "imgPath": "img/Building/88.png"
+  },
+  {
+    "id": "monastery",
+    "name": "Monasterio",
+    "kind": "building",
+    "category": "military",
+    "variant": "generic",
+    "age": "castle",
+    "cost": {
+      "food": 0,
+      "wood": 175,
+      "gold": 0,
+      "stone": 0
+    },
+    "time": 40,
+    "imgPath": "img/Building/10.png"
+  },
+  {
+    "id": "dock",
+    "name": "Muelle",
+    "kind": "building",
+    "category": "military",
+    "variant": "generic",
+    "age": "dark",
+    "cost": {
+      "food": 0,
+      "wood": 150,
+      "gold": 0,
+      "stone": 0
+    },
+    "time": 35,
+    "imgPath": "img/Building/13.png"
+  },
+  {
+    "id": "siege",
+    "name": "Taller de Asedio",
+    "kind": "building",
+    "category": "military",
+    "variant": "generic",
+    "age": "castle",
+    "cost": {
+      "food": 0,
+      "wood": 200,
+      "gold": 0,
+      "stone": 0
+    },
+    "time": 40,
+    "imgPath": "img/Building/22.png"
+  },
+  {
+    "id": "wonder",
+    "name": "Maravilla",
+    "kind": "building",
+    "category": "special",
+    "variant": "generic",
+    "age": "imperial",
+    "cost": {
+      "food": 0,
+      "wood": 1000,
+      "gold": 1000,
+      "stone": 1000
+    },
+    "time": 3500,
+    "imgPath": "img/Building/34.png"
+  }
+]
