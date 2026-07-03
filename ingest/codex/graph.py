@@ -15,6 +15,7 @@ TYPE_LABEL = {
     "units": "Unit",
     "buildings": "Building",
     "maps": "Map",
+    "torneos": "Tournament",
     "matchups": "Matchup",
     "meta": "Meta",
     "counters": "Counter",

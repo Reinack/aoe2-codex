@@ -159,10 +159,23 @@ se corre desde `web/`:
 
 ```bash
 cd web
-npm run techtree:dry      # plan de ingesta (no escribe)
-npm run techtree:ingest   # aplica stats + aristas a Neo4j (idempotente)
-npm run techtree:report   # regenera el MD de incongruencias árbol↔vault
+npm run techtree:dry           # plan de ingesta de stats/costos (no escribe)
+npm run techtree:ingest        # aplica stats + aristas HAS_* a Neo4j (idempotente)
+npm run techtree:edges         # plan de aristas de juego (no escribe)
+npm run techtree:edges:write   # AFFECTS/TRAINS/RESEARCHES/UPGRADES_TO/ENABLES (idempotente)
+npm run techtree:report        # regenera el MD de incongruencias árbol↔vault
 ```
+
+`techtree:edges` corre **después** de `techtree:ingest` (necesita los `tree_id` en los
+nodos) y agrega las relaciones entre entidades que son el corazón del grafo:
+
+| Arista | Origen del dato |
+|---|---|
+| `(:Tech)-[:AFFECTS {…mod}]->(:Unit\|:Building)` | `TECHS.affects` + `UNIT_CLASSES` (`tech_data.js`) |
+| `(:Building)-[:TRAINS]->(:Unit)` | campo `node.building` (`nodes.js`) |
+| `(:Building)-[:RESEARCHES]->(:Tech)` | campo `node.building` (`nodes.js`) |
+| `(:Unit)-[:UPGRADES_TO]->(:Unit)` | `node.prereqs` de nodos `type:'upgrade'` |
+| `(:Tech)-[:ENABLES]->(:Unit\|:Building)` | prereqs que son techs (best-effort) |
 
 > El árbol es la fuente de verdad de stats **excepto** lo tocado por `patch-177723`
 > (ahí gana el vault, post-parche). Las incongruencias quedan registradas en
@@ -182,7 +195,8 @@ guardar `URI` (`neo4j+s://…`) y password. Cargar los datos apuntando el pipeli
 ```bash
 # con NEO4J_URI/USER/PASSWORD de Aura en el entorno (o .env):
 cd ingest && python -m codex.sync --full        # vault → grafo
-cd ../web && npm run techtree:ingest             # stats + aristas del árbol
+cd ../web && npm run techtree:ingest             # stats + aristas HAS_* del árbol
+npm run techtree:edges:write                     # aristas AFFECTS/TRAINS/UPGRADES_TO…
 cd ../rag && python -m codex_rag.build --full    # chunks + embeddings (Gemini)
 ```
 

@@ -35,6 +35,8 @@ export async function loadTree() {
   const REGIONAL_UNIT_STATS = unitsMod.REGIONAL_UNIT_STATS;
   const UNIQUE_UNIT_STATS = unitsMod.UNIQUE_UNIT_STATS;
   const TECHS = techMod.TECHS;
+  const UNIT_CLASSES = techMod.UNIT_CLASSES;             // clase -> [ids] (para expandir affects)
+  const UNIQUE_UNIT_CLASSES = techMod.UNIQUE_UNIT_CLASSES; // UU (por nombre ES) -> [clases]
   const CIVS = civsMod.default || civsMod.CIVS;
 
   // Nombres legibles: el locale no exporta, lo leemos por regex.
@@ -44,7 +46,7 @@ export async function loadTree() {
   // Índice de stats por id de unidad (genérica + regional + única).
   const unitStats = { ...UNIT_STATS, ...REGIONAL_UNIT_STATS, ...UNIQUE_UNIT_STATS };
 
-  return { NODES, unitStats, TECHS, CIVS, names, TREE_DATA };
+  return { NODES, unitStats, TECHS, UNIT_CLASSES, UNIQUE_UNIT_CLASSES, CIVS, names, TREE_DATA };
 }
 
 // Extrae { id: "Nombre legible" } de los bloques `id: { name: '...' }` del locale.

@@ -10,6 +10,8 @@
     "techtree:report": "node techtree/map.mjs --write",
     "techtree:ingest": "node techtree/ingest.mjs --write",
     "techtree:dry": "node techtree/ingest.mjs",
+    "techtree:edges": "node techtree/edges.mjs",
+    "techtree:edges:write": "node techtree/edges.mjs --write",
     "data:costs": "node scripts/build-item-costs.mjs",
     "data:castleuus": "node scripts/build-castle-uus.mjs",
     "data:civmods": "node scripts/build-civ-mods.mjs",

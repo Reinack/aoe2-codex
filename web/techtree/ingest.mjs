@@ -44,9 +44,22 @@ function buildProps({ node, stats, name }) {
     if (stats.los != null) p.los = stats.los;
     if (stats.train != null) p.train_time = stats.train;
   }
+  // Edificios: stats/costo viven INLINE en el nodo (node.stats / node.build_cost),
+  // no en unitStats/train_cost. Los mapeamos con el mismo esquema que las unidades.
+  if (node.stats) {
+    const bs = node.stats;
+    if (bs.hp != null) p.hp = bs.hp;
+    if (Array.isArray(bs.armor)) { p.armor_melee = bs.armor[0]; p.armor_pierce = bs.armor[1]; }
+    if (bs.attack != null) p.attack = bs.attack;
+    if (bs.range != null) p.range = bs.range;
+    if (bs.los != null) p.los = bs.los;
+  }
+
   flattenCost("cost", node.train_cost, p);
+  flattenCost("cost", node.build_cost, p);   // edificios
   flattenCost("research", node.research_cost, p);
   if (node.research_time != null) p.research_time = node.research_time;
+  if (node.build_time != null) p.build_time = node.build_time;
 
   // Override de patch-177723: gana el vault (post-parche).
   const ov = OVERRIDES[node.id];
