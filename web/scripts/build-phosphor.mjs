@@ -22,6 +22,13 @@ function cleanUU(s) {
     .trim();
 }
 
+// Resuelve un nombre de civ que puede venir como wikilink "[[civs/Armenians]]"
+// o "[[civs/Armenians|Alias]]" (post barrido de wikilinks) o como texto plano.
+function cleanCivName(s) {
+  const m = s.trim().match(/^\[\[civs\/([^\]|]+)(?:\|([^\]]+))?\]\]$/i);
+  return (m ? m[2] || m[1] : s).trim();
+}
+
 const out = {};
 let tier = null;
 
@@ -39,7 +46,7 @@ for (const raw of text.split("\n")) {
   // Entrada S/A como heading: "#### Armenians — Church Rush ⭐⭐ (...)"
   const head = line.match(/^####\s+(.+?)\s*[—-]\s*(.+)$/);
   if (head) {
-    const name = head[1].trim();
+    const name = cleanCivName(head[1]);
     out[name.toLowerCase()] = { tier, uu: cleanUU(head[2]) || null };
     continue;
   }
@@ -47,7 +54,7 @@ for (const raw of text.split("\n")) {
   // Entrada B/C/D como fila de tabla: "| **Tatars** (top B) | Keshik | razón |"
   const row = line.match(/^\|\s*\*\*([^*]+)\*\*\s*(?:\([^)]*\))?\s*\|([^|]*)\|/);
   if (row) {
-    const name = row[1].trim();
+    const name = cleanCivName(row[1]);
     const col2 = row[2].trim();
     // En D tier la 2.ª columna es "Razón", no la UU → no la usamos como UU.
     out[name.toLowerCase()] = { tier, uu: tier === "D" ? null : cleanUU(col2) || null };
