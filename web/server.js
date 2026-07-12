@@ -42,6 +42,30 @@ try {
   console.error("[traits] no se pudo cargar data/civ-traits.json:", e.message);
 }
 
+// "Cómo jugar CONTRA {Civ}" — bullets de counter-play ya invertidos (mecánica
+// propia → consejo para el rival), parseados con scripts/build-counter-play.mjs.
+let COUNTER_PLAY = {};
+try {
+  COUNTER_PLAY = JSON.parse(readFileSync(join(__dirname, "data", "counter-play.json"), "utf8"));
+} catch (e) {
+  console.error("[counter-play] no se pudo cargar data/counter-play.json:", e.message);
+}
+
+// "En Matchups Documentados" — matchups reales/teóricos citados por cada civ,
+// con síntesis táctica propia. Parseado con scripts/build-documented-matchups.mjs.
+// Indexado por civ; se filtra por civ rival en /api/matchup.
+let DOCUMENTED_MATCHUPS = {};
+try {
+  DOCUMENTED_MATCHUPS = JSON.parse(readFileSync(join(__dirname, "data", "documented-matchups.json"), "utf8"));
+} catch (e) {
+  console.error("[documented-matchups] no se pudo cargar data/documented-matchups.json:", e.message);
+}
+
+// Entradas de la civ `ownSlug` que documentan un cruce contra `oppSlug`.
+function documentedMatchupsFor(ownSlug, oppSlug) {
+  return (DOCUMENTED_MATCHUPS[ownSlug] || []).filter((e) => e.opponent === oppSlug);
+}
+
 // Reglas curadas: detectan unidades/techs faltantes en el texto de "Debilidades"
 // y dan (a) la implicancia para la PROPIA civ y (b) cómo el rival la explota.
 // 'demolition ship' se omite a propósito (irrelevante, por pedido del usuario).
@@ -607,8 +631,17 @@ async function matchupLines(civPath) {
   }));
 }
 
-async function matchupCounterEdges(fromIds, toIds) {
+async function matchupCounterEdges(fromIds, toIds, { map } = {}) {
+  // En mapas terrestres se excluyen las líneas navales: contaminan el top con
+  // aristas galley/demo/fire-ship irrelevantes y desplazan counters terrestres.
+  if (!isWaterMap(map)) {
+    fromIds = fromIds.filter((id) => !NAVAL_LINES.has(id));
+    toIds = toIds.filter((id) => !NAVAL_LINES.has(id));
+  }
   if (!fromIds.length || !toIds.length) return [];
+  // Límite alto: el cliente arma el "mejor combo" por cobertura de conjunto sobre
+  // estas aristas, así que necesita el set completo de counters del cruce (la UI
+  // igual recorta la lista visible por su cuenta).
   return run(
     `MATCH (a:Unit)-[r:COUNTERS]->(b:Unit)
      WHERE a.id IN $fromIds AND b.id IN $toIds
@@ -617,7 +650,7 @@ async function matchupCounterEdges(fromIds, toIds) {
             r.weight AS weight, r.strength AS strength,
             r.context AS context, r.notes AS notes
      ORDER BY r.weight DESC, a.label
-     LIMIT 10`,
+     LIMIT 60`,
     { fromIds, toIds },
   );
 }
@@ -818,8 +851,8 @@ app.get("/api/matchup", wrap(async (req, res) => {
   const meLinesB = enrichLines(meLines, slug_me, "propio");
   const vsLinesB = enrichLines(vsLines, slug_vs, "ajeno");
   const [answers, threats, exploits, vsExploits, sharedNotes] = await Promise.all([
-    matchupCounterEdges(meIds, vsIds),
-    matchupCounterEdges(vsIds, meIds),
+    matchupCounterEdges(meIds, vsIds, { map }),
+    matchupCounterEdges(vsIds, meIds, { map }),
     matchupExploits(meLinesB, vsLinesB, { map }),
     matchupExploits(vsLinesB, meLinesB, { map }),
     run(
@@ -849,6 +882,20 @@ app.get("/api/matchup", wrap(async (req, res) => {
   };
   const missing = { me: civMissing(me.slug), vs: civMissing(vs.slug) };
 
+  // Counter-play autoral ("Cómo jugar CONTRA X") de cada lado, para mostrar
+  // "cómo ganarle al rival" (vs) y "cómo te gana el rival a vos" (me) sin
+  // depender solo del plan algorítmico derivado del grafo.
+  const counterPlay = {
+    me: COUNTER_PLAY[me.slug] || [],
+    vs: COUNTER_PLAY[vs.slug] || [],
+  };
+  // Matchups documentados de este cruce específico, desde la perspectiva de
+  // cada civ (cada ficha cita el mismo partido con su propio énfasis táctico).
+  const documentedMatchups = {
+    me: documentedMatchupsFor(me.slug, vs.slug),
+    vs: documentedMatchupsFor(vs.slug, me.slug),
+  };
+
   res.json({
     me,
     vs,
@@ -863,6 +910,8 @@ app.get("/api/matchup", wrap(async (req, res) => {
     phosphorRush,
     traits,
     missing,
+    counterPlay,
+    documentedMatchups,
   });
 }));
 
