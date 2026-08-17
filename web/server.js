@@ -1246,6 +1246,14 @@ app.get("/api/counter-graph", wrap(async (req, res) => {
 
 // --- chat GraphRAG (shell-out al pipeline Python) --------------------------
 const PY = process.env.PYTHON_BIN || "python";
+
+// El pipeline Python escupe tracebacks con rutas del contenedor: se loguean
+// enteros pero al cliente solo le va un mensaje corto (la demo es pública).
+function chatFail(res, detail, hint) {
+  console.error("[chat]", detail);
+  res.status(500).json({ error: hint || "El chat no está disponible en este momento." });
+}
+
 app.post("/api/chat", chatRateLimit, (req, res) => {
   const q = (req.body?.question || "").trim();
   if (!q) return res.status(400).json({ error: "falta 'question'" });
@@ -1256,14 +1264,19 @@ app.post("/api/chat", chatRateLimit, (req, res) => {
   let out = "", err = "";
   py.stdout.on("data", (d) => (out += d));
   py.stderr.on("data", (d) => (err += d));
-  py.on("error", (e) => res.status(500).json({ error: String(e) }));
+  py.on("error", (e) => chatFail(res, e));
   py.on("close", (code) => {
-    if (code !== 0) return res.status(500).json({ error: err || "pipeline falló" });
+    if (code !== 0) {
+      // Causa habitual tras un rebuild del grafo: falta el índice vectorial.
+      const noIndex = /no such vector schema index/i.test(err);
+      return chatFail(res, err || `pipeline salió con código ${code}`,
+        noIndex ? "El índice semántico todavía no está construido." : null);
+    }
     try {
       const line = out.trim().split("\n").pop();   // última línea = JSON
       res.json(JSON.parse(line));
     } catch {
-      res.status(500).json({ error: "respuesta no parseable", raw: out, stderr: err });
+      chatFail(res, `respuesta no parseable: ${out}`);
     }
   });
 });

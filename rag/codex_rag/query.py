@@ -22,7 +22,10 @@ def main(argv: list[str] | None = None) -> None:
 
     ap = argparse.ArgumentParser(prog="codex_rag.query")
     ap.add_argument("question")
-    ap.add_argument("-k", type=int, default=6)
+    # k=8: con embeddings de Gemini el boost léxico deja 2 chunks de la civ en
+    # 0.99, y con k=6 esos desplazaban a la nota de estrategia -> el modelo se
+    # negaba a responder preguntas del tipo "<estrategia> con <civ>".
+    ap.add_argument("-k", type=int, default=8)
     args = ap.parse_args(argv)
 
     res = answer(args.question, k=args.k)
