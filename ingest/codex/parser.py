@@ -161,10 +161,13 @@ def parse_note(abspath: Path, relpath: str) -> ParsedNote:
         m = H1_RE.search(body)
         title = m.group(1).strip() if m else Path(relpath).stem
 
-    raw_tags = meta.get("tags", [])
+    # `tags:` vacío en el frontmatter llega como None (no como lista)
+    raw_tags = meta.get("tags") or []
     if isinstance(raw_tags, str):
         raw_tags = [t.strip() for t in raw_tags.split(",") if t.strip()]
-    tags = [str(t) for t in raw_tags]
+    elif not isinstance(raw_tags, (list, tuple, set)):
+        raw_tags = [raw_tags]
+    tags = [str(t) for t in raw_tags if t is not None]
 
     return ParsedNote(
         relpath=relpath,
