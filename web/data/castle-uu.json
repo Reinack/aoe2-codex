@@ -80,7 +80,7 @@
       "gold": 60,
       "stone": 0
     },
-    "time": 20,
+    "time": 24,
     "imgPath": "img/Unit/389.png",
     "civSlug": "bengalis"
   },
@@ -145,7 +145,7 @@
     "cost": {
       "food": 0,
       "wood": 110,
-      "gold": 70,
+      "gold": 80,
       "stone": 0
     },
     "time": 30,
@@ -162,7 +162,7 @@
     "cost": {
       "food": 0,
       "wood": 110,
-      "gold": 70,
+      "gold": 80,
       "stone": 0
     },
     "time": 26,
@@ -408,6 +408,40 @@
     "civSlug": "chinese"
   },
   {
+    "id": "castle_uu_danes",
+    "name": "Jomsviking",
+    "kind": "unit",
+    "category": "castle",
+    "variant": "unique",
+    "age": "castle",
+    "cost": {
+      "food": 65,
+      "wood": 0,
+      "gold": 15,
+      "stone": 0
+    },
+    "time": 10,
+    "imgPath": "img/Unit/908.png",
+    "civSlug": "danes"
+  },
+  {
+    "id": "castle_uu_danes_elite",
+    "name": "Elite Jomsviking",
+    "kind": "unit",
+    "category": "castle",
+    "variant": "unique",
+    "age": "imperial",
+    "cost": {
+      "food": 65,
+      "wood": 0,
+      "gold": 15,
+      "stone": 0
+    },
+    "time": 10,
+    "imgPath": "img/Unit/909.png",
+    "civSlug": "danes"
+  },
+  {
     "id": "castle_uu_dravidians",
     "name": "Urumi Swordsman",
     "kind": "unit",
@@ -619,7 +653,7 @@
     "variant": "unique",
     "age": "castle",
     "cost": {
-      "food": 60,
+      "food": 70,
       "wood": 0,
       "gold": 30,
       "stone": 0
@@ -636,7 +670,7 @@
     "variant": "unique",
     "age": "imperial",
     "cost": {
-      "food": 60,
+      "food": 70,
       "wood": 0,
       "gold": 30,
       "stone": 0
@@ -896,7 +930,7 @@
       "gold": 45,
       "stone": 0
     },
-    "time": 12,
+    "time": 18,
     "imgPath": "img/Unit/99.png",
     "civSlug": "magyars"
   },
@@ -1202,7 +1236,7 @@
       "gold": 70,
       "stone": 0
     },
-    "time": 25,
+    "time": 28,
     "imgPath": "img/Unit/190.png",
     "civSlug": "portuguese"
   },
@@ -1290,6 +1324,40 @@
     "time": 23,
     "imgPath": "img/Unit/479.png",
     "civSlug": "saracens"
+  },
+  {
+    "id": "castle_uu_saxons",
+    "name": "Hearth Troop",
+    "kind": "unit",
+    "category": "castle",
+    "variant": "unique",
+    "age": "castle",
+    "cost": {
+      "food": 0,
+      "wood": 80,
+      "gold": 35,
+      "stone": 0
+    },
+    "time": 16,
+    "imgPath": "img/Unit/904.png",
+    "civSlug": "saxons"
+  },
+  {
+    "id": "castle_uu_saxons_elite",
+    "name": "Elite Hearth Troop",
+    "kind": "unit",
+    "category": "castle",
+    "variant": "unique",
+    "age": "imperial",
+    "cost": {
+      "food": 0,
+      "wood": 80,
+      "gold": 35,
+      "stone": 0
+    },
+    "time": 14,
+    "imgPath": "img/Unit/905.png",
+    "civSlug": "saxons"
   },
   {
     "id": "castle_uu_shu",
@@ -1401,12 +1469,12 @@
     "variant": "unique",
     "age": "castle",
     "cost": {
-      "food": 70,
+      "food": 75,
       "wood": 0,
       "gold": 60,
       "stone": 0
     },
-    "time": 24,
+    "time": 26,
     "imgPath": "img/Unit/106.png",
     "civSlug": "spanish"
   },
@@ -1418,7 +1486,7 @@
     "variant": "unique",
     "age": "imperial",
     "cost": {
-      "food": 70,
+      "food": 75,
       "wood": 0,
       "gold": 60,
       "stone": 0
@@ -1497,35 +1565,35 @@
   },
   {
     "id": "castle_uu_tupi",
-    "name": "Ibirapema Warrior",
+    "name": "Blackwood Archer",
     "kind": "unit",
     "category": "castle",
     "variant": "unique",
     "age": "castle",
     "cost": {
-      "food": 30,
-      "wood": 0,
-      "gold": 60,
+      "food": 0,
+      "wood": 40,
+      "gold": 45,
       "stone": 0
     },
-    "time": 24,
+    "time": 18,
     "imgPath": "img/Unit/549.png",
     "civSlug": "tupi"
   },
   {
     "id": "castle_uu_tupi_elite",
-    "name": "Elite Ibirapema Warrior",
+    "name": "Elite Blackwood Archer",
     "kind": "unit",
     "category": "castle",
     "variant": "unique",
     "age": "imperial",
     "cost": {
-      "food": 30,
-      "wood": 0,
-      "gold": 60,
+      "food": 0,
+      "wood": 40,
+      "gold": 45,
       "stone": 0
     },
-    "time": 24,
+    "time": 14,
     "imgPath": "img/Unit/550.png",
     "civSlug": "tupi"
   },
@@ -1562,6 +1630,40 @@
     "time": 21,
     "imgPath": "img/Unit/480.png",
     "civSlug": "turks"
+  },
+  {
+    "id": "castle_uu_varangians",
+    "name": "Jarl",
+    "kind": "unit",
+    "category": "castle",
+    "variant": "unique",
+    "age": "castle",
+    "cost": {
+      "food": 75,
+      "wood": 0,
+      "gold": 55,
+      "stone": 0
+    },
+    "time": 23,
+    "imgPath": "img/Unit/906.png",
+    "civSlug": "varangians"
+  },
+  {
+    "id": "castle_uu_varangians_elite",
+    "name": "Elite Jarl",
+    "kind": "unit",
+    "category": "castle",
+    "variant": "unique",
+    "age": "imperial",
+    "cost": {
+      "food": 75,
+      "wood": 0,
+      "gold": 55,
+      "stone": 0
+    },
+    "time": 23,
+    "imgPath": "img/Unit/907.png",
+    "civSlug": "varangians"
   },
   {
     "id": "castle_uu_vietnamese",
@@ -1644,7 +1746,7 @@
       "gold": 80,
       "stone": 0
     },
-    "time": 15,
+    "time": 18,
     "imgPath": "img/Unit/432.png",
     "civSlug": "wei"
   },
@@ -1661,7 +1763,7 @@
       "gold": 80,
       "stone": 0
     },
-    "time": 15,
+    "time": 18,
     "imgPath": "img/Unit/526.png",
     "civSlug": "wei"
   }

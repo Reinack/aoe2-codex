@@ -13,10 +13,15 @@ const UNIT_STATS = {
 
   // ── CUARTEL ───────────────────────────────────────────────────────────────
   'militia':       { hp: 40,  attack: 4,   armor: [0, 1],   range: 0,  speed: 0.90, rof: 2.0,  los: 4,  train: 21 },
-  'manatarms':     { hp: 45,  attack: 6,   armor: [0, 1],   range: 0,  speed: 0.96, rof: 2.0,  los: 4,  train: 21 },
-  'longsword':     { hp: 60,  attack: 9,   armor: [1, 1],   range: 0,  speed: 0.96, rof: 2.0,  los: 4,  train: 21 },
-  'twohanded':     { hp: 65,  attack: 12,  armor: [1, 1],   range: 0,  speed: 0.96, rof: 2.0,  los: 5,  train: 21 },
-  'champion':      { hp: 70,  attack: 14,  armor: [1, 1],   range: 0,  speed: 0.96, rof: 2.0,  los: 5,  train: 21 },
+  // Bonus vs. infantería de choque: +3/+8/+9/+9 (parche 185872)
+  'manatarms':     { hp: 45,  attack: 6,   armor: [0, 1],   range: 0,  speed: 0.96, rof: 2.0,  los: 4,  train: 21,
+    bonuses: [{ vs: 'shock_infantry', value: 3 }] },
+  'longsword':     { hp: 60,  attack: 9,   armor: [1, 1],   range: 0,  speed: 0.96, rof: 2.0,  los: 4,  train: 21,
+    bonuses: [{ vs: 'shock_infantry', value: 8 }] },
+  'twohanded':     { hp: 65,  attack: 12,  armor: [1, 1],   range: 0,  speed: 0.96, rof: 2.0,  los: 5,  train: 21,
+    bonuses: [{ vs: 'shock_infantry', value: 9 }] },
+  'champion':      { hp: 70,  attack: 14,  armor: [1, 1],   range: 0,  speed: 0.96, rof: 2.0,  los: 5,  train: 21,
+    bonuses: [{ vs: 'shock_infantry', value: 9 }] },
   'spearman':      { hp: 45,  attack: 3,   armor: [0, 0],   range: 0,  speed: 1.00, rof: 3.0,  los: 4,  train: 22 },
   'pikeman':       { hp: 55,  attack: 4,   armor: [0, 0],   range: 0,  speed: 1.00, rof: 3.0,  los: 4,  train: 22 },
   'halberdier':    { hp: 60,  attack: 6,   armor: [0, 0],   range: 0,  speed: 1.00, rof: 3.0,  los: 4,  train: 22 },
@@ -40,15 +45,15 @@ const UNIT_STATS = {
   'paladin':       { hp: 160, attack: 14,  armor: [2, 3],   range: 0,  speed: 1.35, rof: 1.9,  los: 5,  train: 30 },
 
   // ── TALLER DE ASEDIO ──────────────────────────────────────────────────────
-  'batteringram':  { hp: 175, attack: 2,   armor: [-3, 180], range: 0, speed: 0.60, rof: 5.0,  los: 3,  train: 36, blast_radius: 0,
+  'batteringram':  { hp: 175, attack: 2,   armor: [-3, 180], range: 0, speed: 0.60, rof: 5.0,  los: 5,  train: 36, blast_radius: 0,
     bonuses: [{ vs: 'all_buildings', value: 150 }, { vs: 'siege_weapons', value: 40 }] },
-  'cappedram':     { hp: 200, attack: 3,   armor: [-2, 190], range: 0, speed: 0.60, rof: 5.0,  los: 3,  train: 36, blast_radius: 1.5,
+  'cappedram':     { hp: 200, attack: 3,   armor: [-2, 190], range: 0, speed: 0.60, rof: 5.0,  los: 5,  train: 36, blast_radius: 1.5,
     bonuses: [{ vs: 'all_buildings', value: 160 }, { vs: 'siege_weapons', value: 50 }] },
-  'siegeram':      { hp: 270, attack: 4,   armor: [-1, 195], range: 0, speed: 0.60, rof: 5.0,  los: 3,  train: 36, blast_radius: 2,
+  'siegeram':      { hp: 270, attack: 4,   armor: [-1, 195], range: 0, speed: 0.60, rof: 5.0,  los: 5,  train: 36, blast_radius: 2,
     bonuses: [{ vs: 'all_buildings', value: 200 }, { vs: 'siege_weapons', value: 65 }] },
   'mangonel':      { hp: 50,  attack: 40,  armor: [0, 6],   range: 7,  speed: 0.60, rof: 6.0,  los: 9,  train: 46, blast_radius: 1,
     bonuses: [{ vs: 'heavy_siege', value: 40 }, { vs: 'all_buildings', value: 35 }, { vs: 'siege_weapons', value: 12 }, { vs: 'monks', value: -1 }] },
-  'onager':        { hp: 60,  attack: 50,  armor: [0, 7],   range: 8,  speed: 0.60, rof: 6.0,  los: 10, train: 46, blast_radius: 1.25,
+  'onager':        { hp: 60,  attack: 55,  armor: [0, 8],   range: 8,  speed: 0.60, rof: 6.0,  los: 10, train: 46, blast_radius: 1.25,
     bonuses: [{ vs: 'heavy_siege', value: 50 }, { vs: 'all_buildings', value: 45 }, { vs: 'siege_weapons', value: 12 }] },
   'siegeonager':   { hp: 70,  attack: 75,  armor: [0, 8],   range: 8,  speed: 0.60, rof: 6.0,  los: 10, train: 46, blast_radius: 1.5,
     bonuses: [{ vs: 'heavy_siege', value: 50 }, { vs: 'all_buildings', value: 60 }, { vs: 'siege_weapons', value: 12 }] },
@@ -58,7 +63,7 @@ const UNIT_STATS = {
     bonuses: [{ vs: 'elephant_units', value: 10 }, { vs: 'all_buildings', value: 6 }, { vs: 'rams', value: 2 }, { vs: 'infantry', value: 2 }] },
   'bombcannon':    { hp: 80,  attack: 40,  armor: [2, 5],   range: 12, speed: 0.70, rof: 6.5,  los: 14, train: 56, blast_radius: 0.5,
     bonuses: [{ vs: 'all_buildings', value: 200 }, { vs: 'ships', value: 40 }, { vs: 'fishing_ships', value: 40 }, { vs: 'stone_defense', value: 40 }, { vs: 'heavy_siege', value: 40 }, { vs: 'siege_weapons', value: 20 }] },
-  'siegetower':    { hp: 175, attack: 0,   armor: [-2, 100], range: 0, speed: 0.96, rof: 0,    los: 8,  train: 36 },
+  'siegetower':    { hp: 175, attack: 0,   armor: [-2, 100], range: 0, speed: 0.96, rof: 0,    los: 6,  train: 36 },
 
   // ── MUELLE ────────────────────────────────────────────────────────────────
   'fishingship':   { hp: 50,  attack: 0,   armor: [1, 1],   range: 0,  speed: 1.26, rof: 0,    los: 5,  train: 40 },
@@ -79,10 +84,10 @@ const UNIT_STATS = {
   'demoship':      { hp: 50,  attack: 95,  armor: [1, 0],   range: 0,  speed: 1.60, rof: 0,    los: 6,  train: 31 },
   'heavydemo':     { hp: 70,  attack: 120, armor: [2, 5],   range: 0,  speed: 1.60, rof: 0,    los: 6,  train: 31 },
   // Hulk
-  'hulk':          { hp: 90,  attack: 4,   armor: [4, 1],   range: 1,  speed: 1.42, rof: 1.75, los: 5,  train: 42,
+  'hulk':          { hp: 85,  attack: 4,   armor: [3, 1],   range: 1,  speed: 1.42, rof: 1.75, los: 5,  train: 42,
     bonuses: [{ vs: 'fire_ships', value: 1 }, { vs: 'standard_buildings', value: -3 }] },
-  'war_hulk':      { hp: 115, attack: 4,   armor: [5, 1],   range: 1,  speed: 1.43, rof: 1.75, los: 5,  train: 60 },
-  'carrack':       { hp: 180, attack: 8,   armor: [6, 4],   range: 2,  speed: 1.43, rof: 1.75, los: 7,  train: 60 },
+  'war_hulk':      { hp: 110, attack: 4,   armor: [4, 1],   range: 1,  speed: 1.43, rof: 1.75, los: 5,  train: 60 },
+  'carrack':       { hp: 180, attack: 8,   armor: [5, 4],   range: 2,  speed: 1.43, rof: 1.75, los: 7,  train: 60 },
   // Galeón de Artillería
   'cannongalleon': { hp: 120, attack: 50,  armor: [0, 6],   range: 13, speed: 1.10, rof: 10,   los: 15, train: 46 },
   'elitecannon':   { hp: 150, attack: 60,  armor: [0, 8],   range: 15, speed: 1.10, rof: 10,   los: 17, train: 70 },
@@ -103,7 +108,7 @@ const UNIT_STATS = {
 const REGIONAL_UNIT_STATS = {
 
   // ── CUARTEL — Línea Águila (civs mesoamericanas) ──────────────────────────
-  'eaglescout':    { hp: 50,  attack: 4,   armor: [0, 2],   range: 0,  speed: 1.10, rof: 2.0,  los: 6,  train: 50 },
+  'eaglescout':    { hp: 50,  attack: 4,   armor: [0, 2],   range: 0,  speed: 1.10, rof: 2.0,  los: 6,  train: 46 },
   'eaglewarrior':  { hp: 55,  attack: 7,   armor: [0, 3],   range: 0,  speed: 1.15, rof: 2.0,  los: 6,  train: 35 },
   'eliteeagle':    { hp: 60,  attack: 9,   armor: [0, 4],   range: 0,  speed: 1.30, rof: 2.0,  los: 6,  train: 20 },
 
@@ -146,8 +151,6 @@ const REGIONAL_UNIT_STATS = {
   // ── ESTABLO — Húsar Alado (Polacos / Lituanos) ───────────────────────────
   'winged_hussar': { hp: 80,  attack: 9,   armor: [1, 2],   range: 0,  speed: 1.50, rof: 1.9,  los: 10, train: 30 },
 
-  // ── ESTABLO — Guerrero Xolotl (civs americanas) ───────────────────────────
-  'xolotl_warrior': { hp: 100, attack: 10, armor: [2, 2],   range: 0,  speed: 1.35, rof: 1.8,  los: 4,  train: 30 },
 
   // ── ESTABLO — Caballería Hei Guang (civs Tres Reinos) ────────────────────
   'hei_guang':       { hp: 60,  attack: 11, armor: [4, 3],   range: 0,  speed: 1.35, rof: 1.8,  los: 4,  train: 28 },
@@ -158,16 +161,33 @@ const REGIONAL_UNIT_STATS = {
   'heavy_rocket_cart': { hp:  65, attack:  5, armor: [0, 8],   range: 8,  speed: 0.60, rof: 5.35, los: 10, train: 40 },
 
   // ── ASEDIO — Elefante de Asedio (civs indias) ─────────────────────────────
-  'armored_elephant': { hp: 180, attack: 4,  armor: [-2, 140], range: 0,  speed: 0.60, rof: 3.0,  los: 4,  train: 36, blast_radius: 0 },
-  'siege_elephant':   { hp: 220, attack: 4,  armor: [-2, 150], range: 0,  speed: 0.60, rof: 3.0,  los: 4,  train: 36, blast_radius: 1.5,
+  'armored_elephant': { hp: 180, attack: 4,  armor: [-2, 140], range: 0,  speed: 0.60, rof: 3.0,  los: 6,  train: 36, blast_radius: 0 },
+  'siege_elephant':   { hp: 220, attack: 4,  armor: [-2, 150], range: 0,  speed: 0.60, rof: 3.0,  los: 6,  train: 36, blast_radius: 1.5,
     bonuses: [{ vs: 'all_buildings', value: 105 }, { vs: 'siege_weapons', value: 35 }] },
 
   // ── ASEDIO — Lanzapiedras de Tracción (civs Tres Reinos) ─────────────────
   'traction_treb':    { hp: 115, attack: 50,  armor: [1, 8],  range: 14, speed: 0.57, rof: 11,   los: 18, train: 70 },
 
+  // ── GALERÍA — Ballestero Montado (reemplaza al Arquero a Caballo, parche 185872)
+  'mounted_crossbow':       { hp: 45,  attack: 7,  armor: [2, 0],  range: 4,  speed: 1.25, rof: 2.5,  los: 6,  train: 40,
+    bonuses: [{ vs: 'spearmen', value: 1 }] },
+  'heavy_mounted_crossbow': { hp: 55,  attack: 8,  armor: [2, 0],  range: 4,  speed: 1.25, rof: 2.5,  los: 6,  train: 30,
+    bonuses: [{ vs: 'spearmen', value: 1 }] },
+
+  // ── CUARTEL — Guardia Varega (infantería de choque, parche 185872) ────────
+  'varangian_guard':        { hp: 70,  attack: 13, armor: [2, 1],  range: 0,  speed: 1.05, rof: 2.0,  los: 5,  train: 30 },
+  'elite_varangian_guard':  { hp: 80,  attack: 17, armor: [2, 2],  range: 0,  speed: 1.05, rof: 2.0,  los: 6,  train: 30 },
+
+  // ── MUELLE — Drakkar (antes UU vikinga Longboat; regional desde 185872) ───
+  'longship':       { hp: 125, attack: 5,  armor: [0, 3],  range: 6,  speed: 1.46, rof: 3.0,  los: 8,  train: 25,
+    bonuses: [{ vs: 'rams', value: 2 }, { vs: 'long_range_warship', value: 1 }] },
+  'elite_longship': { hp: 130, attack: 7,  armor: [1, 6],  range: 7,  speed: 1.46, rof: 3.0,  los: 9,  train: 25,
+    bonuses: [{ vs: 'rams', value: 2 }, { vs: 'long_range_warship', value: 1 }] },
+
   // ── MUELLE — Navíos Regionales ────────────────────────────────────────────
   'dromon':        { hp: 125, attack: 50,  armor: [1, 6],   range: 12, speed: 1.20, rof: 8.0,  los: 12, train: 60 },
-  'lou_chuan':     { hp: 175, attack: 25,  armor: [0,  9],  range: 13, speed: 1.15, rof: 5.5,  los: 15, train: 60 },
+  'lou_chuan':     { hp: 175, attack: 25,  armor: [0,  9],  range: 13, speed: 1.15, rof: 5.5,  los: 15, train: 60,
+    bonuses: [{ vs: 'all_buildings', value: 180 }, { vs: 'siege_weapons', value: 10 }] },  // +230 → +180 vs. edificios (parche 185872)
   'catapult_gall': { hp: 150, attack: 50,  armor: [0, 8],   range: 11, speed: 1.10, rof: 8.0,  los: 13, train: 80 },
 };
 
@@ -180,7 +200,7 @@ const UNIQUE_UNIT_STATS = {
   // Cuartel exclusivos
   'huskarl_b':     { hp: 60,  attack: 10,  armor: [0, 6],   range: 0,  speed: 1.05, rof: 2.0,  los: 3,  train: 16 }, // Godos (Cuartel)
   'condottiero':   { hp: 80,  attack: 10,  armor: [1, 0],   range: 0,  speed: 1.20, rof: 1.9,  los: 6,  train: 18 }, // Italianos / aliados
-  'flemish_militia':{ hp: 40,  attack: 5,   armor: [1, 1],   range: 0,  speed: 0.94, rof: 2.0,  los: 7,  train: 14, // Borgoñones
+  'flemish_militia':{ hp: 40,  attack: 5,   armor: [1, 1],   range: 0,  speed: 0.94, rof: 2.0,  los: 7,  train: 16, // Borgoñones
     bonuses: [{ vs: 'cavalry', value: 6 }, { vs: 'elephants', value: 6 }, { vs: 'camel_units', value: 4 }, { vs: 'ships', value: 4 }, { vs: 'fishing_ships', value: 4 }, { vs: 'shock_infantry', value: 2 }] },
   'legionary':     { hp: 75,  attack: 12,  armor: [2, 2],   range: 0,  speed: 0.90, rof: 2.0,  los: 5,  train: 16 }, // Romanos
   'jian_swordsman':{ hp: 70,  attack: 8,   armor: [2, 5],   range: 0,  speed: 1.00, rof: 2.0,  los: 4,  train: 35 }, // Wu (Shielded form)
@@ -201,11 +221,10 @@ const UNIQUE_UNIT_STATS = {
   'houfnice':      { hp: 90,  attack: 50,  armor: [2, 5],   range: 12, speed: 0.70, rof: 6.5,  los: 14, train: 56 }, // Bohemios
   'flaming_camel': { hp: 55,  attack: 20,  armor: [0, 0],   range: 0,  speed: 1.45, rof: 0,    los: 4,  train: 25 }, // Tártaros
   'mounted_treb':  { hp: 150, attack: 200, armor: [2, 8],   range: 16, speed: 1.10, rof: 10,   los: 19, train: 50 }, // Khitanos
-  'war_chariot_s': { hp: 65,  attack: 8,   armor: [0, 5],   range: 6,  speed: 0.90, rof: 6.5,  los: 8,  train: 28 }, // Shu
+  'war_chariot_s': { hp: 65,  attack: 8,   armor: [0, 5],   range: 6,  speed: 0.90, rof: 6.5,  los: 8,  train: 32 }, // Shu
 
   // Muelle exclusivos
-  'turtle_ship':   { hp: 200, attack: 50,  armor: [6, 5],   range: 6,  speed: 1.05, rof: 6.0,  los: 8,  train: 50 }, // Coreanos
-  'longboat':      { hp: 125, attack: 5,   armor: [0, 3],   range: 6,  speed: 1.54, rof: 3.0,  los: 8,  train: 36 }, // Vikingos
+  'turtle_ship':   { hp: 260, attack: 50,  armor: [6, 5],   range: 6,  speed: 1.05, rof: 6.0,  los: 8,  train: 50 }, // Coreanos
   'caravel_d':     { hp: 130, attack: 6,   armor: [0, 8],   range: 6,  speed: 1.43, rof: 3.0,  los: 9,  train: 36 }, // Portugueses
   'thirisadai':    { hp: 250, attack: 9,   armor: [2, 10],  range: 7,  speed: 1.30, rof: 3.45, los: 11, train: 60 }, // Dravídicos
   'dragon_ship':   { hp: 150, attack: 4,   armor: [3, 8],   range: 3,  speed: 1.35, rof: 0.25, los: 6,  train: 60 }, // Chinos
@@ -224,8 +243,10 @@ const UNIQUE_UNIT_STATS = {
   'Longbowman Elite':        { hp: 40,  attack: 7,  armor: [0, 1],  range: 8,  speed: 0.96, rof: 2.0,  los: 10, train: 13 },
 
   // Bizantinos
-  'Catafracto':              { hp: 110, attack: 9,  armor: [2, 1],  range: 0,  speed: 1.35, rof: 1.8,  los: 4,  train: 20 },
-  'Catafracto Elite':        { hp: 150, attack: 12, armor: [2, 1],  range: 0,  speed: 1.35, rof: 1.7,  los: 5,  train: 20 },
+  'Catafracto':              { hp: 110, attack: 9,  armor: [2, 1],  range: 0,  speed: 1.35, rof: 1.8,  los: 4,  train: 20,
+    bonuses: [{ vs: 'infantry', value: 13 }] },  // 9 → 13 (parche 185872)
+  'Catafracto Elite':        { hp: 150, attack: 12, armor: [2, 1],  range: 0,  speed: 1.35, rof: 1.7,  los: 5,  train: 20,
+    bonuses: [{ vs: 'infantry', value: 18 }] },  // 12 → 18 (parche 185872)
 
   // Aztecas
   'Guerrero Jaguar':         { hp: 65,  attack: 15, armor: [1, 2],  range: 0,  speed: 1.00, rof: 2.0,  los: 3,  train: 20 },
@@ -237,8 +258,8 @@ const UNIQUE_UNIT_STATS = {
   'Sacerdotes guerreros':        { hp: 80, attack: 11, armor: [1, 1], range: 0, speed: 0.85, rof: 2.0, los: 3, train: 30 },
 
   // Francos
-  'Hacha Arrojadiza':        { hp: 60,  attack: 7,  armor: [0, 0],  range: 3,  speed: 1.00, rof: 2.0,  los: 5,  train: 13 },
-  'Hacha Arrojadiza Elite':  { hp: 70,  attack: 8,  armor: [1, 0],  range: 4,  speed: 1.00, rof: 2.0,  los: 6,  train: 13 },
+  'Hacha Arrojadiza':        { hp: 60,  attack: 7,  armor: [0, 0],  range: 5,  speed: 1.00, rof: 2.0,  los: 5,  train: 13 },
+  'Hacha Arrojadiza Elite':  { hp: 70,  attack: 8,  armor: [1, 0],  range: 6,  speed: 1.00, rof: 2.0,  los: 6,  train: 13 },
 
   // Godos
   'Huskarl':                 { hp: 60,  attack: 10, armor: [0, 6],  range: 0,  speed: 1.05, rof: 2.0,  los: 3,  train: 13 },
@@ -257,12 +278,12 @@ const UNIQUE_UNIT_STATS = {
   'Tarkán Elite':            { hp: 150, attack: 11, armor: [1, 4],  range: 0,  speed: 1.40, rof: 2.1,  los: 7,  train: 14 },
 
   // Españoles
-  'Conquistador':            { hp: 55,  attack: 16, armor: [2, 2],  range: 6,  speed: 1.30, rof: 2.9,  los: 9,  train: 24 },
+  'Conquistador':            { hp: 55,  attack: 16, armor: [2, 2],  range: 6,  speed: 1.30, rof: 2.9,  los: 9,  train: 26 },
   'Conquistador Elite':      { hp: 70,  attack: 18, armor: [2, 2],  range: 6,  speed: 1.30, rof: 2.9,  los: 9,  train: 24 },
 
   // Teutones
   'Caballero Teutónico':     { hp: 90,  attack: 14, armor: [7, 2],  range: 0,  speed: 0.80, rof: 2.0,  los: 3,  train: 12 },
-  'Cab. Teutónico Elite':    { hp: 110, attack: 17, armor: [10, 2], range: 0,  speed: 0.80, rof: 2.0,  los: 5,  train: 12 },
+  'Cab. Teutónico Elite':    { hp: 110, attack: 17, armor: [8, 2], range: 0,  speed: 0.80, rof: 2.0,  los: 5,  train: 12 },
 
   // Eslavos
   'Boyar':                   { hp: 100, attack: 12, armor: [4, 2],  range: 0,  speed: 1.30, rof: 1.9,  los: 5,  train: 15 },
@@ -293,11 +314,11 @@ const UNIQUE_UNIT_STATS = {
   'Elefante de Guerra Elite':{ hp: 600, attack: 20, armor: [1, 3],  range: 0,  speed: 0.80, rof: 2.0,  los: 5,  train: 25 },
 
   // Portugueses
-  'Órgano de Cañones':       { hp: 60,  attack: 16, armor: [2, 4],  range: 7,  speed: 0.85, rof: 3.45, los: 9,  train: 21 },
+  'Órgano de Cañones':       { hp: 60,  attack: 16, armor: [2, 4],  range: 7,  speed: 0.85, rof: 3.45, los: 9,  train: 28 },
   'Órgano de Cañones Elite': { hp: 70,  attack: 20, armor: [2, 6],  range: 7,  speed: 0.85, rof: 3.45, los: 9,  train: 21 },
 
   // Bengalíes
-  'Ratha':                   { hp: 105, attack: 10, armor: [3, 1],  range: 0,  speed: 1.30, rof: 2.0,  los: 6,  train: 18 },
+  'Ratha':                   { hp: 105, attack: 10, armor: [3, 1],  range: 0,  speed: 1.30, rof: 2.0,  los: 6,  train: 24 },
   'Ratha Elite':             { hp: 115, attack: 12, armor: [3, 3],  range: 0,  speed: 1.30, rof: 2.0,  los: 6,  train: 18 },
 
   // Bereberes
@@ -406,7 +427,7 @@ const UNIQUE_UNIT_STATS = {
   // Muisca
   'Guerrero Guecha':         { hp: 45,  attack: 4,  armor: [0, 2],  range: 4,  speed: 0.96, rof: 2.0,  los: 6,  train: 25 },
   'Guerrero Guecha Elite':   { hp: 55,  attack: 5,  armor: [0, 2],  range: 5,  speed: 0.96, rof: 2.0,  los: 7,  train: 25 },
-  'Guardia del Templo':      { hp: 100, attack: 12, armor: [1, 1],  range: 0,  speed: 0.95, rof: 2.0,  los: 5,  train: 28 },
+  'Guardia del Templo':      { hp: 100, attack: 11, armor: [1, 1],  range: 0,  speed: 0.95, rof: 2.0,  los: 5,  train: 28 },
   'Guardia del Templo Elite':{ hp: 115, attack: 14, armor: [2, 2],  range: 0,  speed: 0.95, rof: 2.0,  los: 6,  train: 24 },
 
   // Tupí
@@ -446,6 +467,23 @@ const UNIQUE_UNIT_STATS = {
     bonuses: [{ vs: 'cavalry', value: 8 }, { vs: 'elephants', value: 8 }, { vs: 'camel_units', value: 6 }, { vs: 'shock_infantry', value: 4 }, { vs: 'standard_buildings', value: 2 }] },
   'Guardián de Pluma Blanca Elite':  { hp: 100, attack: 8,  armor: [0, 3],  range: 0,  speed: 0.95, rof: 2.0,  los: 5,  train: 11,
     bonuses: [{ vs: 'cavalry', value: 8 }, { vs: 'elephants', value: 8 }, { vs: 'camel_units', value: 7 }, { vs: 'shock_infantry', value: 4 }, { vs: 'standard_buildings', value: 2 }] },
+
+  // ── The Viking Sagas (parche 185872) ──────────────────────────────────────
+  // Daneses — lanza una antorcha contra edificios y barcos
+  'Vikingo de Jomsborg':        { hp: 70,  attack: 8,  armor: [2, 2],  range: 0,  speed: 0.96, rof: 1.8,  los: 5,  train: 10,
+    bonuses: [{ vs: 'cavalry', value: 10 }, { vs: 'camel_units', value: 8 }, { vs: 'elephants', value: 10 }, { vs: 'standard_buildings', value: 6 }, { vs: 'shock_infantry', value: 2 }] },
+  'Vikingo de Jomsborg Elite':  { hp: 75,  attack: 9,  armor: [2, 2],  range: 0,  speed: 0.96, rof: 1.8,  los: 5,  train: 10,
+    bonuses: [{ vs: 'cavalry', value: 15 }, { vs: 'camel_units', value: 12 }, { vs: 'elephants', value: 15 }, { vs: 'standard_buildings', value: 9 }, { vs: 'shock_infantry', value: 2 }] },
+  // Sajones — jabalina cargada (6/7 perforante, rango 6, recarga 15 s) antes del cuerpo a cuerpo
+  'Tropas del Hogar':           { hp: 75,  attack: 9,  armor: [1, 4],  range: 0,  speed: 0.90, rof: 2.0,  los: 7,  train: 16,
+    bonuses: [{ vs: 'shock_infantry', value: 1 }, { vs: 'standard_buildings', value: 1 }] },
+  'Tropas del Hogar Elite':     { hp: 85,  attack: 12, armor: [1, 4],  range: 0,  speed: 0.90, rof: 2.0,  los: 8,  train: 14,
+    bonuses: [{ vs: 'shock_infantry', value: 1 }, { vs: 'standard_buildings', value: 2 }] },
+  // Varegos — caballería con hachas arrojadizas (ataque cuerpo a cuerpo a distancia)
+  'Jarl':                       { hp: 65,  attack: 9,  armor: [2, 1],  range: 4,  speed: 1.35, rof: 2.0,  los: 7,  train: 23,
+    bonuses: [{ vs: 'infantry', value: 3 }] },
+  'Jarl Elite':                 { hp: 75,  attack: 10, armor: [2, 1],  range: 5,  speed: 1.35, rof: 2.0,  los: 7,  train: 23,
+    bonuses: [{ vs: 'infantry', value: 4 }] },
 };
 
 export { UNIT_STATS, REGIONAL_UNIT_STATS, UNIQUE_UNIT_STATS };

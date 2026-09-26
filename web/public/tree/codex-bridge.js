@@ -80,7 +80,7 @@
       html += `<div class="cx-excerpt">${escapeHtml(d.note.excerpt)}</div>`;
       html += `<a class="cx-link" href="/?path=${encodeURIComponent(d.note.path)}" target="_blank">Abrir nota en el explorador ↗</a>`;
     }
-    html += `<button class="cx-ask" data-q="${escapeAttr("Háblame de " + (d.title || "") + " en AoE2: para qué sirve y cómo se usa.")}">🤖 Preguntar al Codex (GraphRAG)</button>`;
+    html += `<button class="cx-ask aoe-btn" data-q="${escapeAttr("Háblame de " + (d.title || "") + " en AoE2: para qué sirve y cómo se usa.")}">🤖 Preguntar al Codex (GraphRAG)</button>`;
     html += `<div class="cx-answer" style="display:none"></div>`;
     el.innerHTML = html;
 

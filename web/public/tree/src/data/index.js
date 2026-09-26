@@ -1,13 +1,11 @@
 // ── DATA INDEX ──────────────────────────────────────────────
 // Consolidated exports for all data
 
-import { AGES, AGE_COLORS } from './ages.js';
 import { NODES } from './nodes.js';
-const BUILDINGS = NODES.filter(n => n.type === 'building');
-const DEFENSIVES = NODES.filter(n => n.type === 'defencive');
 import { UNIT_STATS, REGIONAL_UNIT_STATS, UNIQUE_UNIT_STATS } from './units.js';
-import { IMG_MAP } from './img_map.js';
-import { UNIT_CLASSES, UNIQUE_UNIT_CLASSES, TECHS } from './tech_data.js';
+import { UNIT_CLASSES, UNIQUE_UNIT_CLASSES, UNIQUE_UNIT_EXCLUDES, TECHS } from './tech_data.js';
+import { CIV_TREES } from './civ_trees.js';
+import { UP_NODES } from './upstream_nodes.js';
 
 // ── CIVILIZATIONS INDEX ──────────────────────────────────────────────
 // Re-export all civ definitions from data/civ/
@@ -25,6 +23,7 @@ import BYZANTINES from './civ/byzantines.js';
 import CELTS from './civ/celts.js';
 import CHINESE from './civ/chinese.js';
 import CUMANS from './civ/cumans.js';
+import DANES from './civ/danes.js';
 import DRAVIDIANS from './civ/dravidians.js';
 import ETHIOPIANS from './civ/ethiopians.js';
 import FRANKS from './civ/franks.js';
@@ -53,6 +52,7 @@ import POLES from './civ/poles.js';
 import PORTUGUESE from './civ/portuguese.js';
 import ROMANS from './civ/romans.js';
 import SARACENS from './civ/saracens.js';
+import SAXONS from './civ/saxons.js';
 import SHU from './civ/shu.js';
 import SICILIANS from './civ/sicilians.js';
 import SLAVS from './civ/slavs.js';
@@ -61,6 +61,7 @@ import TATARS from './civ/tatars.js';
 import TEUTONS from './civ/teutons.js';
 import TUPI from './civ/tupi.js';
 import TURKS from './civ/turks.js';
+import VARANGIANS from './civ/varangians.js';
 import VIETNAMESE from './civ/vietnamese.js';
 import VIKINGS from './civ/vikings.js';
 import WEI from './civ/wei.js';
@@ -80,6 +81,7 @@ const CIVS = {
   celts: CELTS,
   chinese: CHINESE,
   cumans: CUMANS,
+  danes: DANES,
   dravidians: DRAVIDIANS,
   ethiopians: ETHIOPIANS,
   franks: FRANKS,
@@ -108,6 +110,7 @@ const CIVS = {
   portuguese: PORTUGUESE,
   romans: ROMANS,
   saracens: SARACENS,
+  saxons: SAXONS,
   shu: SHU,
   sicilians: SICILIANS,
   slavs: SLAVS,
@@ -116,17 +119,24 @@ const CIVS = {
   teutons: TEUTONS,
   tupi: TUPI,
   turks: TURKS,
+  varangians: VARANGIANS,
   vietnamese: VIETNAMESE,
   vikings: VIKINGS,
   wei: WEI,
   wu: WU,
 };
 
+// Icono de cada nodo: sale del árbol del juego (picture_index). Los slots de la
+// civ (UU / tecnologías únicas) se reemplazan al renderizar cada civ.
+const IMG_MAP = {
+  uniqueunit: 'img/Unit/45.png',
+  eliteunique: 'img/Unit/46.png',
+  uniquetech1: 'img/Tech/33.png',
+  uniquetech2: 'img/Tech/107.png',
+};
+Object.entries(UP_NODES).forEach(([id, n]) => { if (n.pic) IMG_MAP[id] = n.pic; });
+
 // Expose globally for app.js (which uses globals without import)
-window.AGES = AGES;
-window.AGE_COLORS = AGE_COLORS;
-window.BUILDINGS = BUILDINGS;
-window.DEFENSIVES = DEFENSIVES;
 window.NODES = NODES;
 window.UNIT_STATS = UNIT_STATS;
 window.REGIONAL_UNIT_STATS = REGIONAL_UNIT_STATS;
@@ -135,7 +145,10 @@ window.IMG_MAP = IMG_MAP;
 window.CIVS = CIVS;
 window.UNIT_CLASSES = UNIT_CLASSES;
 window.UNIQUE_UNIT_CLASSES = UNIQUE_UNIT_CLASSES;
+window.UNIQUE_UNIT_EXCLUDES = UNIQUE_UNIT_EXCLUDES;
 window.TECHS = TECHS;
+window.CIV_TREES = CIV_TREES;
+window.UP_NODES = UP_NODES;
 
 export default CIVS;
-export { AGES, AGE_COLORS, BUILDINGS, DEFENSIVES, NODES, UNIT_STATS, REGIONAL_UNIT_STATS, UNIQUE_UNIT_STATS, IMG_MAP, CIVS };
+export { NODES, UNIT_STATS, REGIONAL_UNIT_STATS, UNIQUE_UNIT_STATS, IMG_MAP, CIVS };

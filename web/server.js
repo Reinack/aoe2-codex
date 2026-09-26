@@ -3,9 +3,10 @@ import express from "express";
 import { spawn } from "node:child_process";
 import { readFileSync, readdirSync } from "node:fs";
 import { dirname, join } from "node:path";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 import { run, driver } from "./db.js";
 import { solve as ecoSolve, catalog as ecoCatalog } from "./lib/eco.mjs";
+import { availableIds } from "./techtree/load.mjs";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const app = express();
@@ -258,18 +259,13 @@ app.get("/api/civs", wrap(async (_req, res) => {
 // Mapa precargado: slug de civ → Set de tree_ids disponibles.
 // Lee los archivos JS del árbol al arrancar — evita depender de las relaciones
 // HAS_UNIT de Neo4j que pueden estar incompletas si ingest.mjs no se corrió.
-const CIV_AVAILABLE = (() => {
-  const civDir = join(__dirname, "public/tree/src/data/civ");
+// Desde el Update 185872 la disponibilidad sale de la grilla del juego (civ_trees.js).
+const CIV_AVAILABLE = await (async () => {
   const map = new Map();
   try {
-    for (const file of readdirSync(civDir).filter((f) => f.endsWith(".js"))) {
-      const slug = file.replace(".js", "");
-      const code = readFileSync(join(civDir, file), "utf8");
-      const m = code.match(/"available"\s*:\s*\[([\s\S]*?)\]/);
-      if (!m) continue;
-      const items = [...m[1].matchAll(/"([^"]+)"/g)].map((x) => x[1]);
-      if (items.length) map.set(slug, new Set(items));
-    }
+    const { CIV_TREES } = await import(
+      pathToFileURL(join(__dirname, "public/tree/src/data/civ_trees.js")).href);
+    for (const [slug, tree] of Object.entries(CIV_TREES)) map.set(slug, availableIds(tree));
   } catch (e) {
     console.error("[CIV_AVAILABLE] Error al cargar datos del árbol:", e.message);
   }

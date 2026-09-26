@@ -8,8 +8,8 @@
         "tradecog"
       ],
       "mod": {
-        "cost_pct": -20,
-        "production_speed_pct": 54
+        "wood_cost_pct": -20,
+        "production_speed_pct": 50
       }
     },
     "conscription": {
@@ -18,14 +18,21 @@
         "infantry",
         "foot_archer",
         "mounted_archer",
-        "cavalry"
+        "cavalry",
+        "handcannon",
+        "petard",
+        "trebuchet",
+        "grenadier",
+        "flaming_camel",
+        "uniqueunit",
+        "eliteunique"
       ],
       "mod": {
         "production_speed_pct": 33
       }
     },
     "berbers_uniquetech1": {
-      "name": "Berber Cavalry",
+      "name": "berbers_uniquetech1",
       "affects": [
         "castle"
       ],
@@ -34,7 +41,7 @@
       }
     },
     "bohemians_uniquetech2": {
-      "name": "Hussite Wagenburg",
+      "name": "bohemians_uniquetech2",
       "affects": [
         "religious"
       ],
@@ -43,7 +50,7 @@
       }
     },
     "cumans_uniquetech1": {
-      "name": "Cuman Horse Archers",
+      "name": "cumans_uniquetech1",
       "affects": [
         "scout",
         "lightcav",
@@ -57,35 +64,60 @@
         "production_speed_pct": 100
       }
     },
-    "franks_uniquetech2": {
-      "name": "Frankish Cavalry",
+    "franks_uniquetech1": {
+      "name": "franks_uniquetech1",
       "affects": [
-        "stable"
+        "mounted_crossbow",
+        "heavy_mounted_crossbow"
+      ],
+      "mod": {
+        "gold_cost_pct": -40
+      }
+    },
+    "franks_uniquetech2": {
+      "name": "franks_uniquetech2",
+      "affects": [
+        "cavalry"
       ],
       "mod": {
         "production_speed_pct": 40
       }
     },
     "goths_uniquetech2": {
-      "name": "Ironsides",
+      "name": "goths_uniquetech2",
       "affects": [
-        "barracks"
+        "militia",
+        "manatarms",
+        "longsword",
+        "twohanded",
+        "champion",
+        "spearman",
+        "pikeman",
+        "halberdier",
+        "huskarl_b"
       ],
       "mod": {
         "production_speed_pct": 100
       }
     },
     "gurjaras_uniquetech1": {
-      "name": "Battle Wagons",
+      "name": "gurjaras_uniquetech1",
       "affects": [
-        "infantry"
+        "infantry",
+        "foot_archer",
+        "cavalry",
+        "mounted_archer",
+        "siege",
+        "elephant_archer",
+        "elite_elephant_archer",
+        "handcannon"
       ],
       "mod": {
         "food_cost_pct": -25
       }
     },
     "italians_uniquetech1": {
-      "name": "Italian Battle Line",
+      "name": "italians_uniquetech1",
       "affects": [
         "trade_units"
       ],
@@ -94,7 +126,7 @@
       }
     },
     "magyars_uniquetech1": {
-      "name": "Magyar Cavalry",
+      "name": "magyars_uniquetech1",
       "affects": [
         "uniqueunit",
         "eliteunique"
@@ -104,7 +136,7 @@
       }
     },
     "malay_uniquetech2": {
-      "name": "Malay War Wagon",
+      "name": "malay_uniquetech2",
       "affects": [
         "militia",
         "manatarms",
@@ -117,16 +149,28 @@
       }
     },
     "mapuche_uniquetech2": {
-      "name": "Mapuche Cavalry",
+      "name": "mapuche_uniquetech2",
       "affects": [
-        "castle"
+        "uniqueunit",
+        "eliteunique",
+        "bolas_rider",
+        "elite_bolas_rider"
       ],
       "mod": {
         "cost_pct": -15
       }
     },
+    "muisca_uniquetech2": {
+      "name": "muisca_uniquetech2",
+      "affects": [
+        "slinger"
+      ],
+      "mod": {
+        "production_speed_pct": 50
+      }
+    },
     "persians_uniquetech1": {
-      "name": "Persian Battle Elephant",
+      "name": "persians_uniquetech1",
       "affects": [
         "archer",
         "crossbow",
@@ -137,7 +181,7 @@
       }
     },
     "poles_uniquetech1": {
-      "name": "Polish Hussars",
+      "name": "poles_uniquetech1",
       "affects": [
         "knight",
         "cavalier",
@@ -147,14 +191,24 @@
         "gold_cost_pct": -60
       }
     },
+    "portuguese_uniquetech1": {
+      "name": "portuguese_uniquetech1",
+      "affects": [
+        "navy"
+      ],
+      "mod": {
+        "production_speed_pct": 33
+      }
+    },
     "romans_uniquetech2": {
-      "name": "Legionary",
+      "name": "romans_uniquetech2",
       "affects": [
         "militia",
         "manatarms",
         "longsword",
         "twohanded",
         "champion",
+        "legionary",
         "knight",
         "cavalier",
         "paladin",
@@ -163,6 +217,15 @@
       ],
       "mod": {
         "production_speed_pct": 50
+      }
+    },
+    "saxons_uniquetech1": {
+      "name": "saxons_uniquetech1",
+      "affects": [
+        "monk"
+      ],
+      "mod": {
+        "production_speed_pct": 33
       }
     }
   },
@@ -183,17 +246,6 @@
       ],
       "mod": {
         "speed_pct": 10
-      }
-    },
-    "drydock": {
-      "name": "Dry Dock",
-      "affects": [
-        "navy",
-        "fishingship",
-        "tradecog"
-      ],
-      "mod": {
-        "speed_pct": 15
       }
     },
     "clinker_construction": {
@@ -242,6 +294,7 @@
       "name": "Fervor",
       "affects": [
         "monk",
+        "missionary",
         "warrior_priest"
       ],
       "mod": {
@@ -264,6 +317,16 @@
       ],
       "mod": {
         "speed_pct": 10
+      }
+    },
+    "caravan": {
+      "name": "Caravan",
+      "affects": [
+        "tradecart",
+        "tradecog"
+      ],
+      "mod": {
+        "speed_pct": 20
       }
     },
     "doublebitaxe_m": {
@@ -330,30 +393,44 @@
       }
     },
     "bohemians_uniquetech1": {
-      "name": "Hussite Wagenburg",
+      "name": "bohemians_uniquetech1",
       "affects": [
         "handcannon",
         "bombcannon",
         "houfnice",
         "cannongalleon",
-        "elitecannon"
+        "elitecannon",
+        "uniqueunit",
+        "eliteunique"
       ],
       "mod": {
-        "speed_pct": 15
+        "speed_pct": 10
       }
     },
     "mongols_uniquetech2": {
-      "name": "Mongol Composite Bow",
+      "name": "mongols_uniquetech2",
       "affects": [
-        "siege"
+        "batteringram",
+        "cappedram",
+        "siegeram",
+        "mangonel",
+        "onager",
+        "siegeonager",
+        "scorpion",
+        "heavyscorpion",
+        "bombcannon",
+        "siegetower"
       ],
       "mod": {
         "speed_pct": 50
       }
     },
     "muisca_uniquetech1": {
-      "name": "Muisca Cavalry",
+      "name": "muisca_uniquetech1",
       "affects": [
+        "archer",
+        "crossbow",
+        "arbalester",
         "champiscout",
         "champirunner",
         "champiwarrior",

@@ -70,7 +70,7 @@ const LINES = {
     "mounted_treb", "rocket_cart", "heavy_rocket_cart", "siege_elephant", "trebuchet"],
   ship: ["galley", "wargalley", "galleon", "firegalley", "fireship", "fastfireship", "hulk",
     "war_hulk", "carrack", "demoraft", "demoship", "heavydemo", "cannongalleon", "elitecannon",
-    "dragon_ship", "dromon", "lou_chuan", "catapult_gall", "turtle_ship", "longboat",
+    "dragon_ship", "dromon", "lou_chuan", "catapult_gall", "turtle_ship", "longship", "elite_longship",
     "caravel_d", "thirisadai", "transportship", "tradecog"],
 };
 const COST_SCOPE_IDS = {
