@@ -924,11 +924,14 @@ app.get("/api/matchup", wrap(async (req, res) => {
 }));
 
 app.get("/api/civ/:slug", wrap(async (req, res) => {
-  const path = `civs/${req.params.slug}.md`;
+  // Case-insensitive ("danes" → civs/Danes.md): el frontend puede pedir por slug
+  // lowercase si su listado cacheado todavía no conoce una civ recién ingestada.
   const [base] = await run(
-    `MATCH (c:Note {path:$path})
-     RETURN c.title AS title, c.aliases AS aliases, c.type AS type`, { path });
-  if (!base) return res.status(404).json({ error: "civ no encontrada", path });
+    `MATCH (c:Note) WHERE toLower(c.path) = toLower($path)
+     RETURN c.path AS path, c.title AS title, c.aliases AS aliases, c.type AS type`,
+    { path: `civs/${req.params.slug}.md` });
+  if (!base) return res.status(404).json({ error: "civ no encontrada", path: `civs/${req.params.slug}.md` });
+  const path = base.path;
 
   const units = await run(
     `MATCH (:Note {path:$path})-[:HAS_UNIQUE_UNIT]->(u)
