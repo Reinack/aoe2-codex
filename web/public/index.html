@@ -1377,8 +1377,10 @@ const QUICK_UNITS = [
   { id:'skirmisher-line', label:'Skirm',     imgKey:'skirmisher',      kind:'generic' },
   { id:'hand-cannoneer',  label:'HC',        imgKey:'handcannon',      kind:'generic' },
   { id:'cavalry-archer',  label:'Cav Arch',  imgKey:'cavarcher',       kind:'generic' },
+  { id:'mounted-crossbowman', label:'Mtd Xbow', imgKey:'heavy_mounted_crossbow', kind:'regional' },
   { id:'elephant-archer', label:'Ele Arch',  imgKey:'elephant_archer', kind:'regional' },
   { id:'militia-line',    label:'Militia',   imgKey:'champion',        kind:'generic' },
+  { id:'varangian-guard', label:'Varangian', imgKey:'elite_varangian_guard', kind:'regional' },
   { id:'spearman-line',   label:'Halbs',     imgKey:'halberdier',      kind:'generic' },
   { id:'eagle-warrior',   label:'Eagle',     imgKey:'eaglewarrior',    kind:'regional' },
   { id:'scout-line',      label:'Scout',     imgKey:'hussar',          kind:'generic' },
@@ -1411,7 +1413,7 @@ const QUICK_UNITS = [
   // Únicas (1 civ)
   { id:'turtle-ship',     label:'Turtle',    imgKey:'turtle_ship',     kind:'unique' },
   { id:'caravel',         label:'Caravel',   imgKey:'caravel_d',       kind:'unique' },
-  { id:'longboat',        label:'Longboat',  imgKey:'longboat',        kind:'unique' },
+  { id:'longship',        label:'Longship',  imgKey:'longship',        kind:'regional' }, // ex Longboat (Update 185872)
   { id:'thirisadai',      label:'Thirisadai',imgKey:'thirisadai',      kind:'unique' },
   { id:'dragon-ship',     label:'Dragon Sh', imgKey:'dragon_ship',     kind:'unique' },
   { id:'liao-dao',        label:'Liao Dao',  imgKey:'liao_dao',        kind:'unique' },
@@ -1430,10 +1432,12 @@ const UNIT_META = {
   'skirmisher-line':  { b:'archery',   keys:['skirmisher','eliteskirm','imp_skirmisher'] },
   'hand-cannoneer':   { b:'archery',   keys:['handcannon'] },
   'cavalry-archer':   { b:'archery',   keys:['cavarcher','hcavarcher'] },
+  'mounted-crossbowman': { b:'archery', keys:['mounted_crossbow','heavy_mounted_crossbow'] },
   'elephant-archer':  { b:'archery',   keys:['elephant_archer','elite_elephant_archer'] },
   'slinger':          { b:'archery',   keys:['slinger'] },
   'xianbei-raider':   { b:'archery',   keys:['xianbei_raider'], uuName:'Xianbei Raider' },
   'militia-line':     { b:'barracks',  keys:['militia','manatarms','longsword','twohanded','champion'] },
+  'varangian-guard':  { b:'barracks',  keys:['varangian_guard','elite_varangian_guard'] },
   'spearman-line':    { b:'barracks',  keys:['spearman','pikeman','halberdier'] },
   'eagle-warrior':    { b:'barracks',  keys:['eaglescout','eaglewarrior','eliteeagle'] },
   'fire-lancer':      { b:'barracks',  keys:['fire_lancer','elite_fire_lancer'] },
@@ -1462,7 +1466,7 @@ const UNIT_META = {
   'catapult-galleon': { b:'dock',      keys:['catapult_gall'] },
   'turtle-ship':      { b:'dock',      keys:['turtle_ship'], uuName:'Turtle Ship' },
   'caravel':          { b:'dock',      keys:['caravel_d'], uuName:'Caravel' },
-  'longboat':         { b:'dock',      keys:['longboat'], uuName:'Longboat' },
+  'longship':         { b:'dock',      keys:['longship','elite_longship'] },
   'thirisadai':       { b:'dock',      keys:['thirisadai'], uuName:'Thirisadai' },
   'dragon-ship':      { b:'dock',      keys:['dragon_ship'], uuName:'Dragon Ship' },
   'liao-dao':         { b:'castle',    keys:[], pic:463, uuName:'Liao Dao' },
@@ -1678,7 +1682,10 @@ async function searchCounterGraph() {
   try {
     const data = await fetch(`/api/counter-graph?unit=${encodeURIComponent(unit)}`).then(r=>r.json());
     if (data.error) {
-      panel.innerHTML = `<p class="cg-ph">⚠️ ${esc(data.error)}</p>`;
+      // Sin tabla de counters todavía (p. ej. regionales del Update 185872 antes de re-ingestar).
+      panel.innerHTML = /no encontrada/i.test(data.error)
+        ? `<p class="cg-ph"><i>Todavía no hay counters documentados para <b>${esc(unit)}</b>. Van a aparecer cuando se actualice el grafo.</i></p>`
+        : `<p class="cg-ph">⚠️ ${esc(data.error)}</p>`;
       return;
     }
     // Con civs elegidas, solo se busca lo construible por alguna de ellas

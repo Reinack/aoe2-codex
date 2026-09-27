@@ -283,18 +283,23 @@ const SCOPE_TO_LINES = {
   "foot_archer":          ["archer-line"],
   "foot_archer_no_skirm": ["archer-line"],
   "light_cavalry":        ["scout-line"],
-  "cavalry_archer":       ["cavalry-archer"],
-  "infantry":             ["militia-line", "eagle-warrior"],
+  "cavalry_archer":       ["cavalry-archer", "mounted-crossbowman"],
+  "infantry":             ["militia-line", "eagle-warrior", "varangian-guard"],
   "skirmisher":           ["skirmisher-line"],
   "elephant":             ["battle-elephant"],
   "monk":                 ["monk"],
   "mangonel":             ["mangonel-line"],
-  "barracks":             ["militia-line", "spearman-line", "eagle-warrior"],
+  "barracks":             ["militia-line", "spearman-line", "eagle-warrior", "varangian-guard"],
   "stable":               ["knight-line", "scout-line", "camel-line", "cavalry-archer"],
-  "archery":              ["archer-line", "skirmisher-line", "cavalry-archer"],
+  "archery":              ["archer-line", "skirmisher-line", "cavalry-archer", "mounted-crossbowman"],
   // scope global: aplica a todas las líneas de combate (Aztecs, Persians TC, etc.)
   "military_unit":        ["knight-line", "archer-line", "militia-line", "skirmisher-line",
-                           "spearman-line", "scout-line", "camel-line", "cavalry-archer", "monk"],
+                           "spearman-line", "scout-line", "camel-line", "cavalry-archer", "monk",
+                           "mounted-crossbowman", "varangian-guard"],
+  // Update 185872 (The Viking Sagas): scopes de Danes / Saxons / Varangians.
+  "varangian_guard":      ["varangian-guard"],
+  "varangian_longship":   ["varangian-guard", "longship"],
+  "longship_catapult_galleon": ["longship", "catapult-galleon"],
   "tc":      ["_eco"], "mill":    ["_eco"], "forager": ["_eco"], "hunter": ["_eco"],
 };
 
@@ -375,6 +380,10 @@ const LINE_MEMBERS = {
   "rocket-cart":     ["rocket_cart", "heavy_rocket_cart"],
   "champi-line":     ["champirunner", "champiscout", "champiwarrior", "elitechampi"],
   "slinger":         ["slinger"],
+  // Regionales del Update 185872 (The Viking Sagas)
+  "mounted-crossbowman": ["mounted_crossbow", "heavy_mounted_crossbow"],
+  "varangian-guard": ["varangian_guard", "elite_varangian_guard"],
+  "longship":        ["longship", "elite_longship"],
 };
 
 // Roles del framework de composicion de 3 unidades (military.md — "Composicion
@@ -429,7 +438,7 @@ function civLineBonuses(civSlug, lineId) {
 const NAVAL_LINES = new Set([
   "galley-line", "fire-ship-line", "demo-ship", "hulk-line", "cannon-galleon",
   "lou-chuan", "dromon", "catapult-galleon", "turtle-ship", "caravel",
-  "longboat", "thirisadai", "dragon-ship",
+  "longboat", "longship", "thirisadai", "dragon-ship",
 ]);
 const WATER_MAP_KW = ["island", "nomad", "migration", "four lakes", "shoreline",
   "eastmus", "socotra", "archipelago", "water", "lake", "coastal", "team islands"];
@@ -469,6 +478,7 @@ const CANONICAL_COMBOS = [
 // ('cavalry archer') se chequean antes que los genéricos ('cavalry', 'archer').
 const CLASS_TO_LINES = [
   // ── Archery — compuestos antes que sus componentes ──────────────────────────
+  ['mounted crossbow',['mounted-crossbowman']], // antes de 'crossbow'/'cavalry archer'
   ['cavalry archer',  ['cavalry-archer']],
   ['elephant archer', ['elephant-archer']],      // antes de 'archer' y 'elephant'
   ['mounted archer',  ['cavalry-archer']],
@@ -485,6 +495,7 @@ const CLASS_TO_LINES = [
   ['pikemen',         ['spearman-line']],
   ['halberdier',      ['spearman-line']],
   ['militia',         ['militia-line']],
+  ['varangian',       ['varangian-guard']],      // antes de 'infantry'
   ['infantry',        ['militia-line']],
   ['fire lancer',     ['fire-lancer']],          // antes de 'fire ship'/'fire galley'
   // ── Cavalry ───────────────────────────────────────────────────────────────
@@ -522,7 +533,8 @@ const CLASS_TO_LINES = [
   ['war hulk',        ['hulk-line']],
   ['hulk',            ['hulk-line']],
   ['galley',          ['galley-line']],
-  ['longboat',        ['longboat']],
+  ['longship',        ['longship']],
+  ['longboat',        ['longship']],             // renombrado a Longship en el Update 185872
   ['caravel',         ['caravel']],
   ['dromon',          ['dromon']],
   ['lou chuan',       ['lou-chuan']],
@@ -912,11 +924,14 @@ app.get("/api/matchup", wrap(async (req, res) => {
 }));
 
 app.get("/api/civ/:slug", wrap(async (req, res) => {
-  const path = `civs/${req.params.slug}.md`;
+  // Case-insensitive ("danes" → civs/Danes.md): el frontend puede pedir por slug
+  // lowercase si su listado cacheado todavía no conoce una civ recién ingestada.
   const [base] = await run(
-    `MATCH (c:Note {path:$path})
-     RETURN c.title AS title, c.aliases AS aliases, c.type AS type`, { path });
-  if (!base) return res.status(404).json({ error: "civ no encontrada", path });
+    `MATCH (c:Note) WHERE toLower(c.path) = toLower($path)
+     RETURN c.path AS path, c.title AS title, c.aliases AS aliases, c.type AS type`,
+    { path: `civs/${req.params.slug}.md` });
+  if (!base) return res.status(404).json({ error: "civ no encontrada", path: `civs/${req.params.slug}.md` });
+  const path = base.path;
 
   const units = await run(
     `MATCH (:Note {path:$path})-[:HAS_UNIQUE_UNIT]->(u)
@@ -1082,18 +1097,25 @@ function parseCounterTableRows(text) {
   });
 }
 
+// Nombres nuevos del Update 185872 → nombre viejo en el grafo. Sólo se usan si el
+// nombre nuevo todavía no existe (vault sin re-ingestar); después no hacen nada.
+const COUNTER_UNIT_ALIASES = { longship: "longboat" };
+
 app.get("/api/counter-graph", wrap(async (req, res) => {
   const unit = (req.query.unit || "").trim();
   if (!unit) return res.status(400).json({ error: "falta ?unit=" });
 
   // Intentar primero con nodos Unit + relaciones COUNTERS (importadas desde YAML)
-  const [targetRow] = await run(
+  const findTarget = (u) => run(
     `MATCH (target:Unit)
      WHERE toLower(target.label) CONTAINS toLower($u)
         OR toLower(target.id)    CONTAINS toLower($u)
      RETURN target LIMIT 1`,
-    { u: unit },
+    { u },
   );
+  let [targetRow] = await findTarget(unit);
+  const alias = COUNTER_UNIT_ALIASES[unit.toLowerCase()];
+  if (!targetRow && alias) [targetRow] = await findTarget(alias);
 
   if (targetRow) {
     const target = targetRow.target.properties;
