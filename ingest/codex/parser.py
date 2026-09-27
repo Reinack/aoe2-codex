@@ -27,6 +27,10 @@ UNIQUE_UNIT_TAG_RE = re.compile(r"(?:^|\s)#unique-unit(?:\s|$)", re.MULTILINE)
 ACCESS_SECTION_RE = re.compile(
     r"##\s+Civilizaciones con acceso\s*\n(.*?)(?:\n##\s|\Z)", re.DOTALL
 )
+# Wikilink a una civ dentro de esa sección: [[civs/Saxons]] / [[civs/Saxons|Sajones]].
+# Las notas nuevas (The Viking Sagas y algunas navales) ponen el link en la misma
+# línea que el conteo ("**1/53 civilizaciones** — [[civs/Saxons]]") o suelto.
+CIV_WIKILINK_RE = re.compile(r"\[\[civs/([^\]|#]+)(?:[|#][^\]]*)?\]\]")
 
 
 @dataclass
@@ -96,6 +100,9 @@ def _civs_from_access_section(body: str) -> list[str]:
     m = ACCESS_SECTION_RE.search(body)
     if not m:
         return []
+    linked = [c.strip() for c in CIV_WIKILINK_RE.findall(m.group(1)) if c.strip()]
+    if linked:
+        return list(dict.fromkeys(linked))
     for raw_line in m.group(1).splitlines():
         line = raw_line.strip()
         if not line or line.startswith(("**", "|", "#", "<", "-", ">", "*")):
@@ -148,7 +155,10 @@ def parse_note(abspath: Path, relpath: str) -> ParsedNote:
     unique_tech_civ = None
     if relpath.startswith("technologies/unique/"):
         sec = ACCESS_SECTION_RE.search(body)
-        if sec:
+        linked = CIV_WIKILINK_RE.findall(sec.group(1)) if sec else []
+        if linked:
+            unique_tech_civ = linked[0].strip()
+        elif sec:
             for raw_line in sec.group(1).splitlines():
                 line = raw_line.strip()
                 if line and not line.startswith(("**", "|", "#", "<", "-", ">", "*")):

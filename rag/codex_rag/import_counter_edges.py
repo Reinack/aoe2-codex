@@ -47,7 +47,8 @@ UNIT_IMG_KEYS: dict[str, str] = {
     "catapult-galleon": "catapult_gall",
     "turtle-ship":      "turtle_ship",
     "caravel":          "caravel_d",
-    "longboat":         "longboat",
+    "longboat":         "longboat",   # renombrado a Longship en el Update 185872
+    "longship":         "longship",
     "thirisadai":       "thirisadai",
     "dragon-ship":      "dragon_ship",
     # Regionales chinas
@@ -61,6 +62,9 @@ UNIT_IMG_KEYS: dict[str, str] = {
     # Regionales sudamericanas
     "champi-line":      "champiwarrior",
     "slinger":          "slinger",
+    # Regionales nórdicas (Update 185872, The Viking Sagas)
+    "mounted-crossbowman": "heavy_mounted_crossbow",
+    "varangian-guard":  "elite_varangian_guard",
 }
 
 

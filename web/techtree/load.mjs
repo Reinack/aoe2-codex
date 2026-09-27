@@ -49,6 +49,13 @@ export async function loadTree() {
     if (CIV_TREES[key]) civ.available = [...availableIds(CIV_TREES[key])];
   }
 
+  // Tampoco quedan `prereqs` en nodes.js: se reconstruyen desde las grillas (union
+  // de todas las civs) para que edges.mjs siga generando UPGRADES_TO / ENABLES.
+  const prereqs = prereqsFromGrids(CIV_TREES);
+  for (const n of NODES) {
+    if (!n.prereqs?.length && prereqs.has(n.id)) n.prereqs = [...prereqs.get(n.id)];
+  }
+
   // Nombres legibles: el locale no exporta, lo leemos por regex.
   //   ej:  militia:      { name: 'Militia',  effect: '...' }
   // Los ids que solo existen en el árbol del juego toman el nombre oficial de UP_NODES.
@@ -61,6 +68,36 @@ export async function loadTree() {
   const unitStats = { ...UNIT_STATS, ...REGIONAL_UNIT_STATS, ...UNIQUE_UNIT_STATS };
 
   return { NODES, unitStats, TECHS, UNIT_CLASSES, UNIQUE_UNIT_CLASSES, CIVS, CIV_TREES, UP_NODES, names, TREE_DATA };
+}
+
+// id → Set(prereqs) a partir de las grillas: una celda con conexión 'a' mejora
+// desde el ítem más cercano de arriba en la misma columna (ver build-civ-trees.mjs
+// del árbol: celda = [id, estado, código, conexión 'a' | 'b' | '']).
+export function prereqsFromGrids(civTrees) {
+  const out = new Map();
+  for (const tree of Object.values(civTrees)) {
+    for (const b of tree.b) {
+      // Edificios: `l` = edificio que lo habilita, `f` = edificio del que mejora.
+      for (const p of [b.l, b.f]) {
+        if (!p || p === b.id) continue;
+        if (!out.has(b.id)) out.set(b.id, new Set());
+        out.get(b.id).add(p);
+      }
+      const g = b.g || [];
+      g.forEach((row, r) => row.forEach((cell, c) => {
+        if (!cell || cell[3] !== "a") return;
+        for (let rr = r - 1; rr >= 0; rr--) {
+          const up = g[rr][c];
+          if (up) {
+            if (!out.has(cell[0])) out.set(cell[0], new Set());
+            out.get(cell[0]).add(up[0]);
+            break;
+          }
+        }
+      }));
+    }
+  }
+  return out;
 }
 
 // ids disponibles para una civ según su árbol: edificios con `s` y celdas de la

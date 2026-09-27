@@ -162,9 +162,8 @@ LINE_VARIANTS: dict[str, list[tuple[str, str]]] = {
         ("castle",   "units/unique/caravel.md"),
         ("imperial", "units/unique/elite-caravel.md"),
     ],
-    "longboat": [
-        ("feudal",   "units/unique/longboat.md"),
-        ("imperial", "units/unique/elite-longboat.md"),
+    "longship": [
+        ("castle",   "units/naval/longship.md"),
     ],
     "thirisadai": [
         ("imperial", "units/unique/thirisadai.md"),
@@ -199,6 +198,16 @@ LINE_VARIANTS: dict[str, list[tuple[str, str]]] = {
     ],
     "xianbei-raider": [
         ("castle", "units/unique/xianbei-raider.md"),
+    ],
+
+    # ── Regionales nórdicas (Update 185872, The Viking Sagas) ────────────────
+    "mounted-crossbowman": [
+        ("castle",   "units/archery/mounted-crossbowman.md"),
+        ("imperial", "units/archery/heavy-mounted-crossbowman.md"),
+    ],
+    "varangian-guard": [
+        ("castle",   "units/infantry/varangian-guard.md"),
+        ("imperial", "units/infantry/elite-varangian-guard.md"),
     ],
 
     # ── Regionales sudamericanas ──────────────────────────────────────────────
