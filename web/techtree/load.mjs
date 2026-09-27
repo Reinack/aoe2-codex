@@ -28,7 +28,10 @@ export async function loadTree() {
   const nodesMod = await import(urlOf(join(TREE_DATA, "nodes.js")));
   const unitsMod = await import(urlOf(join(TREE_DATA, "units.js")));
   const techMod  = await import(urlOf(join(TREE_DATA, "tech_data.js")));
-  const civsMod  = await import(urlOf(join(TREE_DATA, "civ", "index.js")));
+  // Desde el Update 185872 no hay civ/index.js: el índice de civs vive en data/index.js.
+  const civsMod  = await import(urlOf(join(TREE_DATA, "index.js")));
+  const { CIV_TREES } = await import(urlOf(join(TREE_DATA, "civ_trees.js")));
+  const { UP_NODES } = await import(urlOf(join(TREE_DATA, "upstream_nodes.js")));
 
   const NODES = nodesMod.NODES;
   const UNIT_STATS = unitsMod.UNIT_STATS;
@@ -39,14 +42,36 @@ export async function loadTree() {
   const UNIQUE_UNIT_CLASSES = techMod.UNIQUE_UNIT_CLASSES; // UU (por nombre ES) -> [clases]
   const CIVS = civsMod.default || civsMod.CIVS;
 
+  // Los civ/*.js ya no traen `available`: la disponibilidad sale de la grilla del
+  // árbol del juego (CIV_TREES). Se reconstruye con la misma regla que app.js
+  // (availableIds) para que ingest / build-civ-mods sigan leyendo `civ.available`.
+  for (const [key, civ] of Object.entries(CIVS)) {
+    if (CIV_TREES[key]) civ.available = [...availableIds(CIV_TREES[key])];
+  }
+
   // Nombres legibles: el locale no exporta, lo leemos por regex.
   //   ej:  militia:      { name: 'Militia',  effect: '...' }
+  // Los ids que solo existen en el árbol del juego toman el nombre oficial de UP_NODES.
   const names = parseLocaleNames(join(TREE_LOCALES, "en.js"));
+  for (const [id, n] of Object.entries(UP_NODES)) {
+    if (!names[id] && n.n?.en) names[id] = n.n.en;
+  }
 
   // Índice de stats por id de unidad (genérica + regional + única).
   const unitStats = { ...UNIT_STATS, ...REGIONAL_UNIT_STATS, ...UNIQUE_UNIT_STATS };
 
-  return { NODES, unitStats, TECHS, UNIT_CLASSES, UNIQUE_UNIT_CLASSES, CIVS, names, TREE_DATA };
+  return { NODES, unitStats, TECHS, UNIT_CLASSES, UNIQUE_UNIT_CLASSES, CIVS, CIV_TREES, UP_NODES, names, TREE_DATA };
+}
+
+// ids disponibles para una civ según su árbol: edificios con `s` y celdas de la
+// grilla con estado 1 (celda = [id, estado, código, …]).
+export function availableIds(civTree) {
+  const set = new Set();
+  for (const b of civTree.b) {
+    if (b.s) set.add(b.id);
+    for (const row of b.g || []) for (const cell of row) if (cell && cell[1]) set.add(cell[0]);
+  }
+  return set;
 }
 
 // Extrae { id: "Nombre legible" } de los bloques `id: { name: '...' }` del locale.

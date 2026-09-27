@@ -4,15 +4,19 @@
 
 const statsPanel = document.getElementById('stats-panel');
 
-// Cierra al hacer click fuera del panel
+// Cierra al hacer click fuera del panel. En fase de captura: el simulador re-renderiza
+// sus botones al hacer click, y en burbuja el objetivo ya no estaría dentro del panel.
 document.addEventListener('click', e => {
   if (statsPanel.style.display !== 'none' && !statsPanel.contains(e.target)) {
     closeStatsPanel();
   }
-});
+}, true);
 document.addEventListener('keydown', e => { if (e.key === 'Escape') closeStatsPanel(); });
 
-function closeStatsPanel() { statsPanel.style.display = 'none'; }
+function closeStatsPanel() {
+  statsPanel.style.display = 'none';
+  setSelectedNode(null);
+}
 
 function getStatsForNode(n) {
   // Castle slots → look up in UNIQUE_UNIT_STATS by Spanish name (stats are keyed in Spanish)
@@ -23,7 +27,7 @@ function getStatsForNode(n) {
       const key = n.id === 'uniqueunit'
         ? (lcUU.name || '')
         : (lcUU.upgradeName || (lcUU.name ? lcUU.name + ' Elite' : ''));
-      return UNIQUE_UNIT_STATS[key] || null;
+      return UNIQUE_UNIT_STATS[key] || n.stats || null;
     }
   }
   // Direct lookup by node ID — generic → regional → unique
@@ -41,8 +45,7 @@ const STAT_ICONS = {
   train:         'img/Icon/reload.webp',  // train time uses same clock icon as ROF
   pierce_attack: 'img/Icon/pierce_attack.webp',
   garrison:      'img/Icon/garrison.webp',
-  los:           'img/Icon/los.webp',
-  blast_r:       'img/Icon/range.webp',
+  blast_r:       'img/Icon/Blast_Radius.webp',
 };
 
 // All building node IDs that can appear in the tech tree or stats panel
@@ -96,6 +99,9 @@ const CIV_BONUS_SCOPE_MAP = {
   ],
   // Skirmisher-line only (Khitans creation_speed bonus)
   skirmisher: () => ['skirmisher', 'eliteskirm', 'imp_skirmisher'],
+  skirm_spear_scout: () => ['skirmisher', 'eliteskirm', 'imp_skirmisher', 'spearman', 'pikeman', 'halberdier',
+    'scout', 'lightcav', 'hussar', 'winged_hussar'],
+  fishing_ship:    () => ['fishingship'],
   // ── Civilian units ──────────────────────────────────────────────────────────
   villager:        () => ['villager'],
   // Villager sub-roles all map to the villager node (work-speed bonuses)
@@ -119,11 +125,35 @@ const CIV_BONUS_SCOPE_MAP = {
   // ── Specific infantry / unique units ────────────────────────────────────────
   condottiero:     () => ['condottiero'],
   jian_swordsman:  () => ['jian_swordsman'],
+  knight:          () => ['knight', 'cavalier', 'paladin'],
+  spearman:        () => ['spearman', 'pikeman', 'halberdier'],
+  spear_skirm:     () => ['spearman', 'pikeman', 'halberdier', 'skirmisher', 'eliteskirm', 'imp_skirmisher'],
+  elephant_archer: () => ['elephant_archer', 'elite_elephant_archer'],
+  battleeleph:     () => ['battleeleph', 'eliteeleph'],
+  fire_lancer:     () => ['fire_lancer', 'elite_fire_lancer'],
+  fireship:        () => ['firegalley', 'fireship', 'fastfireship'],
+  galley_dromon:   () => ['galley', 'wargalley', 'galleon', 'dromon'],
+  champiwarrior:   () => ['champiscout', 'champirunner', 'champiwarrior', 'elitechampi'],
+  hei_guang:       () => ['hei_guang', 'heavy_hei_guang'],
+  hei_guang_xianbei: () => ['hei_guang', 'heavy_hei_guang', 'xianbei_raider'],
+  scout_camel:     () => ['scout', 'lightcav', 'hussar', 'winged_hussar', 'camel', 'heavycamel', 'imp_camel'],
+  // ── The Viking Sagas (parche 185872) ────────────────────────────────────────
+  infantry_mounted: () => [
+    ...(UNIT_CLASSES['infantry'] || []), ...(UNIT_CLASSES['cavalry'] || []),
+    ...(UNIT_CLASSES['mounted_archer'] || []),
+  ],
+  varangian_guard:  () => ['varangian_guard', 'elite_varangian_guard'],
+  varangian_longship: () => ['varangian_guard', 'elite_varangian_guard', 'longship', 'elite_longship'],
+  longship_catapult_galleon: () => ['longship', 'elite_longship', 'catapult_gall'],
+  tower_castle:     () => [...(UNIT_CLASSES['towers'] || []), ...(UNIT_CLASSES['castles'] || [])],
   // ── Combined groups ──────────────────────────────────────────────────────────
   camel_elephant:  () => ['camel','heavycamel','imp_camel','battleeleph','eliteeleph','elephant_archer','elite_elephant_archer'],
   // ── Buildings ───────────────────────────────────────────────────────────────
   building:        () => ALL_BUILDING_IDS,
+  palisade:        () => ['palisadewall', 'palisadegate'],
+  all_walls:       () => ['palisadewall', 'palisadegate', 'stonewall', 'gate', 'fortifiedwall'],
   mulecart:        () => ['mulecart'],
+  eco_camps:       () => ['mill', 'lumber', 'mining'],
   tc:              () => ['tc'],
   tc_tower:        () => ['tc', ...(UNIT_CLASSES['towers'] || [])],
   tc_dock:         () => ['tc', 'dock', 'harbor'],
@@ -140,6 +170,14 @@ const CIV_BONUS_SCOPE_MAP = {
   ],
 };
 
+// ¿El alcance de un bonus incluye este nodo?
+function bonusScopeIncludes(scope, unitId) {
+  const getter = CIV_BONUS_SCOPE_MAP[scope];
+  if (getter) return getter().includes(unitId);
+  if (UNIT_CLASSES[scope]) return UNIT_CLASSES[scope].includes(unitId);
+  return scope === unitId;
+}
+
 // Returns stats after applying current civ's stat_modifier / creation_speed / building_work_speed bonuses,
 // or null if none apply.
 // unitAge: the node's age (0=Dark, 1=Feudal, 2=Castle, 3=Imperial); bonuses with min_age are skipped if younger.
@@ -151,9 +189,7 @@ function computeCivModifiedStats(stats, unitId, unitAge = 0, trainingBuilding = 
   // Helper: does this bonus's scope include the given unitId?
   const scopeMatches = (b) => {
     if (b.min_age !== undefined && unitAge < b.min_age) return false;
-    const getter = CIV_BONUS_SCOPE_MAP[b.scope];
-    if (getter) return getter().includes(unitId);
-    return UNIT_CLASSES[b.scope]?.includes(unitId) ?? false;
+    return bonusScopeIncludes(b.scope, unitId);
   };
 
   // Team bonus always applies to the civ's own units too (not just teammates)
@@ -176,8 +212,10 @@ function computeCivModifiedStats(stats, unitId, unitAge = 0, trainingBuilding = 
     range:  stats.range,
     speed:  stats.speed,
     rof:    stats.rof,
+    blast_radius: stats.blast_radius,
     los:    stats.los,
     train:  stats.train,
+    bonuses: stats.bonuses ? stats.bonuses.map(x => ({ ...x })) : undefined,
   };
 
   // ── stat_modifier bonuses ──────────────────────────────────────────────────
@@ -196,10 +234,14 @@ function computeCivModifiedStats(stats, unitId, unitAge = 0, trainingBuilding = 
     if (stat === 'armor')        { m.armor    = m.armor.map(a => Math.round(apply(a, value))); }
     if (stat === 'armor_melee')  { m.armor[0] = Math.round(apply(m.armor[0], value)); }
     if (stat === 'armor_pierce') { m.armor[1] = Math.round(apply(m.armor[1], value)); }
+    if (stat === 'armor_melee_and_pierce') {
+      m.armor[0] = Math.round(apply(m.armor[0], mod.value_melee ?? value));
+      m.armor[1] = Math.round(apply(m.armor[1], mod.value_pierce ?? value));
+    }
     if (stat === 'range' && m.range  !== undefined) { m.range = +(apply(m.range, value)).toFixed(1); }
     if (stat === 'speed' && m.speed  !== undefined) { m.speed = +(apply(m.speed, value)).toFixed(2); }
     if (stat === 'rof'   && m.rof    !== undefined) { m.rof   = +(apply(m.rof,   value)).toFixed(2); }
-    if (stat === 'los')          { m.los = Math.round(apply(m.los ?? 0, value)); }
+    if (stat === 'los' && m.los !== undefined) { m.los = Math.round(apply(m.los, value)); }
   }
 
   // ── creation_speed bonuses → reduce train time ─────────────────────────────
@@ -238,9 +280,7 @@ function computeModifiedCost(rawCost, unitId, unitAge = 0, bonusType = 'cost_mod
   const mods = allBonuses.filter(b => {
     if (b.type !== bonusType) return false;
     if (b.min_age !== undefined && unitAge < b.min_age) return false;
-    const getter = CIV_BONUS_SCOPE_MAP[b.scope];
-    if (getter) return getter().includes(unitId);
-    return UNIT_CLASSES[b.scope]?.includes(unitId) ?? false;
+    return bonusScopeIncludes(b.scope, unitId);
   });
 
   if (mods.length === 0) return null;
@@ -272,6 +312,7 @@ function computeModifiedCost(rawCost, unitId, unitAge = 0, bonusType = 'cost_mod
 function statIcon(key) {
   const src = STAT_ICONS[key];
   if (src) return `<img src="${src}" class="stat-img-icon" alt="${key}">`;
+  if (key === 'los') return '👁';  // no hay icono de línea de visión en img/Icon
   return key;
 }
 
@@ -300,8 +341,7 @@ function renderStatsGrid(rawStats, displayStats, isUnit, activeLabel) {
     gridEl.style.display = 'none';
     noStats.style.display = 'block';
     noteEl.style.display = 'none';
-    noStats.textContent = currentLang === 'es'
-      ? 'Stats no disponibles.' : 'Stats not available.';
+    noStats.textContent = t('no_stats');
     return;
   }
 
@@ -387,20 +427,20 @@ function buildEfficiencyHtml(buildCost, nodeId) {
   const grids = [1.0, 0.75, 0.5, 0.25].map(f => {
     const y  = yOf(f).toFixed(1);
     const pct = Math.round(f * 100);
-    return `<line x1="${ML}" y1="${y}" x2="${W - MR}" y2="${y}" stroke="#c8b898" stroke-width="0.5" stroke-dasharray="3,2"/>
-            <text x="${ML - 3}" y="${y}" text-anchor="end" dominant-baseline="middle" font-size="7" fill="#7a5030">${pct}%</text>`;
+    return `<line x1="${ML}" y1="${y}" x2="${W - MR}" y2="${y}" stroke="#4b331c" stroke-opacity="0.25" stroke-width="0.5" stroke-dasharray="3,2"/>
+            <text x="${ML - 3}" y="${y}" text-anchor="end" dominant-baseline="middle" font-size="7" fill="#6f5234">${pct}%</text>`;
   }).join('');
 
   // Dots with hover tooltips
   const dots = pts.map(p =>
-    `<circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="2.5" fill="#c07010" stroke="#fff" stroke-width="0.8">
+    `<circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="2.4" fill="#f5ead0" stroke="#4b331c" stroke-width="1.1">
       <title>${p.n} ${currentLang === 'es' ? 'ald.' : 'vill.'}: ${Math.round(p.f * 100)}%</title>
     </circle>`
   ).join('');
 
   // X-axis tick numbers
   const xTicks = pts.map(p =>
-    `<text x="${p.x.toFixed(1)}" y="${H - MB + 11}" text-anchor="middle" font-size="7" fill="#7a5030">${p.n}</text>`
+    `<text x="${p.x.toFixed(1)}" y="${H - MB + 11}" text-anchor="middle" font-size="7" fill="#6f5234">${p.n}</text>`
   ).join('');
 
   const xAxisLabel = currentLang === 'es' ? 'Aldeanos' : 'Villagers';
@@ -408,12 +448,12 @@ function buildEfficiencyHtml(buildCost, nodeId) {
 
   const svg = `<svg class="sp-efficiency-svg" viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">
     ${grids}
-    <path d="${curvePath}" fill="none" stroke="#c07010" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+    <path d="${curvePath}" fill="none" stroke="#4b331c" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/>
     ${dots}
-    <line x1="${ML}" y1="${MT}" x2="${ML}"      y2="${H - MB}" stroke="#9a7040" stroke-width="1"/>
-    <line x1="${ML}" y1="${H - MB}" x2="${W - MR}" y2="${H - MB}" stroke="#9a7040" stroke-width="1"/>
+    <line x1="${ML}" y1="${MT}" x2="${ML}"      y2="${H - MB}" stroke="#4b331c" stroke-opacity="0.7" stroke-width="0.8"/>
+    <line x1="${ML}" y1="${H - MB}" x2="${W - MR}" y2="${H - MB}" stroke="#4b331c" stroke-opacity="0.7" stroke-width="0.8"/>
     ${xTicks}
-    <text x="${(ML + W - MR) / 2}" y="${H - 1}" text-anchor="middle" font-size="7" fill="#7a5030">${xAxisLabel}</text>
+    <text x="${(ML + W - MR) / 2}" y="${H - 1}" text-anchor="middle" font-size="7" fill="#6f5234">${xAxisLabel}</text>
   </svg>`;
 
   // ── Repair cost ───────────────────────────────────────────────────────────────
@@ -447,8 +487,8 @@ function buildEfficiencyHtml(buildCost, nodeId) {
       }
     }
 
-    const repairLabel = t('repair_cost') || 'Repair (full HP)';
-    repairHtml = `<div class="sp-repair-cost"><strong>${repairLabel}:</strong> ${costStr(repairCost)}</div>`;
+    const repairLabel = t('repair_cost');
+    repairHtml = `<div class="sp-repair-cost"><span class="cost-label">${repairLabel}</span><span class="cost-vals">${costStr(repairCost)}</span></div>`;
   }
 
   return `<div class="sp-efficiency-title">${chartTitle}</div>${svg}${repairHtml}`;
@@ -460,6 +500,7 @@ function techCostScopeMatches(scope, n) {
   if (scope === 'dock_university') return n.building === 'dock' || n.building === 'university';
   if (scope === 'economic_tech')   return ['mill', 'lumber', 'mining', 'market'].includes(n.building);
   if (scope === 'siege_fortification_upgrades') return n.building === 'siege';
+  if (scope === 'barracks_siege') return n.building === 'barracks' || n.building === 'siege';
   return n.building === scope;
 }
 
@@ -495,16 +536,8 @@ function computeModifiedResearchCost(n) {
 function showStatsPanel(ev, n) {
   hideTip();
 
-  // Nombre y subtítulo
-  // 'unique' nodes (uniqueunit/eliteunique/uniquetech1/uniquetech2) carry civ-specific
-  // names set by updateUniqueForCiv — pass no category so tData returns the value directly.
-  const nameCategory = n.type === 'tech'
-    ? 'techs'
-    : (n.type === 'unit' || n.type === 'upgrade')
-      ? 'units'
-      : null;  // 'unique' → use direct value
-  const name = tData(n, 'name', nameCategory);
-  document.getElementById('sp-name').textContent = name;
+  // Nombre y subtítulo (mismo criterio que el nodo del árbol)
+  document.getElementById('sp-name').textContent = nodeLabel(n);
   document.getElementById('sp-sub').textContent =
     (n.type === 'building' || n.type === 'defencive') ? t('building') : `${t(n.age, 'ages')} · ${t(n.type)}`;
 
@@ -529,51 +562,33 @@ function showStatsPanel(ev, n) {
   simCivStats  = civMod;
 
   const civLabel = civMod
-    ? (currentLang === 'es'
-        ? `★ Bonuses de ${LOCALE[currentLang]?.civs?.[currentCiv]?.name || currentCiv}`
-        : `★ ${LOCALE[currentLang]?.civs?.[currentCiv]?.name || currentCiv} bonuses`)
+    ? `★ ${t('civ_bonuses')} ${LOCALE[currentLang]?.civs?.[currentCiv]?.name || currentCiv}`
     : null;
 
   renderStatsGrid(stats, civMod || stats, isUnit, civLabel);
 
   // Coste + tiempo de producción
   const isBuilding = n.type === 'building' || n.type === 'defencive';
-  const rawBuildCost  = n.build_cost  || (isBuilding ? n.cost : null);
-  const rawTrainCost  = n.train_cost  || (!isBuilding && n.type !== 'tech' ? n.cost : null);
+  const rawBuildCost  = n.build_cost  || null;
+  const rawTrainCost  = n.train_cost  || null;
   const modBuildCost  = rawBuildCost  ? computeModifiedCost(rawBuildCost,  n.id, n.age ?? 0, 'building_cost_modifier') : null;
   const modTrainCost  = rawTrainCost  ? computeModifiedCost(rawTrainCost,  n.id, n.age ?? 0, 'cost_modifier')          : null;
 
-  const timeIcon  = `<img src="img/Icon/reload.webp" class="res-icon" alt="time">`;
   const trainTime = civMod?.train ?? stats?.train ?? null;
 
   let costHtml = '';
-  if (n.build_cost) {
-    const btStr = n.build_time != null ? `  ${timeIcon} ${n.build_time}s` : '';
-    costHtml += `<strong>${t('build_cost')}:</strong> ${costStr(modBuildCost || n.build_cost, modBuildCost ? n.build_cost : null)}${btStr} `;
-  }
-  if (n.train_cost) {
-    const tStr = trainTime != null ? `  ${timeIcon} ${trainTime}s` : '';
-    costHtml += `<strong>${t('train_cost')}:</strong> ${costStr(modTrainCost || n.train_cost, modTrainCost ? n.train_cost : null)}${tStr} `;
-  }
+  if (n.build_cost) costHtml += costRow('build_cost', modBuildCost || n.build_cost, modBuildCost ? n.build_cost : null, n.build_time);
+  if (n.train_cost) costHtml += costRow('train_cost', modTrainCost || n.train_cost, modTrainCost ? n.train_cost : null, trainTime);
 
-  // Fallback (cost field used when no specific build/train/research_cost)
-  if (!costHtml && n.cost) {
-    const label = isBuilding ? t('build_cost') : (n.type === 'unit' || n.type === 'upgrade' ? t('train_cost') : t('research_cost'));
-    const rawFallback = n.cost;
-    const modFallback = isBuilding ? modBuildCost : modTrainCost;
-    const isTrain = label === t('train_cost');
-    const tStr = isTrain && trainTime != null ? `  ${timeIcon} ${trainTime}s` : '';
-    costHtml = `<strong>${label}:</strong> ${costStr(modFallback || rawFallback, modFallback ? rawFallback : null)}${tStr} `;
-  }
-
-  document.getElementById('sp-cost').innerHTML = costHtml;
+  const costEl = document.getElementById('sp-cost');
+  costEl.innerHTML = costHtml;
+  costEl.style.display = costHtml ? '' : 'none';
 
   // Research cost — shown below stats, with civ-reduced values and time
   const modResearchCost = computeModifiedResearchCost(n);
   const rcEl = document.getElementById('sp-research-cost');
   if (n.research_cost) {
-    const rStr = n.research_time != null ? `  ${timeIcon} ${n.research_time}s` : '';
-    rcEl.innerHTML = `<strong>${t('research_cost')}:</strong> ${costStr(modResearchCost || n.research_cost, modResearchCost ? n.research_cost : null)}${rStr}`;
+    rcEl.innerHTML = costRow('research_cost', modResearchCost || n.research_cost, modResearchCost ? n.research_cost : null, n.research_time);
     rcEl.style.display = 'block';
   } else {
     rcEl.innerHTML = '';
@@ -602,45 +617,25 @@ function showStatsPanel(ev, n) {
   // Afecta a (solo para tecnologías)
   const appEl = document.getElementById('sp-applies');
   if (n.type === 'tech' || n.type === 'upgrade' || n.type === 'unique') {
-    let affects = TECHS[n.id]?.affects || [];
-    // Si es una tecnología única genérica, buscar la específica de la civ
-    if (n.id === 'uniquetech1' || n.id === 'uniquetech2') {
-      const compositeId = `${currentCiv}_${n.id}`;
-      if (TECHS[compositeId]?.affects) affects = TECHS[compositeId].affects;
-    }
+    // Tecnología única genérica del árbol → la específica de la civ
+    const techId = (n.id === 'uniquetech1' || n.id === 'uniquetech2') ? `${currentCiv}_${n.id}` : n.id;
 
-    if (affects.length > 0) {
-      // Resolver clases a unidades individuales
-      let unitIds = [];
-      affects.forEach(a => {
-        if (UNIT_CLASSES[a]) {
-          unitIds = unitIds.concat(UNIT_CLASSES[a]);
-        } else {
-          unitIds.push(a);
-        }
-      });
-
-      // Incluir unidad única si su clase coincide con las clases afectadas
-      const uuName = LOCALE['es']?.civs?.[currentCiv]?.uniqueUnits?.[0]?.name;
-      if (uuName && UNIQUE_UNIT_CLASSES[uuName]) {
-        const uuClasses = UNIQUE_UNIT_CLASSES[uuName];
-        const hasMatch = affects.some(a => uuClasses.includes(a));
-        if (hasMatch) {
-          unitIds.push('uniqueunit', 'eliteunique');
-        }
-      }
-
-      // Filtrar por disponibilidad y resolver placeholders únicos
-      const availableUnits = [...new Set(unitIds)].filter(uid => !isMissing(uid));
+    if (TECHS[techId]) {
+      // Mismo criterio que el simulador: las unidades disponibles a las que se ofrece esta tech
+      const seen = new Set();
+      const availableUnits = displayNodes
+        .filter(d => d.available && !seen.has(d.id) && seen.add(d.id) && getApplicableTechs(d.id).includes(techId))
+        .map(d => d.id);
 
       if (availableUnits.length > 0) {
         appEl.style.display = 'block';
-        let html = `<div class="sp-applies-title">${currentLang === 'es' ? 'Afecta a:' : 'Applies to:'}</div>`;
+        let html = `<div class="sp-applies-title">${t('applies_to')}</div>`;
         html += `<div class="sp-applies-grid">`;
         availableUnits.forEach(uid => {
           const img = IMG_MAP[uid];
           if (img) {
-            html += `<div class="sp-applies-icon" title="${uid}"><img src="${img}"></div>`;
+            const title = CIV_SLOT_IDS.has(uid) ? (displayNodes.find(d => d.id === uid)?.name || uid) : nodeName(uid);
+            html += `<div class="sp-applies-icon" title="${title}"><img src="${img}" alt=""></div>`;
           }
         });
         html += `</div>`;
@@ -672,9 +667,6 @@ function showStatsPanel(ev, n) {
   requestAnimationFrame(() => statsPanel.classList.add('sp-animate'));
 
   // Show simulator for units, upgrades, buildings, and defensive structures
-  const isSimulable = n.type === 'unit' || n.type === 'upgrade'
-    || n.id === 'uniqueunit' || n.id === 'eliteunique'
-    || n.type === 'building' || n.type === 'defencive';
-  if (isSimulable) initSim(n);
+  if (isSimulableType(n)) initSim(n);
   else document.getElementById('sp-tech-sim').style.display = 'none';
 }

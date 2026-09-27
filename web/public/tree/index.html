@@ -4,6 +4,11 @@
 <head>
   <meta charset="UTF-8">
   <title>Age of Empires II — Árbol Tecnológico</title>
+  <link rel="icon" href="img/favicon.svg" type="image/svg+xml">
+  <link rel="alternate icon" href="img/favicon.png" type="image/png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=Crimson+Pro:ital,wght@0,400;0,600;0,700;1,400;1,600&display=swap">
   <link rel="stylesheet" href="style.css">
   <!-- ── SCRIPTS ─────────────────────────────────────── -->
   <script src="https://d3js.org/d3.v7.min.js"></script>
@@ -15,6 +20,7 @@
   <script defer src="src/app.js"></script>
   <script defer src="src/stats-panel.js"></script>
   <script defer src="src/tech-sim.js"></script>
+  <script defer src="src/aoe-select.js"></script>
   <script defer src="src/civ-panel.js"></script>
   <!-- ── Puente al grafo del codex (añadido en Fase 6) ── -->
   <link rel="stylesheet" href="codex-bridge.css">
@@ -23,9 +29,9 @@
 
 <body>
 
-  <div id="sidebar">
+  <aside id="sidebar">
     <div class="sidebar-header">
-      <select id="civ-select"></select>
+      <select id="civ-select" aria-label="Civilización"></select>
       <div id="civ-logo"><img id="civ-shield" src="" alt="" onerror="this.style.display='none'" style="display:none"></div>
       <a id="open-fullscreen" href="/tree/" target="_blank"
          title="Abrir en pestaña completa"
@@ -34,7 +40,7 @@
     <div id="civ-info"></div>
 
     <div class="sidebar-bottom">
-      <button id="btn-toggle-view" onclick="toggleView()">⚔ Unidades Relevantes</button>
+      <button id="btn-toggle-view" class="aoe-btn" onclick="toggleView()" data-i18n="ui.relevant_units">Unidades relevantes</button>
 
       <div id="legend">
         <div class="legend-title" data-i18n="ui.legend">Leyenda</div>
@@ -60,34 +66,39 @@
           <div class="legend-box lb-tech-r"></div>
           <div class="legend-box lb-tech-u"></div>
         </div>
+        <div class="legend-lang">
+          <span class="legend-lang-label" data-i18n="ui.language">Idioma</span>
+          <select id="lang-select" aria-label="Idioma">
+            <option value="es">Español</option>
+            <option value="en">English</option>
+          </select>
+        </div>
       </div>
-      <div style="margin-top:20px;font-size:10px;color:#333;line-height:1.4;">
-        <select id="lang-select"
-          style="background:#e6c89c;border:1px solid #8b5a2b;width:100%;margin-bottom:10px;padding:3px;font-size:11px;">
-          <option value="es">Español</option>
-          <option value="en">English</option>
-        </select>
-        <p><span data-i18n="ui.version">Version</span>: Age of Empires II DE Update</p>
-      </div>
+
+      <p class="version"><span data-i18n="ui.version">Versión</span>: Age of Empires II DE Update 185872 (The Viking Sagas)</p>
     </div>
-  </div>
+  </aside>
 
   <div id="main-content">
     <div id="tree-container">
       <svg id="svg-tree"></svg>
+      <div id="zoom-controls">
+        <button id="btn-zoom-in" class="aoe-square" data-i18n-title="ui.zoom_in">+</button>
+        <button id="btn-fit" class="aoe-square" data-i18n-title="ui.fit">⊡</button>
+        <button id="btn-zoom-out" class="aoe-square" data-i18n-title="ui.zoom_out">−</button>
+      </div>
     </div>
 
-    <div id="extra-panel">
+    <aside id="extra-panel">
       <div id="extra-header">
-        <span class="extra-header-icon">⚔</span>
-        <span class="extra-header-title">Unidades Relevantes</span>
-        <button id="btn-close-extra" onclick="toggleView()" title="Cerrar">✕</button>
+        <span class="extra-header-title" data-i18n="ui.relevant_units">Unidades relevantes</span>
+        <button id="btn-close-extra" class="aoe-close" onclick="toggleView()" data-i18n-title="ui.close">✕</button>
       </div>
       <div id="extra-content"></div>
-    </div>
+    </aside>
   </div>
 
-  <!-- ── Stats Panel (click) ─────────────────────────── -->
+  <!-- ── Panel de selección (click) ──────────────────── -->
   <div id="stats-panel" style="display:none">
     <div class="sp-header">
       <div class="sp-icon-wrap"><img id="sp-icon" src="" alt=""></div>
@@ -95,21 +106,25 @@
         <div id="sp-name"></div>
         <div id="sp-sub"></div>
       </div>
-      <button id="sp-close" onclick="closeStatsPanel()">✕</button>
+      <button id="sp-close" class="aoe-close" onclick="closeStatsPanel()" data-i18n-title="ui.close">✕</button>
     </div>
-    <div id="sp-cost"></div>
-    <div id="sp-stats-grid"></div>
-    <div id="sp-civ-bonus-note"></div>
-    <div id="sp-build-efficiency" style="display:none"></div>
-    <div id="sp-effect"></div>
-    <div id="sp-applies"></div>
-    <div id="sp-no-stats"></div>
-    <div id="sp-research-cost" style="display:none"></div>
+    <div class="sp-sheet">
+      <div class="sp-costs">
+        <div id="sp-cost"></div>
+        <div id="sp-research-cost" style="display:none"></div>
+      </div>
+      <div id="sp-stats-grid"></div>
+      <div id="sp-civ-bonus-note"></div>
+      <div id="sp-no-stats"></div>
+      <div id="sp-effect"></div>
+      <div id="sp-applies"></div>
+      <div id="sp-build-efficiency" style="display:none"></div>
+    </div>
     <!-- Puente al grafo: prosa del vault + acceso por civs + GraphRAG -->
     <div id="sp-codex"></div>
     <div id="sp-tech-sim" style="display:none">
       <div class="sp-sim-toggle" id="sp-sim-toggle">
-        <span id="sp-sim-toggle-label">▶ Simular con tecnologías</span>
+        <span id="sp-sim-toggle-label"></span>
       </div>
       <div id="sp-sim-body" style="display:none">
         <div class="sp-sim-ages" id="sp-sim-ages">
@@ -119,33 +134,38 @@
           <button class="sim-age-btn sim-age-active" data-age="3"></button>
         </div>
         <div id="sp-sim-chips"></div>
+        <div id="sp-sim-notes"></div>
         <div id="sp-sim-team">
           <div class="sim-team-header">
-            <span class="sim-team-label">👥 Equipo aliado</span>
+            <span class="sim-team-label" data-i18n="ui.ally_team">Equipo aliado</span>
             <span id="sp-sim-team-count" class="sim-team-count">0/7</span>
           </div>
           <div id="sp-sim-team-chips"></div>
           <select id="sp-sim-team-select">
-            <option value="">+ Añadir aliado…</option>
+            <option value=""></option>
           </select>
         </div>
       </div>
     </div>
   </div>
 
+  <!-- ── Tooltip (hover) ─────────────────────────────── -->
   <div id="tooltip">
-    <h3 id="tt-name"></h3>
-    <div class="tt-age" id="tt-age"></div>
-    <div class="tt-cost" id="tt-cost"></div>
-    <div class="tt-effect" id="tt-effect"></div>
-    <div class="tt-prereq" id="tt-prereq"></div>
-    <div class="tt-missing" id="tt-missing"></div>
-  </div>
-
-  <div id="zoom-controls">
-    <button id="btn-zoom-in" data-i18n-title="ui.zoom_in">+</button>
-    <button id="btn-fit" data-i18n-title="ui.fit" style="font-size:13px">⊡</button>
-    <button id="btn-zoom-out" data-i18n-title="ui.zoom_out">−</button>
+    <div class="tt-head">
+      <div class="tt-icon-wrap"><img id="tt-icon" src="" alt=""></div>
+      <div class="tt-title">
+        <h3 id="tt-name"></h3>
+        <div class="tt-age" id="tt-age"></div>
+      </div>
+    </div>
+    <div class="tt-body">
+      <div class="tt-cost" id="tt-cost"></div>
+      <div class="tt-effect" id="tt-effect"></div>
+      <div class="tt-stats" id="tt-stats"></div>
+      <div class="tt-prereq" id="tt-prereq"></div>
+      <div class="tt-missing" id="tt-missing"></div>
+      <div class="tt-hint" id="tt-hint"></div>
+    </div>
   </div>
 
 </body>

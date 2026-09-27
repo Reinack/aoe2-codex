@@ -13,20 +13,57 @@ let simBaseCost    = null;   // raw unit train cost (before any bonuses)
 let simCivCost     = null;   // train cost after civ cost_modifier bonuses
 let simTeamCivs    = [];     // ally civ IDs selected by the user (max 7)
 
-function getApplicableTechs(unitId) {
-  // For unique unit slots, resolve actual class membership from the civ's UU
-  let extraClasses = [];
-  if (unitId === 'uniqueunit' || unitId === 'eliteunique') {
-    const uuName = LOCALE['es']?.civs?.[currentCiv]?.uniqueUnits?.[0]?.name;
-    extraClasses = uuName ? (UNIQUE_UNIT_CLASSES[uuName] || []) : [];
+// Nombres que son a la vez id de nodo y clase de UNIT_CLASSES:
+// 'archer' en `affects` es la unidad Arquero (no toda la clase de tiradores) y
+// 'siege' es la clase de armas de asedio (no el edificio Taller de Asedio).
+const ID_ONLY_TARGETS = new Set(['archer']);
+const CLASS_ONLY_TARGETS = new Set(['siege']);
+
+// Clases de la unidad única de castillo de una civ. Se busca por nombre normalizado
+// (sin tildes ni mayúsculas) en español, en inglés y con el nombre del árbol del juego.
+const normUnitName = s => (s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]/g, '');
+const byNormName = map => Object.fromEntries(Object.entries(map).map(([k, v]) => [normUnitName(k), v]));
+const UU_CLASSES_BY_NAME = byNormName(UNIQUE_UNIT_CLASSES);
+const UU_EXCLUDES_BY_NAME = byNormName(UNIQUE_UNIT_EXCLUDES);
+function uniqueUnitLookup(table, civId) {
+  const names = [
+    LOCALE.es?.civs?.[civId]?.uniqueUnits?.[0]?.name,
+    LOCALE.en?.civs?.[civId]?.uniqueUnits?.[0]?.name,
+    CIV_TREES[civId]?.u?.uniqueunit?.n?.en,
+    CIV_TREES[civId]?.u?.uniqueunit?.n?.es,
+  ];
+  for (const n of names) {
+    const hit = table[normUnitName(n)];
+    if (hit) return hit;
   }
+  return [];
+}
+const uniqueUnitClasses = (civId = currentCiv) => uniqueUnitLookup(UU_CLASSES_BY_NAME, civId);
+// Techs de su clase que la UU de castillo no recibe (según la línea "Upgrades" del juego)
+const uniqueUnitExcludes = (civId = currentCiv) => uniqueUnitLookup(UU_EXCLUDES_BY_NAME, civId);
 
-  // Class membership of this unit in UNIT_CLASSES
-  const unitClasses = Object.entries(UNIT_CLASSES)
-    .filter(([, ids]) => ids.includes(unitId))
-    .map(([cls]) => cls)
-    .concat(extraClasses);
+// Clases (UNIT_CLASSES + clases de la UU de castillo) a las que pertenece una unidad
+function unitClassesOf(unitId) {
+  const classes = Object.entries(UNIT_CLASSES).filter(([, ids]) => ids.includes(unitId)).map(([cls]) => cls);
+  if (unitId === 'uniqueunit' || unitId === 'eliteunique') classes.push(...uniqueUnitClasses());
+  return classes;
+}
 
+// Clases base: una unidad pertenece a alguna; los edificios, a ninguna
+const UNIT_BASE_CLASSES = ['infantry', 'archer', 'foot_archer', 'mounted', 'mounted_archer', 'cavalry', 'siege', 'navy',
+                           'civilians', 'religious', 'skirmishers', 'misc_units', 'gunpowder_soldier'];
+
+// ¿Un destino de `affects` / clave de `unit_mods` incluye a esta unidad?
+function techTargetHits(target, unitId, unitClasses) {
+  if (target === 'all_units') return unitClasses.some(c => UNIT_BASE_CLASSES.includes(c));
+  if (target === unitId) return !CLASS_ONLY_TARGETS.has(target);
+  if (ID_ONLY_TARGETS.has(target)) return false;
+  return unitClasses.includes(target);
+}
+
+function getApplicableTechs(unitId) {
+  const unitClasses = unitClassesOf(unitId);
+  const uuExcludes = (unitId === 'uniqueunit' || unitId === 'eliteunique') ? uniqueUnitExcludes() : [];
   const applicable = [];
   for (const [techId, entry] of Object.entries(TECHS)) {
     // Civ-specific unique techs (e.g. 'britons_uniquetech1') are not nodes in the tree.
@@ -34,21 +71,65 @@ function getApplicableTechs(unitId) {
     const civMatch = techId.match(/^(.+)_uniquetech[12]$/);
     if (civMatch) {
       if (civMatch[1] !== currentCiv) continue;
-    } else if (isMissing(techId)) continue;
+    } else if (isMissing(techId) || techId.endsWith('_tech')) continue;  // *_tech: mejoras de edificio (Torre de Guardia…)
 
-    const mod = entry.mod;
-    if (!mod || Object.keys(mod).length === 0) continue;
-
-    const targets = entry.affects || [];
-    const hits = targets.some(target => {
-      if (target === unitId) return true;
-      if (unitClasses.includes(target)) return true;
-      if (UNIT_CLASSES[target]) return UNIT_CLASSES[target].includes(unitId);
-      return false;
-    });
-    if (hits) applicable.push(techId);
+    // También se ofrecen las techs sin efecto numérico (Redención, Wootz Steel…):
+    // el simulador las lista con su texto en "Otros efectos".
+    if (entry.excludes?.includes(unitId) || uuExcludes.includes(techId)) continue;
+    if ((entry.affects || []).some(target => techTargetHits(target, unitId, unitClasses))) applicable.push(techId);
   }
   return applicable;
+}
+
+// mod efectivo de una tech para una unidad: `mod` + los `unit_mods` que la incluyen
+function techModFor(tid, unitId) {
+  const entry = TECHS[tid];
+  if (!entry) return null;
+  if (!entry.unit_mods) return entry.mod || {};
+  const unitClasses = unitClassesOf(unitId);
+  let mod = { ...(entry.mod || {}) };
+  for (const [target, m] of Object.entries(entry.unit_mods)) {
+    if (techTargetHits(target, unitId, unitClasses)) mod = { ...mod, ...m };
+  }
+  return mod;
+}
+
+// Claves de mod que el simulador aplica como número (stats o coste)
+const NUMERIC_MOD_KEYS = new Set([
+  'hp', 'hp_pct', 'attack', 'attack_pct', 'armor_melee', 'armor_pierce', 'range', 'los', 'speed_pct', 'rof_pct',
+  'blast_radius', 'attack_speed_pct', 'production_speed_pct', 'watchtower_attack', 'guardtower_attack', 'keep_attack',
+  'vs_bonuses', 'cost_pct', 'trade_cost_pct', 'food_cost_pct', 'wood_cost_pct', 'gold_cost_pct', 'stone_cost_pct',
+  'replace_gold_with_food', 'replace_gold_with_wood',
+]);
+
+// Nombre y texto de efecto de una tech (genérica o única de la civ)
+function techInfo(tid) {
+  const ut = tid.match(/^(.+)_uniquetech([12])$/);
+  if (ut) {
+    const lc = LOCALE[currentLang]?.civs?.[ut[1]]?.uniqueTechs?.[ut[2] - 1] || {};
+    return { name: lc.name || nodeName(`uniquetech${ut[2]}`), effect: lc.effect || '' };
+  }
+  return { name: nodeName(tid), effect: LOCALE[currentLang]?.nodes?.[tid]?.effect || '' };
+}
+
+// Techs activas cuyo efecto (todo o parte) no se refleja en los números del panel
+function nonNumericTechs(activeTechs, unitId, base) {
+  const out = [];
+  for (const tid of activeTechs) {
+    const mod = techModFor(tid, unitId) || {};
+    const hasOther = Object.entries(mod).some(([k, v]) => !NUMERIC_MOD_KEYS.has(k) && v !== 0 && v !== false && v != null);
+    let changesNumbers = false;
+    if (!hasOther && base) {
+      const one = new Set([tid]);
+      const s = applyTechs(base, one, unitId);
+      changesNumbers = ['hp', 'attack', 'range', 'speed', 'rof', 'los', 'train', 'blast_radius'].some(k => s[k] !== base[k])
+        || (s.armor?.[0] ?? 0) !== (base.armor?.[0] ?? 0) || (s.armor?.[1] ?? 0) !== (base.armor?.[1] ?? 0)
+        || JSON.stringify(s.bonuses || []) !== JSON.stringify(base.bonuses || [])
+        || !!applyTechsToCost(simBaseCost, one, unitId);
+    }
+    if (hasOther || !changesNumbers) out.push(techInfo(tid));
+  }
+  return out;
 }
 
 // Applies active tech cost modifiers to a cost object.
@@ -60,6 +141,7 @@ function getTechEffectiveness(tid) {
   for (const b of civ.bonuses) {
     if (b.type !== 'tech_effectiveness') continue;
     if (b.scope === 'mule_cart_tech' && tid.endsWith('_m')) return b.value ?? 1;
+    if (b.scope === 'bloodlines_caravan' && (tid === 'bloodlines' || tid === 'caravan')) return b.value ?? 1;
   }
   return 1;
 }
@@ -78,14 +160,14 @@ function scaleMod(mod, factor) {
   return scaled;
 }
 
-function applyTechsToCost(rawCost, activeTechs) {
+function applyTechsToCost(rawCost, activeTechs, unitId = simUnit?.id ?? '') {
   if (!rawCost || activeTechs.size === 0) return null;
 
   const c = { ...rawCost };
   let modified = false;
 
   for (const tid of activeTechs) {
-    const rawMod = TECHS[tid]?.mod;
+    const rawMod = techModFor(tid, unitId);
     if (!rawMod) continue;
     const mod = scaleMod(rawMod, getTechEffectiveness(tid));
 
@@ -144,7 +226,7 @@ function applyTechs(base, activeTechs, unitId = '') {
     bonuses:      base.bonuses ? base.bonuses.map(b => ({ ...b })) : undefined,
   };
   for (const tid of activeTechs) {
-    const rawMod = TECHS[tid]?.mod;
+    const rawMod = techModFor(tid, unitId);
     if (!rawMod) continue;
     const mod = scaleMod(rawMod, getTechEffectiveness(tid));
 
@@ -209,8 +291,10 @@ function computeTeamBonusStats(stats, unitId, unitAge, trainingBuilding = null) 
     range:  stats.range,
     speed:  stats.speed,
     rof:    stats.rof,
+    blast_radius: stats.blast_radius,
     los:    stats.los,
     train:  stats.train,
+    bonuses: stats.bonuses ? stats.bonuses.map(x => ({ ...x })) : undefined,
   };
   let anyChanged = false;
   for (const civId of simTeamCivs) {
@@ -218,9 +302,10 @@ function computeTeamBonusStats(stats, unitId, unitAge, trainingBuilding = null) 
     if (!civ?.teamBonus) continue;
     const tb = civ.teamBonus;
     if (tb.min_age !== undefined && unitAge < tb.min_age) continue;
-    const getter = CIV_BONUS_SCOPE_MAP[tb.scope];
-    const hits = getter ? getter().includes(unitId)
-                        : (UNIT_CLASSES[tb.scope]?.includes(unitId) ?? false);
+    // En building_work_speed el alcance es el edificio que entrena la unidad
+    const hits = tb.type === 'building_work_speed'
+      ? tb.scope === trainingBuilding
+      : bonusScopeIncludes(tb.scope, unitId);
     if (!hits) continue;
     const value = tb.value;
     const apply = (cur, v) => tb.op === 'multiply' ? cur * v : cur + v;
@@ -233,7 +318,7 @@ function computeTeamBonusStats(stats, unitId, unitAge, trainingBuilding = null) 
       if (tb.stat === 'range' && m.range !== undefined) { m.range = +(apply(m.range, value)).toFixed(1); anyChanged = true; }
       if (tb.stat === 'speed' && m.speed !== undefined) { m.speed = +(apply(m.speed, value)).toFixed(2); anyChanged = true; }
       if (tb.stat === 'rof'   && m.rof   !== undefined) { m.rof   = +(apply(m.rof,   value)).toFixed(2); anyChanged = true; }
-      if (tb.stat === 'los')  { m.los = Math.round(apply(m.los ?? 0, value)); anyChanged = true; }
+      if (tb.stat === 'los' && m.los !== undefined) { m.los = Math.round(apply(m.los, value)); anyChanged = true; }
     } else if (tb.type === 'creation_speed' && m.train != null) {
       m.train = Math.round(m.train * value); anyChanged = true;
     } else if (tb.type === 'building_work_speed' && m.train != null && tb.scope === trainingBuilding) {
@@ -255,6 +340,18 @@ function recomputeSimCivBonuses() {
   simTeamStats = computeTeamBonusStats(baseForTeam, simUnit.id, simMaxAge, simUnit.building ?? null);
 }
 
+// Tipos de nodo cuyo panel incluye el simulador
+function isSimulableType(n) {
+  return n.type === 'unit' || n.type === 'upgrade'
+    || n.id === 'uniqueunit' || n.id === 'eliteunique'
+    || n.type === 'building' || n.type === 'defencive';
+}
+
+// ¿El panel de este nodo va a mostrar el simulador? (mismo criterio que initSim)
+function canSimulate(n) {
+  return isSimulableType(n) && !!getStatsForNode(n) && getApplicableTechs(n.id).length > 0;
+}
+
 function initSim(unitNode) {
   if (simUnit?.id !== unitNode.id) simMaxAge = 3;
   simUnit = unitNode;
@@ -271,9 +368,8 @@ function initSim(unitNode) {
 }
 
 function updateSimToggleLabel() {
-  const label = simExpanded ? '▼ ' : '▶ ';
-  const text = currentLang === 'es' ? 'Simular con tecnologías' : 'Simulate with technologies';
-  document.getElementById('sp-sim-toggle-label').textContent = label + text;
+  document.getElementById('sp-sim-toggle-label').textContent = t('simulate');
+  document.getElementById('sp-sim-toggle').classList.toggle('open', simExpanded);
 }
 
 function renderSimBody() {
@@ -283,12 +379,11 @@ function renderSimBody() {
 
   const applicable = getApplicableTechs(simUnit.id);
 
-  const ageLabels = currentLang === 'es'
-    ? ['Oscura', 'Feudal', 'Castillos', 'Imperial']
-    : ['Dark', 'Feudal', 'Castle', 'Imperial'];
+  const ageIcons = ['base_dark_age', 'base_feudal_age', 'base_castle_age', 'base_imperial_age'];
   document.querySelectorAll('.sim-age-btn').forEach(btn => {
     const age = parseInt(btn.dataset.age);
-    btn.textContent = ageLabels[age];
+    btn.innerHTML = `<img src="img/Ages/${ageIcons[age]}.png" alt=""><span>${t(age, 'ages_short')}</span>`;
+    btn.title = t(age, 'ages');
     btn.classList.toggle('sim-age-active', age === simMaxAge);
   });
 
@@ -304,10 +399,14 @@ function renderSimBody() {
     // IMG_MAP entry — fall back to the generic slot key ('uniquetech1'/'uniquetech2').
     const slotKey = techId.replace(/^.+_(uniquetech[12])$/, '$1');
     const img  = IMG_MAP[techId] || IMG_MAP[slotKey];
-    const node = NODES.find(n => n.id === techId) || NODES.find(n => n.id === slotKey);
-    const name = node ? tData(node, 'name', 'techs') : techId;
+    const ut = techId.match(/^(.+)_uniquetech([12])$/);
+    const name = ut
+      ? (LOCALE[currentLang]?.civs?.[ut[1]]?.uniqueTechs?.[ut[2] - 1]?.name || nodeName(slotKey))
+      : nodeName(techId);
     const active = simActiveTechs.has(techId);
-    return `<button class="sim-tech-chip${active ? ' active' : ''}" data-tech="${techId}" title="${name}">
+    const effect = techInfo(techId).effect;
+    const tip = (effect ? `${name} — ${effect}` : name).replace(/"/g, '&quot;');
+    return `<button class="sim-tech-chip${active ? ' active' : ''}" data-tech="${techId}" title="${tip}">
       ${img ? `<img src="${img}" alt="${name}">` : `<span class="sim-chip-icon">⚗</span>`}
     </button>`;
   }).join('');
@@ -336,33 +435,36 @@ function refreshSimStats() {
   let label = null;
   if (simCivStats || simTeamStats || techCount > 0) {
     const parts = [];
-    if (simCivStats) {
-      parts.push(currentLang === 'es' ? `${civName}` : `${civName}`);
-    }
-    if (teamCount > 0) {
-      parts.push(currentLang === 'es'
-        ? `${teamCount} aliado${teamCount !== 1 ? 's' : ''}`
-        : `${teamCount} ${teamCount === 1 ? 'ally' : 'allies'}`);
-    }
-    if (techCount > 0) {
-      parts.push(currentLang === 'es' ? `${techCount} tecn.` : `${techCount} tech(s)`);
-    }
+    if (simCivStats) parts.push(civName);
+    if (teamCount > 0) parts.push(`${teamCount} ${t(teamCount === 1 ? 'ally' : 'allies')}`);
+    if (techCount > 0) parts.push(`${techCount} ${t('techs_short')}`);
     if (parts.length > 0) label = `★ ${parts.join(' + ')}`;
   }
 
   renderStatsGrid(simBaseStats, combined, isUnit, label);
   refreshSimCost();
+  renderSimNotes(startFrom);
+}
+
+// Techs activas con efectos que no son números (regeneración, conversión, daño de área…)
+function renderSimNotes(base) {
+  const el = document.getElementById('sp-sim-notes');
+  if (!el) return;
+  const notes = simUnit && simExpanded ? nonNumericTechs(simActiveTechs, simUnit.id, base) : [];
+  el.innerHTML = notes.length
+    ? `<div class="sim-notes-title">${t('other_effects')}</div><ul>${notes.map(n =>
+        `<li><b>${n.name}</b>${n.effect ? `: ${n.effect}` : ''}</li>`).join('')}</ul>`
+    : '';
 }
 
 // Rebuilds #sp-cost to reflect both civ bonuses and currently active sim techs.
 function refreshSimCost() {
   if (!simUnit) return;
   const n = simUnit;
-  const isBuilding = n.type === 'building' || n.type === 'defencive';
 
   // Chain: raw → civ bonus → tech bonus
   const baseCostForTechs = simCivCost || simBaseCost;
-  const techCost = applyTechsToCost(baseCostForTechs, simActiveTechs);
+  const techCost = applyTechsToCost(baseCostForTechs, simActiveTechs, n.id);
   // Final displayed cost; raw cost is the baseline for strikethrough deltas
   const displayCost = techCost || baseCostForTechs;
   const rawCost     = simBaseCost;
@@ -371,30 +473,18 @@ function refreshSimCost() {
   const simStartFrom = simTeamStats || simCivStats || simBaseStats;
   const simCombined  = simActiveTechs.size > 0 ? applyTechs(simStartFrom, simActiveTechs, n.id ?? '') : simStartFrom;
   const simTrainTime = simCombined?.train ?? null;
-  const timeIcon     = `<img src="img/Icon/reload.webp" class="res-icon" alt="time">`;
 
   let html = '';
 
   // Build cost (buildings): only civ modifier applies in the sim
   if (n.build_cost) {
     const modBC = computeModifiedCost(n.build_cost, n.id, n.age ?? 0, 'building_cost_modifier');
-    html += `<strong>${t('build_cost')}:</strong> ${costStr(modBC || n.build_cost, modBC ? n.build_cost : null)} `;
+    html += costRow('build_cost', modBC || n.build_cost, modBC ? n.build_cost : null, n.build_time);
   }
 
   // Train cost: show final cost vs raw baseline, plus current train time
   if (n.train_cost && (displayCost || rawCost)) {
-    const showCost = displayCost || rawCost;
-    const tStr = simTrainTime != null ? `  ${timeIcon} ${simTrainTime}s` : '';
-    html += `<strong>${t('train_cost')}:</strong> ${costStr(showCost, rawCost)}${tStr} `;
-  }
-
-  // Fallback (n.cost used when no explicit build/train/research_cost)
-  if (!html && n.cost) {
-    const label = isBuilding ? t('build_cost') : (n.type === 'unit' || n.type === 'upgrade' ? t('train_cost') : t('research_cost'));
-    const showCost = displayCost || rawCost || n.cost;
-    const isTrain = label === t('train_cost');
-    const tStr = isTrain && simTrainTime != null ? `  ${timeIcon} ${simTrainTime}s` : '';
-    html = `<strong>${label}:</strong> ${costStr(showCost, rawCost || null)}${tStr} `;
+    html += costRow('train_cost', displayCost || rawCost, rawCost, simTrainTime);
   }
 
   if (html) document.getElementById('sp-cost').innerHTML = html;
@@ -414,12 +504,12 @@ function renderTeamPicker() {
     return `<div class="sim-team-chip" title="${tbText}">
       <img src="img/Civs/${civId}.png" class="sim-team-shield" onerror="this.style.display='none'" alt="">
       <span class="sim-team-name">${name}</span>
-      <button class="sim-team-remove" data-civ="${civId}" title="Quitar">✕</button>
+      <button class="sim-team-remove" data-civ="${civId}" title="${t('remove')}">✕</button>
     </div>`;
   }).join('');
 
   const excluded = new Set([currentCiv, ...simTeamCivs]);
-  selectEl.innerHTML = `<option value="">${currentLang === 'es' ? '+ Añadir aliado…' : '+ Add ally…'}</option>`;
+  selectEl.innerHTML = `<option value="">${t('add_ally')}</option>`;
   Object.keys(CIVS)
     .filter(id => !excluded.has(id))
     .sort((a, b) => (LOCALE[currentLang]?.civs?.[a]?.name || a)
@@ -429,7 +519,8 @@ function renderTeamPicker() {
       opt.value = id;
       const name = LOCALE[currentLang]?.civs?.[id]?.name || id;
       const tb   = LOCALE[currentLang]?.civs?.[id]?.teamBonus || '';
-      opt.textContent = tb ? `${name} — ${tb}` : name;
+      opt.textContent = name;
+      if (tb) opt.dataset.sub = tb;  // el desplegable lo muestra como segunda línea
       selectEl.appendChild(opt);
     });
   selectEl.disabled = simTeamCivs.length >= 7;
