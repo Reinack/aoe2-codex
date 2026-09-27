@@ -4,10 +4,89 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>AoE2 Strategy Codex</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=Crimson+Pro:ital,wght@0,400;0,600;0,700;1,400;1,600&display=swap">
 <style>
   :root {
-    --bg:#0e1116; --panel:#161b22; --line:#262d36; --ink:#e6e6e6; --dim:#8b949e;
-    --gold:#e8b84b; --blue:#6baed6; --green:#74c476; --purple:#9e9ac8;
+    /* Tierra oscura (fondo de opciones nativas y rellenos oscuros) */
+    --earth-800: #21170f;
+
+    /* Pergamino y tinta */
+    --parch-50:  #f5ead0;
+    --parch-100: #ecdcb6;
+    --ink-900: #22150b;
+    --ink-700: #4b331c;
+    --ink-500: #6f5234;
+    --rule: rgba(75, 51, 28, 0.42);        /* filete de tinta sobre pergamino */
+    --rule-soft: rgba(75, 51, 28, 0.2);
+    --on-dark: #e4d4b0;                    /* texto sobre fondo oscuro */
+    --on-dark-dim: #c2ab84;
+    --hair: rgba(228, 212, 176, 0.16);     /* filete claro sobre fondo oscuro */
+
+    /* Rojo profundo: acciones */
+    --red-600: #6e100c;
+    --red-500: #8a1812;
+    --red-400: #a8261b;
+
+    /* Oro: jerarquía y selección */
+    --gold: #c69b45;
+    --gold-hi: #ecd08a;
+    --gold-text: #eed59a;
+    --gold-line: rgba(198, 155, 69, 0.75);
+    --btn-text: #f1e2c4;
+
+    --good: #3d6b17;
+    --bad: #9b2b1a;
+
+    --font-display: 'Cinzel', 'Trajan Pro', Georgia, serif;
+    --font-body: 'Crimson Pro', Georgia, 'Times New Roman', serif;
+
+    /* Texturas (ruido SVG): nada de superficies perfectamente limpias.
+       Nunca grano/ruido sobre superficies oscuras: dificulta la lectura. */
+    --paper: url('/tree/img/Backgrounds/bg_aoe2_hd_paper.jpg');
+    /* Veta de la madera: rayas verticales largas (oscuras y claras) */
+    --wood-grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='360' height='720'%3E%3Cfilter id='d' color-interpolation-filters='sRGB'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.07 .004' numOctaves='3' seed='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .1 0 0 0 0 .05 0 0 0 0 .02 -1.8 0 0 0 1.12'/%3E%3C/filter%3E%3Cfilter id='l' color-interpolation-filters='sRGB'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.11 .006' numOctaves='2' seed='9' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .55 0 0 0 0 .33 0 0 0 0 .2 1.4 0 0 0 -.72'/%3E%3C/filter%3E%3Crect width='360' height='720' filter='url(%23d)'/%3E%3Crect width='360' height='720' filter='url(%23l)'/%3E%3C/svg%3E");
+    /* Manchas suaves del pergamino */
+    --stain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='420' height='420'%3E%3Cfilter id='f' color-interpolation-filters='sRGB'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.011' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .45 0 0 0 0 .28 0 0 0 0 .1 -1.3 0 0 0 .66'/%3E%3C/filter%3E%3Crect width='420' height='420' filter='url(%23f)'/%3E%3C/svg%3E");
+    /* Tablones de madera oscura: viñeta, juntas, tono por tablón, veta y base */
+    --wood:
+      radial-gradient(ellipse at 50% 45%, transparent 35%, rgba(8, 4, 2, 0.55) 100%),
+      repeating-linear-gradient(90deg, rgba(0, 0, 0, 0.55) 0 2px, rgba(255, 214, 170, 0.07) 2px 3px, transparent 3px 126px),
+      repeating-linear-gradient(90deg, rgba(0, 0, 0, 0.1) 0 126px, rgba(255, 205, 160, 0.035) 126px 252px, rgba(0, 0, 0, 0.04) 252px 378px),
+      var(--wood-grain),
+      linear-gradient(180deg, #452719, #36200f 60%, #2b170d);
+    /* Papiro de los controles (desplegables), como los del juego */
+    --papyrus: linear-gradient(180deg, rgba(240, 222, 184, 0.55), rgba(214, 184, 136, 0.55)), var(--paper);
+    --papyrus-text: #3a1c0e;
+    /* Barra de desplazamiento: botones de acero con flecha y ornamento en el pulgar */
+    --sb-up: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' width='16' height='16'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='0' y2='1'%3E%3Cstop offset='0' stop-color='%235a524a'/%3E%3Cstop offset='1' stop-color='%232a231d'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect x='.5' y='.5' width='15' height='15' fill='url(%23g)' stroke='%23050302'/%3E%3Crect x='1.5' y='1.5' width='13' height='13' fill='none' stroke='%23fffaf0' stroke-opacity='.16'/%3E%3Cpath d='M8 4.2L12.3 11H3.7Z' fill='%23d6cfc4' stroke='%231a130e' stroke-width='.8' stroke-linejoin='round'/%3E%3C/svg%3E");
+    --sb-down: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' width='16' height='16'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='0' y2='1'%3E%3Cstop offset='0' stop-color='%235a524a'/%3E%3Cstop offset='1' stop-color='%232a231d'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect x='.5' y='.5' width='15' height='15' fill='url(%23g)' stroke='%23050302'/%3E%3Crect x='1.5' y='1.5' width='13' height='13' fill='none' stroke='%23fffaf0' stroke-opacity='.16'/%3E%3Cpath d='M8 11.8L12.3 5H3.7Z' fill='%23d6cfc4' stroke='%231a130e' stroke-width='.8' stroke-linejoin='round'/%3E%3C/svg%3E");
+    --sb-knob: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 14 14' width='14' height='14'%3E%3Cpath d='M7 .8L9.1 4.9L13.2 7L9.1 9.1L7 13.2L4.9 9.1L.8 7L4.9 4.9Z' fill='%23cfc8bd' stroke='%231a130e' stroke-width='.8'/%3E%3Ccircle cx='7' cy='7' r='1.7' fill='%236b625a' stroke='%231a130e' stroke-width='.6'/%3E%3C/svg%3E");
+    /* Marco negro de los diálogos (como "Elegir civilización") */
+    --dialog-black: rgba(6, 4, 2, 0.94);
+    /* Filete engrosado de imprenta con rombo central */
+    --ornament: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='12' viewBox='0 0 180 12'%3E%3Cg fill='%234b331c'%3E%3Cpath d='M4 6Q46 4.5 76 6Q46 7.5 4 6Z'/%3E%3Cpath d='M176 6Q134 4.5 104 6Q134 7.5 176 6Z'/%3E%3Cpath d='M90 1.2L94.8 6L90 10.8L85.2 6Z'/%3E%3Ccircle cx='80' cy='6' r='1.4'/%3E%3Ccircle cx='100' cy='6' r='1.4'/%3E%3C/g%3E%3Cpath d='M90 3.6L92.4 6L90 8.4L87.6 6Z' fill='%23ecdcb6'/%3E%3C/svg%3E");
+
+    --parchment:
+      radial-gradient(ellipse at 50% 40%, rgba(255, 246, 222, 0.38), transparent 72%),
+      var(--stain),
+      linear-gradient(rgba(236, 220, 182, 0.35), rgba(236, 220, 182, 0.35)),
+      var(--paper);
+    --burnt-edge: inset 0 0 0 1px rgba(60, 36, 14, 0.35), inset 0 0 24px rgba(112, 70, 28, 0.42), inset 0 0 4px rgba(80, 46, 16, 0.4);
+
+    /* Colores de nodo: pigmentos (lapislázuli, verdín, almagre…) */
+    --unit-c: #2a5d86;  --unit-r: #43437a;  --unit-u: #5d2a63;
+    --tech-c: #2e6a45;  --tech-r: #53682a;  --tech-u: #83551d;
+    --bld-c:  #7b3a22;  --bld-r:  #8a2a1b;  --bld-u:  #792243;
+  }
+  /* Variables del explorador, zona oscura (madera / negro de diálogo).
+     Las fichas de pergamino las redefinen (ver bloque "Tema AoE2" más abajo). */
+  :root {
+    --bg:#1a0f08; --panel:rgba(6,4,2,.72); --line:var(--hair); --ink:var(--on-dark); --dim:var(--on-dark-dim);
+    --chip:rgba(228,212,176,.06); --sunk:rgba(0,0,0,.28); --sel-bg:rgba(198,155,69,.14);
+    --good-c:#9cc26f; --bad-c:#e0775f; --warn-c:#d9a24a;
+    --blue:#8fb3d4; --teal:#7fc0ad; --green:#9cc26f; --purple:#c09ac8; --wood-c:var(--wood-c);
   }
   * { box-sizing:border-box; }
   body { margin:0; background:var(--bg); color:var(--ink);
@@ -33,7 +112,7 @@
     font-size:14px; transition:.1s; border-left:2px solid transparent;
     flex-shrink:0;
   }
-  .sb-item:hover, .sb-item.active { background:#1f2630; color:var(--ink); }
+  .sb-item:hover, .sb-item.active { background:var(--chip); color:var(--ink); }
   .sb-item.active { border-left-color:var(--gold); }
   .sb-ext { margin-top:auto; }
   .sb-icon { width:28px; text-align:center; flex-shrink:0; font-size:16px; }
@@ -70,8 +149,8 @@
   .tier { font-weight:700; font-size:12px;
     border:1px solid var(--line); border-radius:5px; padding:0 6px;
     display:inline-block; margin-top:3px; }
-  .tier.A,.tier.S{color:#7ee787;border-color:#2ea043} .tier.B{color:var(--gold)}
-  .tier.C{color:#d29922} .tier.D,.tier.E,.tier.F{color:#f85149}
+  .tier.A,.tier.S{color:var(--good-c);border-color:var(--good-c)} .tier.B{color:var(--gold)}
+  .tier.C{color:var(--warn-c)} .tier.D,.tier.E,.tier.F{color:var(--bad-c)}
 
   /* ── DETAIL ──────────────────────────────────────────────────────── */
   #detail { background:var(--panel); border:1px solid var(--line); border-radius:10px;
@@ -81,9 +160,9 @@
   #detail .sub { color:var(--dim); margin-bottom:14px; }
   .sect { margin:14px 0; }
   .sect b { color:var(--blue); font-size:13px; text-transform:uppercase; letter-spacing:.4px; }
-  .chip { display:inline-block; background:#1f2630; border:1px solid var(--line);
+  .chip { display:inline-block; background:var(--chip); border:1px solid var(--line);
     border-radius:14px; padding:3px 11px; margin:4px 4px 0 0; font-size:13px; }
-  .chip.u{ border-color:#5a4b1f; } .chip.t{ border-color:#2f4a30; }
+  .chip.u{ border-color:var(--line); } .chip.t{ border-color:var(--line); }
   table { width:100%; border-collapse:collapse; font-size:13px; margin-top:6px; }
   td { padding:4px 6px; border-bottom:1px solid var(--line); }
   td:last-child { text-align:right; color:var(--gold); font-weight:600; }
@@ -92,15 +171,15 @@
   #results { position:fixed; top:66px; right:24px; width:300px; background:var(--panel);
     border:1px solid var(--line); border-radius:8px; overflow:hidden; z-index:200; display:none; }
   #results div { padding:8px 12px; cursor:pointer; border-bottom:1px solid var(--line); }
-  #results div:hover { background:#1f2630; }
+  #results div:hover { background:var(--chip); }
   #results small { color:var(--dim); }
 
   /* ── CHAT ────────────────────────────────────────────────────────── */
   #chatlog { display:flex; flex-direction:column; gap:8px; margin-bottom:10px;
     max-height:340px; overflow-y:auto; }
   .msg { padding:9px 12px; border-radius:10px; font-size:14px; max-width:92%; }
-  .msg.user { align-self:flex-end; background:#1f3550; }
-  .msg.bot { align-self:flex-start; background:#1b222b; border:1px solid var(--line); }
+  .msg.user { align-self:flex-end; background:var(--dialog-black); }
+  .msg.bot { align-self:flex-start; background:var(--chip); border:1px solid var(--line); }
   .msg .src { margin-top:8px; color:var(--gold); font-size:12px; }
   .chatrow { display:flex; gap:8px; }
   #chatq { flex:1; background:var(--bg); border:1px solid var(--line); color:var(--ink);
@@ -109,7 +188,7 @@
     padding:0 18px; font-weight:700; cursor:pointer; }
   #chatsend:disabled { opacity:.5; cursor:default; }
   #chat-hints { display:flex; flex-wrap:wrap; gap:6px; margin-top:8px; }
-  .hint { background:#1f2630; border:1px solid var(--line); border-radius:14px;
+  .hint { background:var(--chip); border:1px solid var(--line); border-radius:14px;
     padding:4px 12px; font-size:12px; cursor:pointer; color:var(--dim); transition:.1s; }
   .hint:hover { border-color:var(--gold); color:var(--ink); }
 
@@ -119,7 +198,7 @@
   #graph-toolbar {
     position:absolute; top:12px; left:12px; right:12px; z-index:10;
     display:flex; align-items:center; gap:10px; flex-wrap:wrap;
-    background:rgba(22,27,34,.92); backdrop-filter:blur(6px);
+    background:var(--dialog-black); backdrop-filter:blur(6px);
     border:1px solid var(--line); border-radius:10px; padding:8px 14px;
   }
   #graph-title { color:var(--gold); font-weight:700; font-size:14px; margin-right:4px; }
@@ -137,13 +216,13 @@
   /* node details sidebar inside graph */
   #graph-side {
     position:absolute; top:60px; right:12px; width:260px; z-index:10;
-    background:rgba(22,27,34,.95); border:1px solid var(--line); border-radius:10px;
+    background:var(--dialog-black); border:1px solid var(--line); border-radius:10px;
     padding:14px; display:none;
   }
   #graph-side h4 { margin:0 0 6px; font-size:15px; }
   #graph-side .gs-type { color:var(--dim); font-size:12px; margin-bottom:10px; }
   #graph-side .gs-links { font-size:12px; color:var(--dim); }
-  #graph-side .gs-link { display:inline-block; background:#1f2630;
+  #graph-side .gs-link { display:inline-block; background:var(--chip);
     border:1px solid var(--line); border-radius:12px; padding:2px 9px;
     margin:3px 3px 0 0; cursor:pointer; font-size:12px; }
   #graph-side .gs-link:hover { border-color:var(--gold); color:var(--ink); }
@@ -192,28 +271,28 @@
   /* Chips de civilizaciones seleccionadas (multi-civ) */
   #cg-civ-chips { display:flex; flex-wrap:wrap; gap:5px; margin-top:8px; }
   .cg-civ-chip { display:inline-flex; align-items:center; gap:5px; font-size:12px;
-    background:#16202e; border:1px solid #2f5b87; color:#9ecbf0; border-radius:14px;
+    background:var(--chip); border:1px solid var(--blue); color:var(--blue); border-radius:14px;
     padding:2px 6px 2px 10px; }
-  .cg-civ-chip.player { border-color:var(--gold); color:var(--gold); background:#231d08; }
+  .cg-civ-chip.player { border-color:var(--gold); color:var(--gold); background:var(--sel-bg); }
   .cg-civ-chip button { background:none; border:none; color:inherit; cursor:pointer;
     font-size:14px; line-height:1; padding:0 2px; opacity:.7; }
   .cg-civ-chip button:hover { opacity:1; }
   .cg-civ-count { font-size:11px; color:var(--dim); align-self:center; }
-  .cg-qbtn:hover { border-color:var(--gold); background:#1a2030; }
-  .cg-qbtn.active { border-color:var(--gold); background:#2a1f00; box-shadow:0 0 0 1px var(--gold); }
+  .cg-qbtn:hover { border-color:var(--gold); background:var(--chip); }
+  .cg-qbtn.active { border-color:var(--gold); background:var(--sel-bg); box-shadow:0 0 0 1px var(--gold); }
   .cg-qbtn:disabled { opacity:.22; filter:grayscale(1); cursor:not-allowed; }
   .cg-qbtn:disabled:hover { background:var(--panel); }
   /* Color por tipo de unidad: genérica=celeste · regional=aguamarina · única=violeta */
-  .cg-qbtn.k-generic  { border-color:#2f5b87; }
-  .cg-qbtn.k-generic  span { color:#6bb6e8; }
-  .cg-qbtn.k-regional { border-color:#1f7a6e; background:#0e1a19; }
-  .cg-qbtn.k-regional span { color:#3fd6c4; }
-  .cg-qbtn.k-unique   { border-color:#6a3fb0; background:#15101f; }
-  .cg-qbtn.k-unique   span { color:#bd92f0; }
+  .cg-qbtn.k-generic  { border-color:var(--blue); }
+  .cg-qbtn.k-generic  span { color:var(--blue); }
+  .cg-qbtn.k-regional { border-color:var(--teal); background:var(--chip); }
+  .cg-qbtn.k-regional span { color:var(--teal); }
+  .cg-qbtn.k-unique   { border-color:var(--purple); background:var(--chip); }
+  .cg-qbtn.k-unique   span { color:var(--purple); }
   .cg-qbtn.k-generic:hover, .cg-qbtn.k-regional:hover, .cg-qbtn.k-unique:hover { border-color:var(--gold); }
   /* Botones UU dinámicos (por civ): violeta como las únicas */
-  .cg-qbtn.uu { border-color:#6a3fb0; background:#15101f; }
-  .cg-qbtn.uu span { color:#bd92f0; }
+  .cg-qbtn.uu { border-color:var(--purple); background:var(--chip); }
+  .cg-qbtn.uu span { color:var(--purple); }
   #cg-civ { background:var(--panel); border:1px solid var(--line); color:var(--ink);
     border-radius:8px; padding:0 10px; font-size:14px; max-width:190px; cursor:pointer; }
   #cg-civ:focus { border-color:var(--gold); outline:none; }
@@ -236,7 +315,7 @@
   .cx-unit-icon-sm { width:22px; height:22px; object-fit:contain; flex-shrink:0; }
   .cx-chips { display:flex; flex-direction:column; gap:6px; }
   .cx-chip { display:flex; align-items:center; gap:8px; padding:6px 10px;
-    background:#1b222b; border-radius:8px; border:1px solid; font-size:13px; }
+    background:var(--chip); border-radius:8px; border:1px solid; font-size:13px; }
   .cx-tier { font-weight:700; font-size:11px; min-width:72px; flex-shrink:0; }
   .cx-nota { color:var(--dim); font-size:12px; margin-left:auto; max-width:180px;
     text-align:right; }
@@ -257,7 +336,7 @@
     color:var(--ink); border-radius:8px; padding:9px 11px; font-size:14px; width:100%; }
   #mu-run, #mu-chat { background:var(--gold); color:#1a1a1a; border:0; border-radius:8px;
     padding:10px 14px; font-weight:700; cursor:pointer; width:100%; }
-  #mu-chat { margin-top:10px; background:#6baed6; }
+  #mu-chat { margin-top:10px; background:var(--blue); }
   #mu-run:disabled, #mu-chat:disabled { opacity:.55; cursor:default; }
   .mu-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; }
   .mu-section { background:var(--panel); border:1px solid var(--line); border-radius:8px; padding:14px; }
@@ -265,7 +344,7 @@
   .mu-title { display:flex; align-items:center; gap:10px; margin-bottom:10px; }
   .mu-title img { width:42px; height:42px; object-fit:contain; }
   .mu-title b { font-size:18px; }
-  .mu-line { display:inline-flex; align-items:center; gap:6px; background:#1b222b;
+  .mu-line { display:inline-flex; align-items:center; gap:6px; background:var(--chip);
     border:1px solid var(--line); border-radius:14px; padding:3px 9px; margin:3px; font-size:12px; }
   .mu-line img { width:20px; height:20px; object-fit:contain; }
   .mu-edge { display:grid; grid-template-columns:1fr auto 1fr; gap:8px; align-items:center;
@@ -274,46 +353,46 @@
   .mu-edge span:first-child, .mu-edge span:last-child { display:inline-flex; align-items:center; gap:5px; }
   .mu-edge img { width:20px; height:20px; object-fit:contain; flex-shrink:0; }
   .mu-score { font-weight:700; font-size:12px; }
-  .mu-score-strong { color:#3fb950; }
+  .mu-score-strong { color:var(--good-c); }
   .mu-score-mid    { color:var(--gold); }
-  .mu-score-weak   { color:#8b949e; }
+  .mu-score-weak   { color:var(--dim); }
   .mu-strength { font-size:10px; font-style:italic; opacity:.8; }
-  .mu-context { font-size:10px; background:#1b222b; border:1px solid var(--line); border-radius:8px; padding:1px 6px; color:var(--dim); }
-  .mu-tier-badge { font-size:10px; background:#2d333b; border:1px solid var(--line); border-radius:4px; padding:1px 6px; margin-left:6px; color:var(--gold); vertical-align:middle; }
+  .mu-context { font-size:10px; background:var(--chip); border:1px solid var(--line); border-radius:8px; padding:1px 6px; color:var(--dim); }
+  .mu-tier-badge { font-size:10px; background:var(--chip); border:1px solid var(--line); border-radius:4px; padding:1px 6px; margin-left:6px; color:var(--gold); vertical-align:middle; }
   .mu-note { color:var(--dim); font-size:12px; margin-top:2px; grid-column:1 / -1; }
   .mu-plan { margin:0; padding-left:18px; color:var(--ink); }
   .mu-plan li { margin:5px 0; }
   .mu-empty { color:var(--dim); font-size:13px; }
   .mu-exploit { border-left:3px solid var(--line); padding:7px 11px; margin:7px 0;
-    background:#111820; border-radius:0 4px 4px 0; }
-  .mu-exploit-green  { border-left-color:#3fb950; }
+    background:var(--sunk); border-radius:0 4px 4px 0; }
+  .mu-exploit-green  { border-left-color:var(--good-c); }
   .mu-exploit-yellow { border-left-color:var(--gold); }
-  .mu-exploit-red    { border-left-color:#8b949e; opacity:.7; }
+  .mu-exploit-red    { border-left-color:var(--dim); opacity:.7; }
   .mu-exploit-head { font-size:13px; }
   .mu-exploit-body { font-size:12px; margin-top:3px; display:flex; flex-wrap:wrap; gap:4px 14px; }
-  .mu-gap  { color:#3fb950; }
+  .mu-gap  { color:var(--good-c); }
   .mu-risk { color:var(--gold); }
   .mu-combos { margin-top:12px; border-top:1px dashed var(--line); padding-top:10px; }
   .mu-combos-title { font-size:11px; text-transform:uppercase; letter-spacing:.5px; color:var(--dim); margin-bottom:6px; }
   .mu-combo { font-size:13px; margin:5px 0; }
-  .mu-combo-canonical { background:#111820; border-radius:6px; padding:8px 11px; margin:6px 0; border-left:3px solid var(--gold); }
+  .mu-combo-canonical { background:var(--sunk); border-radius:6px; padding:8px 11px; margin:6px 0; border-left:3px solid var(--gold); }
   .mu-combo-name { font-size:13px; margin-bottom:4px; }
   .mu-combo-why { font-size:12px; color:var(--dim); line-height:1.5; }
   .mu-bonus { font-size:10px; font-weight:600; border-radius:3px; padding:1px 5px; margin-left:6px; vertical-align:middle; }
-  .mu-bonus-propio { color:#ffd700; background:rgba(255,215,0,.13); }
-  .mu-bonus-ajeno  { color:#f85149; background:rgba(248,81,73,.13); }
-  .mu-eco-summary  { font-size:10px; color:#8b949e; padding:4px 0 0; border-top:1px solid #30363d; margin-top:6px; }
-  .mu-composition { background:#0d1117; border:1px solid var(--line); border-radius:8px; padding:10px 14px; margin-bottom:12px; }
+  .mu-bonus-propio { color:var(--gold); background:rgba(198,155,69,.16); }
+  .mu-bonus-ajeno  { color:var(--bad-c); background:rgba(155,43,26,.13); }
+  .mu-eco-summary  { font-size:10px; color:var(--dim); padding:4px 0 0; border-top:1px solid var(--line); margin-top:6px; }
+  .mu-composition { background:var(--sunk); border:1px solid var(--line); border-radius:8px; padding:10px 14px; margin-bottom:12px; }
   .mu-comp-title { font-size:11px; text-transform:uppercase; letter-spacing:.5px; color:var(--dim); margin-bottom:8px; }
   .mu-comp-slots { display:flex; gap:10px; flex-wrap:wrap; }
   .mu-comp-slot { flex:1; min-width:100px; border-radius:6px; padding:8px 10px; display:flex; flex-direction:column; gap:2px; border:1px solid var(--line); }
-  .mu-comp-gold  { border-color:#3fb950; background:rgba(63,185,80,.08); }
-  .mu-comp-trash { border-color:#58a6ff; background:rgba(88,166,255,.08); }
-  .mu-comp-siege { border-color:#f85149; background:rgba(248,81,73,.08); }
+  .mu-comp-gold  { border-color:var(--good-c); background:rgba(61,107,23,.1); }
+  .mu-comp-trash { border-color:var(--blue); background:rgba(42,93,134,.1); }
+  .mu-comp-siege { border-color:var(--bad-c); background:rgba(155,43,26,.1); }
   .mu-comp-icon { font-size:16px; }
   .mu-comp-role { font-size:10px; text-transform:uppercase; letter-spacing:.5px; color:var(--dim); margin-left:6px; }
   .mu-source { border-left:2px solid var(--gold); padding:6px 10px; margin:8px 0;
-    color:var(--dim); font-size:12px; background:#111820; }
+    color:var(--dim); font-size:12px; background:var(--sunk); }
   .mu-source-link { cursor:pointer; text-decoration:underline dotted; color:var(--ink); }
   .mu-source-link:hover { color:var(--gold); }
   @media(max-width:900px){ .mu-shell{ grid-template-columns:1fr; } .mu-grid{ grid-template-columns:1fr; } }
@@ -324,21 +403,21 @@
   .mup-col { display:flex; flex-direction:column; gap:8px; }
   .mup-civ-head { font-size:14px; font-weight:700; color:var(--gold);
     border-bottom:1px solid var(--line); padding-bottom:8px; margin-bottom:2px; }
-  .mup-card { background:#111820; border:1px solid var(--line); border-radius:8px;
+  .mup-card { background:var(--sunk); border:1px solid var(--line); border-radius:8px;
     padding:12px 14px; display:flex; flex-direction:column; gap:5px; }
-  .mup-card.plan-a { border-left:3px solid #3fb950; }
+  .mup-card.plan-a { border-left:3px solid var(--good-c); }
   .mup-card.plan-b { border-left:3px solid var(--gold); }
   .mup-plan-label { font-size:9px; font-weight:800; text-transform:uppercase;
     letter-spacing:1px; }
-  .mup-card.plan-a .mup-plan-label { color:#3fb950; }
+  .mup-card.plan-a .mup-plan-label { color:var(--good-c); }
   .mup-card.plan-b .mup-plan-label { color:var(--gold); }
   .mup-plan-subtitle { font-size:10px; color:var(--dim); font-weight:400;
     text-transform:none; letter-spacing:0; margin-left:4px; }
   .mup-plan-main { font-size:15px; font-weight:700; color:var(--ink); line-height:1.3; margin-top:2px; }
   .mup-plan-detail { display:flex; flex-direction:column; gap:3px; margin-top:3px; }
-  .mup-plan-gap    { font-size:12px; color:#3fb950; }
-  .mup-plan-recipe { font-size:12px; color:#6baed6; }
-  .mup-plan-uu     { font-size:12px; color:#9e9ac8; }
+  .mup-plan-gap    { font-size:12px; color:var(--good-c); }
+  .mup-plan-recipe { font-size:12px; color:var(--blue); }
+  .mup-plan-uu     { font-size:12px; color:var(--purple); }
   .mup-plan-risk   { font-size:12px; color:var(--gold); }
   .mup-plan-trigger{ font-size:11px; color:var(--dim); font-style:italic; }
   .mup-plan-pivot  { font-size:14px; font-weight:600; color:var(--ink); }
@@ -363,21 +442,147 @@
   .mn-item:hover, .mn-item.active { color:var(--gold); }
   .mn-icon { font-size:20px; }
 </style>
+<style id="aoe-theme">
+  /* ═══ Tema AoE2 — docs/GUIA-DE-ESTILO.md de Aoe2-Tech-Tree-Advanced ═══════
+     Madera = fondo · negro de diálogo = barras y overlays · pergamino = fichas
+     de contenido · papiro = controles · rojo = acciones · oro = selección.
+     Cinzel para títulos, Crimson Pro para texto, esquinas rectas. */
+  *, *::before, *::after { border-radius:0 !important; }
+  body { font:16px/1.5 var(--font-body); color:var(--ink);
+    background:var(--wood); background-attachment:fixed; background-color:#2b170d; }
+  h2, h3, h4, .sb-brand, .cg-unit-name, #graph-title, .mup-civ-head, .calc-title, .mu-title b {
+    font-family:var(--font-display); letter-spacing:.04em; }
+  .col h2, .cg-top h2, .mu-panel h2, .mu-section h3, .calc-title { font-weight:700; color:var(--dim); }
+  ::selection { background:rgba(138,24,18,.3); }
+  :focus-visible { outline:2px solid var(--parch-100); outline-offset:2px; }
+
+  /* Barra de desplazamiento de acero (copiada del árbol) */
+  ::-webkit-scrollbar { width: 16px; height: 16px; }
+  ::-webkit-scrollbar-track {
+    background: linear-gradient(90deg, #120c08, #2a211a 45%, #1c140e);
+    box-shadow: inset 1px 0 0 #050302;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: var(--sb-knob) center / 14px 14px no-repeat, linear-gradient(90deg, #3b332c, #6f665d 50%, #3b332c);
+    border: 1px solid #050302;
+    box-shadow: inset 0 0 0 1px rgba(255, 250, 240, 0.12);
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--sb-knob) center / 14px 14px no-repeat, linear-gradient(90deg, #4a4139, #867c72 50%, #4a4139);
+  }
+  ::-webkit-scrollbar-button:single-button {
+    display: block;
+    width: 16px; height: 16px;
+    background: #1c140e var(--sb-up) center / 16px 16px no-repeat;
+  }
+  ::-webkit-scrollbar-button:single-button:vertical:increment { background-image: var(--sb-down); }
+  ::-webkit-scrollbar-button:vertical:start:increment,
+  ::-webkit-scrollbar-button:vertical:end:decrement,
+  ::-webkit-scrollbar-button:horizontal { display: none; }
+  ::-webkit-scrollbar-track:horizontal { background: linear-gradient(180deg, #120c08, #2a211a 45%, #1c140e); box-shadow: inset 0 1px 0 #050302; }
+  ::-webkit-scrollbar-thumb:horizontal { background: var(--sb-knob) center / 14px 14px no-repeat, linear-gradient(180deg, #3b332c, #6f665d 50%, #3b332c); }
+  ::-webkit-scrollbar-corner { background: #120c08; }
+  /* Firefox no permite botones ni imágenes: al menos los mismos colores */
+  @supports not selector(::-webkit-scrollbar) {
+    * { scrollbar-color: #6f665d #1c140e; }
+  }
+
+  /* Barras laterales / cabecera sobre la madera */
+  #sidebar { background:rgba(10,6,3,.88); border-right:1px solid var(--gold-line);
+    box-shadow:1px 0 0 #0b0603, 6px 0 18px rgba(0,0,0,.4); }
+  .sb-brand { color:var(--gold-text); border-bottom-color:var(--hair); }
+  .sb-item { font-family:var(--font-display); font-weight:600; letter-spacing:.03em; }
+  .sb-item:hover { background:rgba(138,24,18,.35); color:var(--on-dark); }
+  .sb-item.active { background:rgba(198,155,69,.1); color:var(--gold-text); border-left-color:var(--gold); }
+  header { border-bottom:1px solid var(--gold-line); box-shadow:0 1px 0 #0b0603; }
+  .mob-title { font-family:var(--font-display); } .mob-title span { color:var(--gold-text); }
+  #mobile-nav { background:rgba(10,6,3,.94); border-top-color:var(--gold-line); }
+  .mn-item { font-family:var(--font-display); }
+  .mn-item:hover, .mn-item.active { color:var(--gold-text); }
+
+  /* Fichas de pergamino: redefinen las variables → las reglas existentes
+     (que usan --ink, --dim, --line, --gold…) pasan a tinta sobre papel.
+     Sobre papiro el oro no se lee: la selección/acento va en rojo. */
+  /* html body: gana sobre los <style> propios de cada vista (p.ej. la calculadora). */
+  html body :is(.card, #detail, .cx-card, .mu-panel, .mu-section, .calc-panel, #calc-supply, #cg-panel, .msg.bot) {
+    --ink:var(--ink-900); --dim:var(--ink-500); --line:var(--rule);
+    --panel:rgba(255,248,228,.3); --bg:rgba(255,248,228,.45);
+    --chip:rgba(255,248,228,.42); --sunk:rgba(75,51,28,.07); --sel-bg:rgba(138,24,18,.1);
+    --good-c:#3d6b17; --bad-c:#9b2b1a; --warn-c:#83551d;
+    --blue:#2a5d86; --teal:#2e6a45; --green:#3d6b17; --purple:#5d2a63; --wood-c:#83551d;
+    --gold:var(--red-500);
+    color:var(--ink); background:var(--parchment);
+    border:1px solid var(--gold-line); box-shadow:0 0 0 1px #0b0603, var(--burnt-edge);
+  }
+  .card:hover { transform:none; box-shadow:0 0 0 1px #0b0603, var(--burnt-edge), inset 3px 0 0 var(--red-500); }
+  .sect b { font-family:var(--font-display); }
+  .msg { font-size:15px; }
+  .msg.user { background:var(--dialog-black); border:1px solid var(--gold); color:var(--on-dark); }
+  #cg-panel { box-shadow:inset -1px 0 0 var(--gold-line); border:0; }
+  .mu-exploit, .mu-combo-canonical, .mup-card, .mu-source, .mu-composition { background:var(--sunk); }
+
+  /* Controles: papiro */
+  html body :is(#search, #chatq, #counter-input, #cg-civ, .mu-field select, .mu-field input, #view-calc select, .sup-pass input, .contrib-row input) {
+    background:var(--papyrus); color:var(--papyrus-text); border:1px solid rgba(58,28,14,.55);
+    font-family:var(--font-body); font-weight:600; font-size:15px;
+    box-shadow:inset 0 0 0 1px rgba(255,246,222,.35), 0 1px 0 rgba(0,0,0,.15); }
+  #search::placeholder, #chatq::placeholder, #counter-input::placeholder, .mu-field input::placeholder {
+    color:rgba(58,28,14,.6); font-style:italic; font-weight:400; }
+  #cg-civ:focus, #search:focus-visible, #chatq:focus-visible, #counter-input:focus-visible,
+  .mu-field select:focus-visible, .mu-field input:focus-visible { outline:2px solid var(--red-500); outline-offset:1px; }
+  #results { background:var(--papyrus); color:var(--papyrus-text); border:1px solid rgba(58,28,14,.6);
+    box-shadow:0 0 0 1px #0b0603, 0 10px 24px rgba(0,0,0,.5); }
+  #results div { border-bottom-color:rgba(58,28,14,.18); font-weight:600; }
+  #results div:hover { background:rgba(58,28,14,.14); color:var(--red-500); }
+  #results small { color:rgba(58,28,14,.65); }
+
+  /* Botón de acción: rojo profundo con filete dorado (menú del juego) */
+  #chatsend, #counter-btn, #mu-run, .graph-btn.primary, .calc-btn.primary {
+    background:linear-gradient(180deg,#8c1a13 0%,#6a0e0a 48%,#4c0706 100%) !important;
+    border:1px solid var(--gold) !important; color:var(--btn-text) !important;
+    box-shadow:0 0 0 1px #0b0503, inset 0 0 0 1px rgba(20,2,1,.6), inset 0 0 14px rgba(20,0,0,.55), 0 3px 8px rgba(0,0,0,.35);
+    font-family:var(--font-display); font-weight:700; letter-spacing:.05em;
+    text-shadow:0 1px 0 #1c0302, 0 0 4px rgba(0,0,0,.7); }
+  #chatsend:hover, #counter-btn:hover, #mu-run:hover, .graph-btn.primary:hover, .calc-btn.primary:hover {
+    background:linear-gradient(180deg,#a3241a 0%,#7b140e 48%,#5a0a08 100%) !important; }
+  #chatsend:disabled, #mu-run:disabled { opacity:.55; }
+  #mu-chat { background:transparent; color:var(--ink); border:1px solid var(--rule);
+    font-family:var(--font-display); font-weight:700; }
+  #mu-chat:hover:not(:disabled) { border-color:var(--red-500); color:var(--red-500); }
+  .graph-btn, .calc-btn, .hint { font-family:var(--font-body); }
+  .graph-btn:hover, .hint:hover, .calc-btn:hover { border-color:var(--red-500); background:rgba(138,24,18,.3); color:var(--on-dark); }
+  .calc-btn:hover { color:var(--ink); }
+  .calc-total b, .res-v, .calc-step .n { font-variant-numeric:lining-nums tabular-nums; }
+
+  /* Grafos: se dibujan sobre pergamino, como el árbol */
+  #view-graph, #cy-counters { background:transparent; }
+  #cy, #cy-counters { background:var(--parchment); box-shadow:inset 0 0 0 1px var(--gold-line), var(--burnt-edge); }
+  #graph-toolbar, #graph-side { border-color:var(--gold); box-shadow:0 0 0 1px #000, 0 10px 24px rgba(0,0,0,.5); }
+  #graph-title { color:var(--gold-text); }
+  #graph-side h4 { font-family:var(--font-display); color:var(--gold-text); }
+</style>
 </head>
 <body>
 
 <!-- Cytoscape.js para la visualización del grafo -->
 <script src="/cytoscape.min.js"></script>
-<!-- IMG_MAP del árbol: cargado dinámicamente (el módulo usa export, no es compatible con <script src>) -->
-<script>
-fetch('/tree/src/data/img_map.js').then(r=>r.text()).then(t=>{
+<!-- IMG_MAP del árbol: desde el Update 185872 no hay img_map.js; el módulo de datos
+     (data/index.js) publica window.NODES / window.IMG_MAP y de ahí se arma el mapa
+     id → ícono. Se agregan los alias viejos que siguen usando los counters/UUs. -->
+<script type="module">
+import('/tree/src/data/index.js').then(() => {
   try {
-    eval(t.replace(/\bconst IMG_MAP\b/,'window.IMG_MAP')
-          .replace(/export\s*\{[^}]*\}\s*;?/g,''));
+    window.IMG_MAP = {
+      ...Object.fromEntries((window.NODES || []).filter(n => n.imgPath).map(n => [n.id, n.imgPath])),
+      ...(window.IMG_MAP || {}),
+      liao_dao: 'img/Unit/463.png',
+      white_feather: 'img/Unit/434.png',
+      longboat: 'img/Unit/40.png',   // renombrado a longship en el Update 185872
+    };
     renderQuickBar();
     if (typeof renderCivChips === 'function') renderCivChips();
   } catch(e){ console.warn('IMG_MAP load error',e); }
-}).catch(()=>{});
+}).catch((e) => console.warn('IMG_MAP load error', e));
 </script>
 
 <!-- SIDEBAR -->
@@ -495,12 +700,12 @@ fetch('/tree/src/data/img_map.js').then(r=>r.text()).then(t=>{
       <span id="graph-title">Seleccioná una civilización o nodo para explorar</span>
       <button class="graph-btn" id="graph-fit">⊞ Fit</button>
       <div id="graph-legend">
-        <span class="leg"><span class="leg-dot" style="background:#e8b84b"></span>Civ</span>
-        <span class="leg"><span class="leg-dot" style="background:#6baed6"></span>Unit</span>
-        <span class="leg"><span class="leg-dot" style="background:#9e9ac8"></span>Strategy</span>
-        <span class="leg"><span class="leg-dot" style="background:#74c476"></span>Tech</span>
-        <span class="leg"><span class="leg-dot" style="background:#fd8d3c"></span>Building</span>
-        <span class="leg"><span class="leg-dot" style="background:#8b949e"></span>Otros</span>
+        <span class="leg"><span class="leg-dot" style="background:#8a1812"></span>Civ</span>
+        <span class="leg"><span class="leg-dot" style="background:#2a5d86"></span>Unit</span>
+        <span class="leg"><span class="leg-dot" style="background:#5d2a63"></span>Strategy</span>
+        <span class="leg"><span class="leg-dot" style="background:#2e6a45"></span>Tech</span>
+        <span class="leg"><span class="leg-dot" style="background:#7b3a22"></span>Building</span>
+        <span class="leg"><span class="leg-dot" style="background:#6f5234"></span>Otros</span>
       </div>
       <span id="graph-hint">Click en un nodo → explorar sus conexiones</span>
     </div>
@@ -539,13 +744,13 @@ fetch('/tree/src/data/img_map.js').then(r=>r.text()).then(t=>{
     <div id="cg-layout">
       <div id="cg-panel">
         <div id="cg-legend">
-          <div class="cg-leg" style="font-weight:600;color:#c9d1d9">🛡️ La counterean (izq.)</div>
-          <div class="cg-leg"><span class="cg-dot" style="background:#f85149"></span>Hard (Primario)</div>
-          <div class="cg-leg"><span class="cg-dot" style="background:#e8b84b"></span>Sólido</div>
-          <div class="cg-leg"><span class="cg-dot" style="background:#8b949e"></span>Situacional</div>
-          <div class="cg-leg" style="font-weight:600;color:#c9d1d9;margin-top:4px">⚔️ Es fuerte contra (der.)</div>
-          <div class="cg-leg"><span class="cg-dot" style="background:#3fb950"></span>Fuerte (Primario)</div>
-          <div class="cg-leg"><span class="cg-dot" style="background:#3aa17a"></span>Levemente fuerte</div>
+          <div class="cg-leg" style="font-weight:600;color:var(--ink)">🛡️ La counterean (izq.)</div>
+          <div class="cg-leg"><span class="cg-dot" style="background:#9b2b1a"></span>Hard (Primario)</div>
+          <div class="cg-leg"><span class="cg-dot" style="background:#83551d"></span>Sólido</div>
+          <div class="cg-leg"><span class="cg-dot" style="background:#6f5234"></span>Situacional</div>
+          <div class="cg-leg" style="font-weight:600;color:var(--ink);margin-top:4px">⚔️ Es fuerte contra (der.)</div>
+          <div class="cg-leg"><span class="cg-dot" style="background:#3d6b17"></span>Fuerte (Primario)</div>
+          <div class="cg-leg"><span class="cg-dot" style="background:#53682a"></span>Levemente fuerte</div>
         </div>
         <div id="cg-quickbar"></div>
         <div id="cg-detail"><p class="cg-ph">Buscá una unidad para ver el grafo de counters.</p></div>
@@ -569,7 +774,7 @@ fetch('/tree/src/data/img_map.js').then(r=>r.text()).then(t=>{
       .calc-panel { background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:14px; }
       .calc-add { display:flex; gap:8px; margin-bottom:12px; }
       .calc-add select { flex:1; }
-      .calc-btn { background:#1f2630; border:1px solid var(--line); color:var(--ink);
+      .calc-btn { background:var(--chip); border:1px solid var(--line); color:var(--ink);
         padding:8px 12px; border-radius:8px; cursor:pointer; font-size:14px; }
       .calc-btn:hover { border-color:var(--gold); }
       .calc-btn.primary { background:var(--gold); color:#111; border-color:var(--gold); font-weight:600; }
@@ -579,23 +784,23 @@ fetch('/tree/src/data/img_map.js').then(r=>r.text()).then(t=>{
       .calc-row .nm small { color:var(--dim); font-size:11px; display:block; }
       .calc-step { display:flex; align-items:center; gap:6px; }
       .calc-step button { width:26px; height:26px; border-radius:6px; border:1px solid var(--line);
-        background:#1f2630; color:var(--ink); cursor:pointer; font-size:15px; line-height:1; }
+        background:var(--chip); color:var(--ink); cursor:pointer; font-size:15px; line-height:1; }
       .calc-step button:hover { border-color:var(--gold); }
       .calc-step .n { min-width:20px; text-align:center; font-weight:600; }
       .calc-x { color:var(--dim); cursor:pointer; font-size:16px; padding:0 4px; }
-      .calc-x:hover { color:#f85149; }
+      .calc-x:hover { color:var(--bad-c); }
       .calc-empty { color:var(--dim); font-size:13px; padding:10px 0; }
       .calc-total { font-size:15px; margin-bottom:12px; }
       .calc-total b { font-size:26px; color:var(--gold); }
       .res-row { display:grid; grid-template-columns:70px 1fr 46px; align-items:center; gap:10px; margin:9px 0; }
       .res-row .lbl { font-size:13px; text-transform:capitalize; }
       .res-row .lbl small { color:var(--dim); display:block; font-size:10px; text-transform:none; }
-      .res-bar { height:20px; background:#0e1116; border-radius:5px; overflow:hidden; border:1px solid var(--line); }
+      .res-bar { height:20px; background:var(--sunk); border-radius:5px; overflow:hidden; border:1px solid var(--line); }
       .res-bar > span { display:block; height:100%; }
       .res-v { text-align:right; font-weight:700; font-size:16px; }
-      .res-row.bottleneck .res-v { color:#f0883e; }
-      .food span{background:var(--green);} .wood span{background:#b98a4b;}
-      .gold span{background:var(--gold);} .stone span{background:#8b949e;}
+      .res-row.bottleneck .res-v { color:var(--warn-c); }
+      .food span{background:var(--green);} .wood span{background:var(--wood-c);}
+      .gold span{background:var(--gold);} .stone span{background:var(--dim);}
       .calc-notes { margin-top:12px; padding-top:10px; border-top:1px solid var(--line);
         font-size:12px; color:var(--dim); }
       .calc-notes div { margin:5px 0; }
@@ -611,7 +816,7 @@ fetch('/tree/src/data/img_map.js').then(r=>r.text()).then(t=>{
         margin:0 12px 6px 0; color:var(--dim); cursor:pointer; }
       .sup-pass { display:flex; gap:14px; flex-wrap:wrap; padding:10px 0 14px; border-top:1px solid var(--line); }
       .sup-pass label { display:flex; align-items:center; gap:6px; font-size:12px; color:var(--dim); }
-      .sup-pass input, .contrib-row input { width:60px; background:#0e1116; border:1px solid var(--line); color:var(--ink);
+      .sup-pass input, .contrib-row input { width:60px; background:var(--sunk); border:1px solid var(--line); color:var(--ink);
         padding:6px 8px; border-radius:6px; }
       /* iconos */
       .ic { width:24px; height:24px; object-fit:contain; vertical-align:middle; image-rendering:auto; }
@@ -622,14 +827,14 @@ fetch('/tree/src/data/img_map.js').then(r=>r.text()).then(t=>{
         color:var(--dim); margin:10px 0 6px; }
       .pick-grid { display:flex; flex-wrap:wrap; gap:6px; }
       .pick-b { width:60px; display:flex; flex-direction:column; align-items:center; gap:3px;
-        padding:6px 2px; border:1px solid var(--line); border-radius:8px; background:#1b2029;
+        padding:6px 2px; border:1px solid var(--line); border-radius:8px; background:var(--chip);
         cursor:pointer; transition:.1s; }
-      .pick-b:hover { border-color:var(--gold); background:#222a35; }
+      .pick-b:hover { border-color:var(--gold); background:var(--chip); }
       .pick-b.on { border-color:var(--gold); box-shadow:inset 0 0 0 1px var(--gold); }
       .pick-b .lb { font-size:10px; color:var(--dim); text-align:center; line-height:1.1;
         max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
       .pick-b .badge { position:relative; }
-      .pick-b .cnt { position:absolute; top:-6px; right:-8px; background:var(--gold); color:#111;
+      .pick-b .cnt { position:absolute; top:-6px; right:-8px; background:var(--gold); color:var(--btn-text);
         font-size:10px; font-weight:700; border-radius:8px; padding:0 4px; min-width:14px; text-align:center; }
       .pick-b.regional { border-left:2px solid var(--blue); }
       .pick-b.unique { border-left:2px solid var(--purple); }
@@ -1545,46 +1750,46 @@ async function searchCounterGraph() {
       style: [
         { selector: 'node', style: {
           'label': 'data(label)', 'text-valign':'bottom', 'text-halign':'center',
-          'font-size':'10px', 'color':'#e6e6e6',
-          'text-outline-color':'#0e1116', 'text-outline-width':'1.5px',
-          'border-width':2, 'border-color':'#262d36',
+          'font-size':'10px', 'color':'#22150b', 'font-family':'Crimson Pro, Georgia, serif', 'font-weight':600,
+          'text-outline-color':'#ecdcb6', 'text-outline-width':'1.5px',
+          'border-width':2, 'border-color':'#4b331c',
           'background-image':'data(imgSrc)', 'background-fit':'contain',
           'background-clip':'none',
         }},
         { selector: 'node[type="center"]', style: {
-          'background-color':'#3d3010', 'border-color':'#e8b84b', 'border-width':3,
+          'background-color':'#ecdcb6', 'border-color':'#c69b45', 'border-width':3,
           'width':80, 'height':80, 'font-size':'12px', 'font-weight':'bold',
         }},
         { selector: 'node[type="hard"]', style: {
-          'background-color':'#3d1515', 'border-color':'#f85149', 'width':60, 'height':60,
+          'background-color':'#e7c9b8', 'border-color':'#9b2b1a', 'width':60, 'height':60,
         }},
         { selector: 'node[type="soft"]', style: {
-          'background-color':'#2d2510', 'border-color':'#e8b84b', 'width':52, 'height':52,
+          'background-color':'#e6d2ae', 'border-color':'#83551d', 'width':52, 'height':52,
         }},
         { selector: 'node[type="situational"]', style: {
-          'background-color':'#1a2230', 'border-color':'#8b949e', 'width':44, 'height':44,
+          'background-color':'#e4d6ba', 'border-color':'#6f5234', 'width':44, 'height':44,
         }},
         // Dirección "vence a" (verde): fuerte / levemente fuerte
         { selector: 'node[type="beats-hard"]', style: {
-          'background-color':'#10301a', 'border-color':'#3fb950', 'width':60, 'height':60,
+          'background-color':'#d6dcb4', 'border-color':'#3d6b17', 'width':60, 'height':60,
         }},
         { selector: 'node[type="beats-soft"]', style: {
-          'background-color':'#15281d', 'border-color':'#3aa17a', 'width':52, 'height':52,
+          'background-color':'#dbdcb8', 'border-color':'#53682a', 'width':52, 'height':52,
         }},
         { selector: 'node[type="beats-situational"]', style: {
-          'background-color':'#16241f', 'border-color':'#6fa890', 'width':44, 'height':44,
+          'background-color':'#d9d9c0', 'border-color':'#2a5d86', 'width':44, 'height':44,
         }},
-        { selector: 'node:selected', style: { 'border-color':'#6baed6', 'border-width':3 }},
+        { selector: 'node:selected', style: { 'border-color':'#8a1812', 'border-width':3 }},
         { selector: 'edge', style: {
           'curve-style':'bezier', 'target-arrow-shape':'triangle',
-          'line-color':'#2d3748', 'target-arrow-color':'#2d3748',
+          'line-color':'#4b331c', 'target-arrow-color':'#4b331c',
           'width':'mapData(weight, 0.5, 0.9, 1.5, 4.5)', 'opacity':0.8,
         }},
-        { selector: 'edge[strength="hard"]',  style: { 'line-color':'#6d1a1a', 'target-arrow-color':'#6d1a1a' }},
-        { selector: 'edge[strength="soft"]',  style: { 'line-color':'#5a4a10', 'target-arrow-color':'#5a4a10' }},
-        { selector: 'edge[strength="beats-hard"]', style: { 'line-color':'#1a6d33', 'target-arrow-color':'#1a6d33' }},
-        { selector: 'edge[strength="beats-soft"]', style: { 'line-color':'#155a3a', 'target-arrow-color':'#155a3a' }},
-        { selector: 'edge[strength="beats-situational"]', style: { 'line-color':'#1f3a30', 'target-arrow-color':'#1f3a30' }},
+        { selector: 'edge[strength="hard"]',  style: { 'line-color':'#9b2b1a', 'target-arrow-color':'#9b2b1a' }},
+        { selector: 'edge[strength="soft"]',  style: { 'line-color':'#83551d', 'target-arrow-color':'#83551d' }},
+        { selector: 'edge[strength="beats-hard"]', style: { 'line-color':'#3d6b17', 'target-arrow-color':'#3d6b17' }},
+        { selector: 'edge[strength="beats-soft"]', style: { 'line-color':'#53682a', 'target-arrow-color':'#53682a' }},
+        { selector: 'edge[strength="beats-situational"]', style: { 'line-color':'#2a5d86', 'target-arrow-color':'#2a5d86' }},
       ],
       layout: {
         name: 'preset',
@@ -1605,18 +1810,18 @@ async function searchCounterGraph() {
       }
       const isBeats = n.data('dir') === 'beats';
       const colors = isBeats
-        ? { hard:'#3fb950', soft:'#3aa17a', situational:'#6fa890' }
-        : { hard:'#f85149', soft:'#e8b84b', situational:'#8b949e' };
+        ? { hard:'#3d6b17', soft:'#53682a', situational:'#2a5d86' }
+        : { hard:'#9b2b1a', soft:'#83551d', situational:'#6f5234' };
       const strengthOf = w => w >= 0.9 ? 'hard' : w >= 0.65 ? 'soft' : 'situational';
       const rel = isBeats
-        ? `<div class="cg-weight" style="color:#3fb950">⚔️ <b>${esc(data.heading)}</b> es fuerte contra esta unidad</div>`
-        : `<div class="cg-weight" style="color:#f85149">🛡️ contrarresta a <b>${esc(data.heading)}</b></div>`;
+        ? `<div class="cg-weight" style="color:#3d6b17">⚔️ <b>${esc(data.heading)}</b> es fuerte contra esta unidad</div>`
+        : `<div class="cg-weight" style="color:#9b2b1a">🛡️ contrarresta a <b>${esc(data.heading)}</b></div>`;
       const ctxs = n.data('contexts') || [{
         context: n.data('context') || 'general', tier: n.data('tier'),
         weight: n.data('weight'), nota: n.data('nota'),
       }];
       const blocks = ctxs.map(x => {
-        const c = colors[strengthOf(x.weight)] || '#8b949e';
+        const c = colors[strengthOf(x.weight)] || '#6f5234';
         return `
           <span class="cg-tier-badge" style="color:${c};border-color:${c};background:${c}18">
             ${esc(x.tier)}${ctxs.length > 1 ? ` · ${esc(x.context)}` : ''}
@@ -1698,7 +1903,7 @@ function tierColor(tier) {
   if (t.includes('primario'))  return 'var(--green)';
   if (t.includes('sólido') || t.includes('solido') ||
       t.includes('secundario') || t.includes('muy sólido')) return 'var(--gold)';
-  if (t.includes('evitar'))   return '#f85149';
+  if (t.includes('evitar'))   return '#9b2b1a';
   return 'var(--dim)';
 }
 
@@ -1757,11 +1962,11 @@ document.getElementById("counter-input").oninput =
 
 // ── GRAPH VIEW ────────────────────────────────────────────────────────
 const NODE_COLORS = {
-  civs:'#e8b84b', units:'#6baed6', strategies:'#9e9ac8',
-  technologies:'#74c476', buildings:'#fd8d3c', maps:'#41b3d5',
-  counters:'#fc4e2a', players:'#d6604d',
+  civs:'#8a1812', units:'#2a5d86', strategies:'#5d2a63',
+  technologies:'#2e6a45', buildings:'#7b3a22', maps:'#53682a',
+  counters:'#83551d', players:'#792243',
 };
-function nodeColor(type) { return NODE_COLORS[type] || '#8b949e'; }
+function nodeColor(type) { return NODE_COLORS[type] || '#6f5234'; }
 
 let cy = null;
 const graphStack = []; // historial de paths para "Atrás"
@@ -1774,25 +1979,25 @@ function initCy() {
     style: [
       { selector: 'node', style: {
         'label': 'data(label)', 'background-color': 'data(color)',
-        'color': '#e6e6e6', 'font-size': '11px',
+        'color': '#22150b', 'font-size': '11px', 'font-family': 'Crimson Pro, Georgia, serif', 'font-weight': 600,
         'text-valign': 'bottom', 'text-margin-y': '5px',
-        'text-outline-color': '#0e1116', 'text-outline-width': '1px',
+        'text-outline-color': '#ecdcb6', 'text-outline-width': '1px',
         'width': 'data(sz)', 'height': 'data(sz)',
-        'border-width': 1, 'border-color': '#262d36',
+        'border-width': 1, 'border-color': '#4b331c',
       }},
       { selector: 'node.focal', style: {
-        'border-width': 3, 'border-color': '#e8b84b',
+        'border-width': 3, 'border-color': '#c69b45',
         'font-size': '13px', 'font-weight': 'bold',
       }},
       { selector: 'node:selected', style: {
-        'border-width': 3, 'border-color': '#6baed6',
+        'border-width': 3, 'border-color': '#8a1812',
       }},
       { selector: 'edge', style: {
-        'line-color': '#2d3748', 'target-arrow-color': '#2d3748',
+        'line-color': '#4b331c', 'target-arrow-color': '#4b331c',
         'target-arrow-shape': 'triangle', 'curve-style': 'bezier',
         'width': 1.2, 'opacity': 0.7,
-        'label': 'data(label)', 'font-size': '9px', 'color': '#8b949e',
-        'text-rotation': 'autorotate', 'text-outline-color': '#0e1116',
+        'label': 'data(label)', 'font-size': '9px', 'color': '#6f5234',
+        'text-rotation': 'autorotate', 'text-outline-color': '#ecdcb6',
         'text-outline-width': '1px',
       }},
     ],
@@ -1913,7 +2118,11 @@ const CAT_ES = {
 const CAT_ORDER = ['barracks','archery','stable','siege','dock','monastery','castle','market',
                    'tc','economy','military','defense','special'];
 // Iconos (servidos same-origin desde el árbol vendorizado y /img/civs).
-const UIMG = p => p ? `/tree/${p}` : '/tree/img/missing.png';
+// Ícono de reemplazo embebido (el árbol ya no trae img/missing.png desde el
+// Update 185872). El onerror se anula tras el primer intento: si el reemplazo
+// también fallara, no entra en bucle de pedidos.
+const MISSING_IMG = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect x='1.5' y='1.5' width='21' height='21' fill='%23ecdcb6' stroke='%234b331c'/%3E%3Cpath d='M12 6.5L15.5 12L12 17.5L8.5 12Z' fill='none' stroke='%236f5234' stroke-width='1.2'/%3E%3C/svg%3E";
+const UIMG = p => p ? `/tree/${p}` : MISSING_IMG;
 const RIMG = r => `/tree/img/${r}.png`;
 const EMB  = slug => `/img/civs/${encodeURIComponent(slug)}.png`;
 const resIco = r => `<img class="ric" src="${RIMG(r)}" alt="${RES_ES[r]}" title="${RES_ES[r]}">`;
@@ -1972,7 +2181,7 @@ function renderPicker() {
     const btns = groups[cat].sort((a,b) => a.name.localeCompare(b.name)).map(it => {
       const n = calcState.items[it.id] || 0;
       return `<button class="pick-b ${it.variant} ${n ? 'on' : ''}" data-add="${it.id}" title="${esc(it.name)}">
-        <span class="badge"><img class="ic" src="${UIMG(it.imgPath)}" alt="" onerror="this.src='/tree/img/missing.png'">${n ? `<span class="cnt">${n}</span>` : ''}</span>
+        <span class="badge"><img class="ic" src="${UIMG(it.imgPath)}" alt="" onerror="this.onerror=null;this.src=MISSING_IMG">${n ? `<span class="cnt">${n}</span>` : ''}</span>
         <span class="lb">${esc(it.name)}</span>
       </button>`;
     }).join('');
@@ -2073,7 +2282,7 @@ function renderSelected() {
     const it = CALC._byId[id]; if (!it) return '';
     const cost = RES_ORDER.filter(r => it.cost[r]).map(r => `${it.cost[r]}${resIco(r)}`).join(' ');
     return `<div class="calc-row">
-      <img class="ic" src="${UIMG(it.imgPath)}" alt="" onerror="this.src='/tree/img/missing.png'">
+      <img class="ic" src="${UIMG(it.imgPath)}" alt="" onerror="this.onerror=null;this.src=MISSING_IMG">
       <div class="nm">${esc(it.name)} <small>${cost} · ${it.time}s · ${it.kind === 'unit' ? 'unidad' : 'edificio'}</small></div>
       <div class="calc-step">
         <button data-dec="${id}">−</button>
