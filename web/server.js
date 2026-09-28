@@ -242,6 +242,30 @@ app.get("/api/search", wrap(async (req, res) => {
   res.json(rows);
 }));
 
+// --- catálogo por categoría (carpeta del vault = n.type) --------------------
+// Sin ?type= devuelve los conteos por categoría; con ?type= lista sus notas con
+// la subcarpeta (p.ej. units/archery → "archery") y el grado en el grafo.
+const CATALOG_TYPES = ["units", "technologies", "buildings", "civs", "strategies", "maps", "matchups", "meta"];
+app.get("/api/catalog", wrap(async (req, res) => {
+  const type = (req.query.type || "").trim();
+  if (!type) {
+    const rows = await run(
+      `MATCH (n:Note) WHERE n.type IN $types
+       RETURN n.type AS type, count(n) AS count`, { types: CATALOG_TYPES });
+    return res.json(rows);
+  }
+  if (!CATALOG_TYPES.includes(type)) return res.status(400).json({ error: "type inválido" });
+  const rows = await run(
+    `MATCH (n:Note {type:$type})
+     OPTIONAL MATCH (n)-[r]-(:Note)
+     RETURN n.path AS path, n.title AS title, n.aliases AS aliases, count(r) AS degree
+     ORDER BY n.title`, { type });
+  res.json(rows.map((r) => {
+    const parts = r.path.split("/");
+    return { ...r, degree: Number(r.degree), group: parts.length > 2 ? parts[1] : null };
+  }));
+}));
+
 // --- listado de civs -------------------------------------------------------
 app.get("/api/civs", wrap(async (_req, res) => {
   const rows = await run(`
@@ -958,6 +982,18 @@ app.get("/api/note", wrap(async (req, res) => {
     `MATCH (n:Note {path:$path})-[r]-(m:Note)
      RETURN DISTINCT m.path AS path, m.title AS title, m.type AS type,
             type(r) AS rel ORDER BY type LIMIT 60`, { path });
+  // ?content=1 → el artículo, reconstruido desde los :Chunk del RAG (una sección
+  // H2 por chunk, sin frontmatter; las secciones de <40 caracteres no se indexan).
+  if (req.query.content === "1") {
+    const sections = await run(
+      `MATCH (c:Chunk)-[:PART_OF]->(:Note {path:$path})
+       RETURN c.heading AS heading, c.text AS text ORDER BY c.ord`, { path });
+    // Destinos de sus [[wikilinks]] sin el LIMIT de neighbors, para resolverlos.
+    const links = await run(
+      `MATCH (:Note {path:$path})-[:LINKS_TO]->(m:Note)
+       RETURN m.path AS path, m.title AS title`, { path });
+    return res.json({ path, ...base, neighbors, sections, links });
+  }
   res.json({ path, ...base, neighbors });
 }));
 
