@@ -5,7 +5,13 @@ from __future__ import annotations
 import hashlib
 import json
 from dataclasses import dataclass, field
+from fnmatch import fnmatchcase
 from pathlib import Path
+
+from .config import REPO_ROOT
+
+# Patrones de notas privadas (ver el propio archivo para la sintaxis).
+IGNORE_FILE = REPO_ROOT / ".codexignore"
 
 
 @dataclass
@@ -41,10 +47,34 @@ def _sha1(path: Path) -> str:
     return h.hexdigest()
 
 
-def scan_vault(vault: Path, exclude_dirs: set[str]) -> dict[str, ScanEntry]:
-    """Recorre el vault y devuelve {relpath: ScanEntry} para cada .md no excluido."""
+def load_ignore(path: Path = IGNORE_FILE) -> list[str]:
+    """Lee .codexignore → lista de patrones (sin comentarios ni líneas vacías)."""
+    if not path.exists():
+        return []
+    lines = (ln.strip() for ln in path.read_text(encoding="utf-8").splitlines())
+    return [ln for ln in lines if ln and not ln.startswith("#")]
+
+
+def is_ignored(relpath: str, patterns: list[str]) -> bool:
+    """True si la ruta POSIX relativa al vault matchea algún patrón de .codexignore."""
+    for pat in patterns:
+        if pat.endswith("/"):
+            if relpath.startswith(pat):
+                return True
+        elif fnmatchcase(relpath, pat):
+            return True
+    return False
+
+
+def scan_vault(
+    vault: Path, exclude_dirs: set[str], ignore: list[str] | None = None
+) -> dict[str, ScanEntry]:
+    """Recorre el vault y devuelve {relpath: ScanEntry} para cada .md no excluido
+    (EXCLUDE_DIRS del .env + patrones de .codexignore)."""
     if not vault.exists():
         raise SystemExit(f"VAULT_PATH no existe: {vault}")
+    if ignore is None:
+        ignore = load_ignore()
 
     entries: dict[str, ScanEntry] = {}
     for path in vault.rglob("*.md"):
@@ -52,6 +82,8 @@ def scan_vault(vault: Path, exclude_dirs: set[str]) -> dict[str, ScanEntry]:
         if any(part in exclude_dirs for part in rel_parts):
             continue
         relpath = path.relative_to(vault).as_posix()
+        if is_ignored(relpath, ignore):
+            continue
         entries[relpath] = ScanEntry(
             relpath=relpath,
             abspath=path,
