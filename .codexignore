@@ -31,3 +31,12 @@ meta/recalibracion-pendientes.md
 # --- Material no curado / personas ---
 drafts/
 players/
+
+# --- Fuentes crudas y análisis de partidas ---
+# raw/ y Clippings/ también están en EXCLUDE_DIRS del .env local; acá quedan
+# versionados para no depender de esa configuración.
+raw/
+Clippings/
+Contributors to Age of Empires Series Wiki.md
+replays-analysis/
+replays-analysis*.md
