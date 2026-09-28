@@ -982,6 +982,18 @@ app.get("/api/note", wrap(async (req, res) => {
     `MATCH (n:Note {path:$path})-[r]-(m:Note)
      RETURN DISTINCT m.path AS path, m.title AS title, m.type AS type,
             type(r) AS rel ORDER BY type LIMIT 60`, { path });
+  // ?content=1 → el artículo, reconstruido desde los :Chunk del RAG (una sección
+  // H2 por chunk, sin frontmatter; las secciones de <40 caracteres no se indexan).
+  if (req.query.content === "1") {
+    const sections = await run(
+      `MATCH (c:Chunk)-[:PART_OF]->(:Note {path:$path})
+       RETURN c.heading AS heading, c.text AS text ORDER BY c.ord`, { path });
+    // Destinos de sus [[wikilinks]] sin el LIMIT de neighbors, para resolverlos.
+    const links = await run(
+      `MATCH (:Note {path:$path})-[:LINKS_TO]->(m:Note)
+       RETURN m.path AS path, m.title AS title`, { path });
+    return res.json({ path, ...base, neighbors, sections, links });
+  }
   res.json({ path, ...base, neighbors });
 }));
 
