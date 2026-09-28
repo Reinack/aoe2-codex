@@ -8,7 +8,7 @@
 // Usa TREE_DATA_DIR apuntando a la copia vendorizada (web/public/tree/src/data) para
 // que funcione en el deploy (query-only, sin el clon externo del árbol). El JSON se
 // commitea. Ver [[strategies/military-production]].
-import { writeFileSync, mkdirSync } from "node:fs";
+import { writeFileSync, mkdirSync, existsSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -81,7 +81,10 @@ for (const n of t.NODES) {
     age: AGE_NAME[n.age] ?? "feudal",
     cost: { food: cost.food || 0, wood: cost.wood || 0, gold: cost.gold || 0, stone: cost.stone || 0 },
     time,
-    imgPath: n.imgPath || null,            // p.ej. "img/Unit/17.png" → icono del árbol
+    // p.ej. "img/Unit/17.png" → icono del árbol. Solo si el archivo existe: la
+    // Casa apunta a img/Building/11.png, que no está ni en aoe2techtree, y el
+    // front pedía un 404 en cada carga. Sin ícono, el front muestra un fallback.
+    imgPath: n.imgPath && existsSync(join(WEB, "public", "tree", n.imgPath)) ? n.imgPath : null,
     ...(timeApprox ? { timeApprox: true } : {}),
   });
 }
