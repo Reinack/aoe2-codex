@@ -1,0 +1,33 @@
+# Notas del vault que NO entran al grafo (ni a Neo4j local ni a Aura) ni al RAG:
+# no aparecen en la web, la API ni el chat público. Lo respetan `codex.sync` y
+# `codex_rag.build` (vía scanner.scan_vault). Si una nota ya estaba ingestada,
+# el próximo sync incremental la borra junto con sus chunks.
+#
+# Sintaxis: una ruta relativa al vault por línea, con comodines tipo glob.
+#   carpeta/     → todo lo que esté debajo de esa carpeta
+#   archivo.md   → solo ese archivo en la raíz del vault
+#   meta/x-*.md  → glob sobre la ruta completa
+
+# --- Tooling y agentes ---
+.claude/
+.venv/
+agents/
+
+# --- Notas de trabajo (raíz del vault) ---
+log.md
+CLAUDE.md
+SESSION-PROMPT.md
+SCHEMA.md
+pendientes.md
+20??-??-??.md
+Untitled*.md
+cree un enlace.md
+
+# --- Mantenimiento del codex ---
+meta/codex-incongruencias-*.md
+meta/mejoras-pendientes-*.md
+meta/recalibracion-pendientes.md
+
+# --- Material no curado / personas ---
+drafts/
+players/
