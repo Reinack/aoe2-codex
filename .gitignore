@@ -30,3 +30,10 @@ Thumbs.db
 # Dumps de Neo4j (grandes, no versionar)
 dumps/
 *.dump
+
+# Archivos de agentes de IA (locales, no se publican)
+CLAUDE.md
+CLAUDE.local.md
+AGENTS.md
+.codexignore
+.codex-server*.log
