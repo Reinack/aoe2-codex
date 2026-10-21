@@ -255,14 +255,36 @@ app.get("/api/catalog", wrap(async (req, res) => {
     return res.json(rows);
   }
   if (!CATALOG_TYPES.includes(type)) return res.status(400).json({ error: "type inválido" });
+  // group: el `catalogo` del frontmatter de la wiki ("Genéricas › Caballería", como
+  // los navboxes de Fandom; lo escribe AoE-Wiki/_tools/catalogo.py) o, si la nota
+  // no lo tiene, su subcarpeta.
   const rows = await run(
     `MATCH (n:Note {type:$type})
      OPTIONAL MATCH (n)-[r]-(:Note)
-     RETURN n.path AS path, n.title AS title, n.aliases AS aliases, count(r) AS degree
+     RETURN n.path AS path, n.title AS title, n.aliases AS aliases,
+            n.catalogo AS catalogo, count(r) AS degree
      ORDER BY n.title`, { type });
-  res.json(rows.map((r) => {
+  // Matchups: cada uno aparece bajo sus DOS civs ("Europa Occidental › Franks" y
+  // "Asia Oriental › Shu"), con la región de la ficha de civ, para buscar por la tuya.
+  if (type === "matchups") {
+    const civs = await run(`MATCH (c:Civ) RETURN c.path AS path, c.catalogo AS catalogo`);
+    const region = new Map(civs.map((c) => [c.path.replace(/^civs\/|\.md$/g, ""), c.catalogo?.[0] ?? null]));
+    return res.json(rows.flatMap(({ catalogo, ...r }) => {
+      const stem = r.path.split("/").pop().replace(/\.md$/, "");
+      const pair = stem.includes("-vs-") ? stem.split("-vs-") : [null];
+      return [...new Set(pair)].map((civ) => ({
+        ...r,
+        degree: Number(r.degree),
+        group: civ ? [region.get(civ), civ].filter(Boolean).join(" › ") : null,
+      }));
+    }));
+  }
+  res.json(rows.map(({ catalogo, ...r }) => {
     const parts = r.path.split("/");
-    return { ...r, degree: Number(r.degree), group: parts.length > 2 ? parts[1] : null };
+    const group = Array.isArray(catalogo) && catalogo.length
+      ? catalogo.join(" › ")
+      : parts.length > 2 ? parts[1] : null;
+    return { ...r, degree: Number(r.degree), group };
   }));
 }));
 
