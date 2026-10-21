@@ -113,7 +113,7 @@ def run_import(vault_path: Path, dry_run: bool = False) -> None:
         print(f"[OK] {len(nodes)} nodos Unit creados/actualizados")
 
         # Borrar edges existentes para reimport idempotente
-        s.run("MATCH ()-[r:COUNTERS]->() DELETE r")
+        s.run("MATCH ()-[r:COUNTERS]->() WHERE r.wiki IS NULL DELETE r")
 
         for e in edges:
             s.run(

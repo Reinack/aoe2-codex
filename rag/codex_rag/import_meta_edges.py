@@ -124,7 +124,7 @@ def run_import(vault: Path, dry_run: bool = False) -> None:
         s.run("MATCH (n:Note) WHERE n.path STARTS WITH 'maps/tipo-' SET n:MapType")
 
         # Reset idempotente de los 5 tipos.
-        s.run(f"MATCH ()-[r:{'|'.join(EDGE_TYPES)}]->() DELETE r")
+        s.run(f"MATCH ()-[r:{'|'.join(EDGE_TYPES)}]->() WHERE r.wiki IS NULL DELETE r")
 
         # WON / RUNNER_UP (resueltos por nombre → path de jugador). El MERGE sólo
         # crea la arista si AMBOS nodos existen; contamos los realmente creados y
