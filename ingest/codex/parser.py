@@ -8,6 +8,8 @@ from pathlib import Path
 
 import frontmatter
 
+from .relations import typed_links
+
 # [[target]] | [[target|alias]] | [[target#anchor]] | [[#anchor-en-misma-nota]]
 WIKILINK_RE = re.compile(r"\[\[([^\]]+)\]\]")
 # Convención del vault: encabezado doble "## ##" marca un concepto standalone
@@ -45,6 +47,7 @@ class ParsedNote:
     props: dict = field(default_factory=dict)          # frontmatter escalar -> propiedades
     unique_unit_civs: list[str] = field(default_factory=list)  # civs dueñas (1+) si es UU
     unique_tech_civ: str | None = None                 # civ dueña, si es tech única
+    typed_links: list[tuple[str, str, bool]] = field(default_factory=list)  # (target, tipo, reverse), ver relations.py
     frontmatter: dict = field(default_factory=dict)
 
 
@@ -190,6 +193,7 @@ def parse_note(abspath: Path, relpath: str) -> ParsedNote:
         props=_safe_props(meta),
         unique_unit_civs=unique_unit_civs,
         unique_tech_civ=unique_tech_civ,
+        typed_links=typed_links(relpath, body),
         frontmatter=dict(meta),
     )
 

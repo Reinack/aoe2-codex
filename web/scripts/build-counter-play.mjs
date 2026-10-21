@@ -1,31 +1,36 @@
 // Genera web/data/counter-play.json a partir del bloque `## Cómo jugar CONTRA
-// {Civ}` de las fichas de civ del vault: bullets ya invertidos (mecánica propia
+// {Civ}` de las fichas de civ de la wiki pública: bullets ya invertidos (mecánica propia
 // de la civ → consejo de counter-play para el rival). El Matchup Lab los usa
 // para mostrar "Cómo ganarle a {vs}" del lado del rival.
-//   node web/scripts/build-counter-play.mjs   (usa VAULT_PATH, default D:\Boveda\Aoe)
+//   node web/scripts/build-counter-play.mjs   (usa AOE_WIKI, default D:\Boveda\AoE-Wiki)
 // El JSON se commitea: el deploy (query-only, sin vault) lo sirve vía /api/matchup.
 import { readFileSync, readdirSync, writeFileSync, mkdirSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const VAULT = process.env.VAULT_PATH || "D:\\Boveda\\Aoe";
+const VAULT = process.env.AOE_WIKI || "D:\\Boveda\\AoE-Wiki";
 const civDir = join(VAULT, "civs");
 
 // Quita el markdown de énfasis (**negrita**) para que el bullet se pueda
 // mostrar como texto plano (los componentes de la UI no renderizan markdown).
+// Los wikilinks ([[ruta|Alias]]) quedan como su alias.
 function stripBold(s) {
-  return s.replace(/\*\*(.+?)\*\*/g, "$1").trim();
+  return s
+    .replace(/\[\[[^\]|]+?\\?\|([^\]]+)\]\]/g, "$1")
+    .replace(/\[\[(?:[^\]]*\/)?([^\]]+)\]\]/g, "$1")
+    .replace(/\*\*(.+?)\*\*/g, "$1")
+    .trim();
 }
 
 const out = {};
 let sinSeccion = [];
 
-for (const file of readdirSync(civDir).filter((f) => f.endsWith(".md"))) {
+for (const file of readdirSync(civDir).filter((f) => f.endsWith(".md") && f !== "index.md")) {
   const text = readFileSync(join(civDir, file), "utf8").replace(/\r\n/g, "\n");
   const slug = file.replace(/\.md$/, "").toLowerCase();
 
-  const idx = text.indexOf("## Cómo jugar CONTRA");
+  const idx = text.search(/^## Cómo jugar contra/im);
   if (idx < 0) {
     sinSeccion.push(slug);
     continue;

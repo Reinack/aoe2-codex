@@ -106,7 +106,7 @@ async function main() {
   }
 
   // ── Reset idempotente: borra los 5 tipos (son 100% derivados) ───────────────
-  await run(`MATCH ()-[r:${EDGE_TYPES.join("|")}]->() DELETE r`);
+  await run(`MATCH ()-[r:${EDGE_TYPES.join("|")}]->() WHERE r.wiki IS NULL DELETE r`);
 
   // ── Escritura (MATCH por tree_id en ambos extremos → no crea nodos) ─────────
   const written = {};

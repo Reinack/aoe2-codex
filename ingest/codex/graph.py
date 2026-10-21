@@ -61,6 +61,7 @@ class CodexGraph:
         self, note: ParsedNote, resolved_links: list[str],
         unique_unit_civ_paths: list[str] | None = None,
         unique_tech_civ_path: str | None = None,
+        typed_links: list[dict] | None = None,
     ) -> None:
         """Inserta/actualiza la nota y reescribe sus aristas salientes de cero.
 
@@ -75,7 +76,7 @@ class CodexGraph:
         with self._driver.session() as s:
             s.execute_write(
                 self._upsert_tx, note, resolved_links, concepts, label,
-                unique_unit_civ_paths or [], unique_tech_civ_path,
+                unique_unit_civ_paths or [], unique_tech_civ_path, typed_links or [],
             )
 
     @staticmethod
@@ -83,6 +84,7 @@ class CodexGraph:
         tx, note: ParsedNote, links: list[str], concepts: list[dict], label: str,
         unique_unit_civ_paths: list[str] | None = None,
         unique_tech_civ_path: str | None = None,
+        typed_links: list[dict] | None = None,
     ):
         # 1. upsert del nodo (n += $props añade propiedades de frontmatter)
         tx.run(
@@ -113,6 +115,21 @@ class CodexGraph:
             "MATCH (n:Note {path:$path})-[:DEFINES]->(c:Concept) DETACH DELETE c",
             path=note.relpath,
         )
+        # 2a. relaciones tipadas que declara ESTA nota (relations.py), en cualquier
+        #     sentido. Varias notas pueden declarar la misma (la tier list rankea a la
+        #     civ y la civ dice que está rankeada): src_notes lista a todas, y la
+        #     arista se borra cuando ninguna la declara. Solo se borran las que creó la
+        #     wiki (r.wiki); las del tech-tree o los counters quedan.
+        tx.run(
+            """
+            MATCH (n:Note {path:$path})-[r]-()
+            WHERE $path IN coalesce(r.src_notes, [])
+            SET r.src_notes = [x IN r.src_notes WHERE x <> $path]
+            WITH r WHERE r.wiki AND size(r.src_notes) = 0
+            DELETE r
+            """,
+            path=note.relpath,
+        )
         # 2b. la unidad/tech es 'dueña' de su arista ENTRANTE desde la civ
         tx.run(
             "MATCH ()-[r:HAS_UNIQUE_UNIT|HAS_UNIQUE_TECH]->(n:Note {path:$path}) "
@@ -129,6 +146,25 @@ class CodexGraph:
                 MERGE (n)-[:LINKS_TO]->(t)
                 """,
                 path=note.relpath, targets=links,
+            )
+        # 3b. relaciones tipadas. Si la arista ya existe (de otra nota o del
+        #     tech-tree) se reusa y esta nota se suma a sus src_notes.
+        if typed_links:
+            tx.run(
+                """
+                MATCH (n:Note {path:$path})
+                UNWIND $typed AS t
+                MATCH (m:Note {path:t.target})
+                WITH t, CASE WHEN t.reverse THEN m ELSE n END AS a,
+                        CASE WHEN t.reverse THEN n ELSE m END AS b
+                CALL apoc.merge.relationship(a, t.rel, {}, {wiki:true}, b, {})
+                YIELD rel
+                SET rel.src_notes = CASE WHEN $path IN coalesce(rel.src_notes, [])
+                                         THEN rel.src_notes
+                                         ELSE coalesce(rel.src_notes, []) + $path END
+                RETURN count(rel)
+                """,
+                path=note.relpath, typed=typed_links,
             )
         # 4. recrear conceptos
         if concepts:
@@ -306,8 +342,11 @@ class CodexGraph:
             ut = s.run(
                 "MATCH (:Note)-[r:HAS_UNIQUE_TECH]->(:Note) RETURN count(r) AS c"
             ).single()["c"]
+            typed = s.run(
+                "MATCH (:Note)-[r]->(:Note) WHERE r.src_notes <> [] RETURN count(r) AS c"
+            ).single()["c"]
         return {
             "notes": notes, "links": links, "concepts": concepts,
             "stubs": stubs, "rated": rated, "tierlists": tierlists,
-            "uu": uu, "ut": ut,
+            "uu": uu, "ut": ut, "typed": typed,
         }

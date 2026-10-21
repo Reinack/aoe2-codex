@@ -255,14 +255,36 @@ app.get("/api/catalog", wrap(async (req, res) => {
     return res.json(rows);
   }
   if (!CATALOG_TYPES.includes(type)) return res.status(400).json({ error: "type inválido" });
+  // group: el `catalogo` del frontmatter de la wiki ("Genéricas › Caballería", como
+  // los navboxes de Fandom; lo escribe AoE-Wiki/_tools/catalogo.py) o, si la nota
+  // no lo tiene, su subcarpeta.
   const rows = await run(
     `MATCH (n:Note {type:$type})
      OPTIONAL MATCH (n)-[r]-(:Note)
-     RETURN n.path AS path, n.title AS title, n.aliases AS aliases, count(r) AS degree
+     RETURN n.path AS path, n.title AS title, n.aliases AS aliases,
+            n.catalogo AS catalogo, count(r) AS degree
      ORDER BY n.title`, { type });
-  res.json(rows.map((r) => {
+  // Matchups: cada uno aparece bajo sus DOS civs ("Europa Occidental › Franks" y
+  // "Asia Oriental › Shu"), con la región de la ficha de civ, para buscar por la tuya.
+  if (type === "matchups") {
+    const civs = await run(`MATCH (c:Civ) RETURN c.path AS path, c.catalogo AS catalogo`);
+    const region = new Map(civs.map((c) => [c.path.replace(/^civs\/|\.md$/g, ""), c.catalogo?.[0] ?? null]));
+    return res.json(rows.flatMap(({ catalogo, ...r }) => {
+      const stem = r.path.split("/").pop().replace(/\.md$/, "");
+      const pair = stem.includes("-vs-") ? stem.split("-vs-") : [null];
+      return [...new Set(pair)].map((civ) => ({
+        ...r,
+        degree: Number(r.degree),
+        group: civ ? [region.get(civ), civ].filter(Boolean).join(" › ") : null,
+      }));
+    }));
+  }
+  res.json(rows.map(({ catalogo, ...r }) => {
     const parts = r.path.split("/");
-    return { ...r, degree: Number(r.degree), group: parts.length > 2 ? parts[1] : null };
+    const group = Array.isArray(catalogo) && catalogo.length
+      ? catalogo.join(" › ")
+      : parts.length > 2 ? parts[1] : null;
+    return { ...r, degree: Number(r.degree), group };
   }));
 }));
 
@@ -978,10 +1000,23 @@ app.get("/api/note", wrap(async (req, res) => {
     `MATCH (n:Note {path:$path})
      RETURN n.title AS title, n.type AS type, n.aliases AS aliases`, { path });
   if (!base) return res.status(404).json({ error: "nota no encontrada", path });
+  // Una fila por (vecino, relación, sentido). LINKS_TO ("menciona") solo cuando no
+  // hay una relación más específica con ese vecino (ingest/codex/relations.py).
+  // out=true: la relación sale de esta nota ("evoluciona a"); false: entra ("evoluciona de").
   const neighbors = await run(
     `MATCH (n:Note {path:$path})-[r]-(m:Note)
-     RETURN DISTINCT m.path AS path, m.title AS title, m.type AS type,
-            type(r) AS rel ORDER BY type LIMIT 60`, { path });
+     WITH m, collect(DISTINCT {rel: type(r), out: startNode(r) = n}) AS rs
+     WITH m, CASE WHEN any(x IN rs WHERE x.rel <> 'LINKS_TO')
+                  THEN [x IN rs WHERE x.rel <> 'LINKS_TO'] ELSE rs END AS rs
+     // AFFECTS (tech-tree) e IMPROVES (wiki) dicen lo mismo: queda la de la wiki
+     WITH m, [x IN rs WHERE x.rel <> 'AFFECTS' OR NOT any(y IN rs WHERE y.rel = 'IMPROVES')] AS rs
+     UNWIND rs AS x
+     // las listas masivas (qué tiene una civ, a quién mejora una tech) van al final
+     // para que el LIMIT no se coma las relaciones específicas
+     WITH m, x, CASE WHEN x.rel IN ['HAS_UNIT','HAS_TECH','HAS_BUILDING','LACKS','LINKS_TO'] THEN 1 ELSE 0 END AS masiva
+     RETURN m.path AS path, m.title AS title, m.type AS type,
+            x.rel AS rel, x.out AS out
+     ORDER BY masiva, x.rel, title LIMIT 400`, { path });
   // ?content=1 → el artículo, reconstruido desde los :Chunk del RAG (una sección
   // H2 por chunk, sin frontmatter; las secciones de <40 caracteres no se indexan).
   if (req.query.content === "1") {
@@ -1004,9 +1039,16 @@ app.get("/api/graph", wrap(async (req, res) => {
   const rows = await run(
     `MATCH (c:Note)-[r]-(m:Note)
      WHERE toLower(c.path) = toLower($path)
-     RETURN c.path AS src, c.title AS srcTitle, c.type AS srcType,
-            m.path AS dst, m.title AS dstTitle, m.type AS dstType,
-            type(r) AS rel LIMIT 80`, { path });
+     WITH c, m, collect(DISTINCT {rel: type(r), out: startNode(r) = c}) AS rs
+     WITH c, m, CASE WHEN any(x IN rs WHERE x.rel <> 'LINKS_TO')
+                     THEN [x IN rs WHERE x.rel <> 'LINKS_TO'] ELSE rs END AS rs
+     UNWIND rs AS x
+     WITH c, m, x LIMIT 80
+     // src/dst respetan el sentido real de la arista
+     WITH CASE WHEN x.out THEN c ELSE m END AS a, CASE WHEN x.out THEN m ELSE c END AS b, x
+     RETURN a.path AS src, a.title AS srcTitle, a.type AS srcType,
+            b.path AS dst, b.title AS dstTitle, b.type AS dstType,
+            x.rel AS rel`, { path });
   const nodes = new Map();
   const edges = [];
   for (const e of rows) {

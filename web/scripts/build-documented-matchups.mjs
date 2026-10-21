@@ -1,92 +1,88 @@
-// Genera web/data/documented-matchups.json a partir del bloque `## En Matchups
-// Documentados` de las fichas de civ del vault: cada entrada cita un matchup
-// real (o teórico) de matchups/*.md con su propia síntesis táctica desde la
-// perspectiva de ESA civ. El Matchup Lab cruza esto por civ rival para
-// reemplazar la búsqueda léxica genérica de "notas que mencionan a ambas" por
-// contenido curado cuando existe.
-//   node web/scripts/build-documented-matchups.mjs   (usa VAULT_PATH, default D:\Boveda\Aoe)
-// El JSON se commitea: el deploy (query-only, sin vault) lo sirve vía /api/matchup.
+// Genera web/data/documented-matchups.json a partir de las notas de matchups de la
+// wiki pública (matchups/CivA-vs-CivB.md): cada nota sintetiza las partidas
+// analizadas de ese par, con una sección "## Claves para <Civ>" por lado. El
+// Matchup Lab cruza esto por civ rival para reemplazar la búsqueda léxica genérica
+// de "notas que mencionan a ambas" por contenido curado cuando existe.
+//   node web/scripts/build-documented-matchups.mjs   (usa AOE_WIKI, default D:\Boveda\AoE-Wiki)
+// El JSON se commitea: el deploy (query-only, sin wiki) lo sirve vía /api/matchup.
+// Las notas públicas no nombran jugadores, así que el JSON tampoco.
 import { readFileSync, readdirSync, writeFileSync, mkdirSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const VAULT = process.env.VAULT_PATH || "D:\\Boveda\\Aoe";
-const civDir = join(VAULT, "civs");
+const WIKI = process.env.AOE_WIKI || "D:\\Boveda\\AoE-Wiki";
+const matchupDir = join(WIKI, "matchups");
 
-function stripBold(s) {
-  return s.replace(/\*\*(.+?)\*\*/g, "$1").trim();
+// Texto plano para la UI: sin negritas y con los wikilinks reducidos a su alias.
+function plain(s) {
+  return s
+    .replace(/\[\[[^\]|]+?\\?\|([^\]]+)\]\]/g, "$1")
+    .replace(/\[\[(?:[^\]]*\/)?([^\]]+)\]\]/g, "$1")
+    .replace(/\*\*(.+?)\*\*/g, "$1")
+    .trim();
 }
 
-// Variantes de nombre pre-existentes en matchups/*.md (residuo conocido del
-// vault, ver pendientes.md) que no coinciden con el slug real de la ficha de civ.
-const FILE_ALIAS = { bengali: "bengalis", tupis: "tupi", mayas: "mayans" };
-const normSlug = (s) => FILE_ALIAS[s] || s;
-
-// "Armenians-vs-Berbers" + civ propia "berbers" -> "armenians" (el otro lado).
-// Partidos espejo (A-vs-A) devuelven la propia civ (se descartan al indexar).
-function opponentFromFile(matchupFile, ownSlug) {
-  const m = matchupFile.match(/^(.+?)-vs-(.+)$/i);
+// Bloque de una sección "## Título" hasta la próxima "## ".
+function section(text, title) {
+  const re = new RegExp(`^## ${title}\\s*$`, "im");
+  const m = re.exec(text);
   if (!m) return null;
-  const [, a, b] = m;
-  const aSlug = normSlug(a.toLowerCase());
-  const bSlug = normSlug(b.toLowerCase());
-  if (aSlug === ownSlug) return bSlug;
-  if (bSlug === ownSlug) return aSlug;
-  return null; // ninguno de los dos lados coincide con la civ propia (no debería pasar)
+  const after = text.slice(m.index + m[0].length);
+  const end = after.search(/^## /m);
+  return end >= 0 ? after.slice(0, end) : after;
+}
+
+const bullets = (block) =>
+  (block || "")
+    .split("\n")
+    .filter((l) => l.trim().startsWith("- "))
+    .map((l) => plain(l.trim().slice(2)));
+
+// "**Favorable para:** Franks · **Mapas:** [[maps/Arabia|Arabia]] · **Partidas analizadas:** 1"
+function field(text, name) {
+  const m = text.match(new RegExp(`\\*\\*${name}:\\*\\*\\s*([^·\\n]+)`));
+  return m ? plain(m[1]) : null;
 }
 
 const out = {};
-let sinSeccion = [];
+let pares = 0;
+const sinClaves = [];
 
-for (const file of readdirSync(civDir).filter((f) => f.endsWith(".md"))) {
-  const text = readFileSync(join(civDir, file), "utf8").replace(/\r\n/g, "\n");
-  const slug = file.replace(/\.md$/, "").toLowerCase();
+for (const file of readdirSync(matchupDir).filter((f) => /-vs-/.test(f) && f.endsWith(".md"))) {
+  const text = readFileSync(join(matchupDir, file), "utf8").replace(/\r\n/g, "\n");
+  const matchupFile = file.replace(/\.md$/, "");
+  const [a, b] = matchupFile.split("-vs-");
+  if (a === b) continue; // los espejos no aportan a un cruce entre civs distintas
 
-  const idx = text.indexOf("## En Matchups Documentados");
-  if (idx < 0) {
-    sinSeccion.push(slug);
-    continue;
-  }
-  const after = text.slice(idx);
-  const end = after.indexOf("\n## ", 3);
-  const block = end >= 0 ? after.slice(0, end) : after;
+  const resumen = text.match(/^>\s*(.+)$/m)?.[1];
+  const favorable = field(text, "Favorable para");
+  const mapas = field(text, "Mapas");
+  const partidas = field(text, "Partidas analizadas");
+  const heading = [mapas, favorable && `Favorable para: ${favorable}`, partidas && `${partidas} partida(s) analizada(s)`]
+    .filter(Boolean)
+    .join(" · ");
 
-  const entries = [];
-  const subBlocks = block.split(/\n(?=### )/).slice(1); // descarta el heading "## En..." inicial
-  for (const sub of subBlocks) {
-    const lines = sub.split("\n");
-    const heading = lines[0].replace(/^###\s*/, "").trim();
-
-    const linkLine = lines.find((l) => l.includes("[[matchups/"));
-    const linkMatch = linkLine?.match(/\[\[matchups\/([^\]|]+)/);
-    const matchupFile = linkMatch ? linkMatch[1].trim() : null;
-
-    const bulletLines = lines
-      .filter((l) => l.trim().startsWith("- "))
-      .map((l) => stripBold(l.trim().slice(2).trim()));
-
-    let recordar = null;
-    const bullets = [];
-    for (const b of bulletLines) {
-      if (!recordar && /^Recordar:\s*/i.test(b)) {
-        recordar = b.replace(/^Recordar:\s*/i, "").trim();
-      } else {
-        bullets.push(b);
-      }
+  pares++;
+  for (const [own, opp] of [[a, b], [b, a]]) {
+    const claves = bullets(section(text, `Claves para ${own}`));
+    if (!claves.length) {
+      sinClaves.push(`${matchupFile} (${own})`);
+      continue;
     }
-
-    if (!matchupFile && !bullets.length) continue; // bloque vacío/ruido
-    const opponent = matchupFile ? opponentFromFile(matchupFile, slug) : null;
-
-    entries.push({ heading, matchupFile, opponent, bullets, recordar });
+    const slug = own.toLowerCase();
+    (out[slug] ||= []).push({
+      heading: `vs ${opp}${heading ? ` — ${heading}` : ""}`,
+      matchupFile,
+      opponent: opp.toLowerCase(),
+      bullets: claves,
+      recordar: resumen ? plain(resumen) : null,
+    });
   }
-
-  if (entries.length) out[slug] = entries;
 }
 
 mkdirSync(join(__dirname, "..", "data"), { recursive: true });
 writeFileSync(join(__dirname, "..", "data", "documented-matchups.json"), JSON.stringify(out) + "\n");
 const total = Object.values(out).reduce((n, arr) => n + arr.length, 0);
-console.log(`documented-matchups.json: ${Object.keys(out).length} civs, ${total} entradas`);
-if (sinSeccion.length) console.warn(`sin sección "En Matchups Documentados": ${sinSeccion.join(", ")}`);
+console.log(`documented-matchups.json: ${pares} pares, ${Object.keys(out).length} civs, ${total} entradas`);
+if (sinClaves.length) console.warn(`sin "Claves para": ${sinClaves.join(", ")}`);

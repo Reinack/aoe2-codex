@@ -74,8 +74,14 @@ def run_sync(cfg: Config, *, full: bool = False) -> None:
             ut_civ = resolver(note.unique_tech_civ) if note.unique_tech_civ else None
             if ut_civ and not ut_civ.startswith("civs/"):
                 ut_civ = None  # solo aristas a notas de civ
+            # relaciones tipadas por contexto (relations.py): mismo resolver que LINKS_TO
+            typed: list[dict] = []
+            for target, rel, reverse in note.typed_links:
+                hit = resolver(target)
+                if hit and hit != relpath:
+                    typed.append({"target": hit, "rel": rel, "reverse": reverse})
             g.upsert_note(note, resolved, unique_unit_civ_paths=uu_civs,
-                          unique_tech_civ_path=ut_civ)
+                          unique_tech_civ_path=ut_civ, typed_links=typed)
             if i % 100 == 0 or i == len(diff.touched):
                 print(f"[up]   {i}/{len(diff.touched)} notas procesadas")
 
@@ -85,7 +91,8 @@ def run_sync(cfg: Config, *, full: bool = False) -> None:
         save_manifest(cfg.manifest_path, entries)
         s = g.stats()
         print(
-            f"[ok]   grafo: {s['notes']} notas, {s['links']} links, "
+            f"[ok]   grafo: {s['notes']} notas, {s['links']} links "
+            f"({s['typed']} relaciones tipadas), "
             f"{s['concepts']} conceptos, {s['rated']} ratings "
             f"({s['tierlists']} tier-lists), {s['uu']} UU, {s['ut']} UT"
             + (f", {s['stubs']} stubs" if s["stubs"] else "")
