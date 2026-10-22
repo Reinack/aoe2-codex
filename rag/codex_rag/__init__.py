@@ -1,0 +1,3 @@
+"""GraphRAG local sobre el grafo de conocimiento AoE2."""
+
+__version__ = "0.1.0"

@@ -1,0 +1,24 @@
+[project]
+name = "aoe2-codex-rag"
+version = "0.1.0"
+description = "GraphRAG local sobre el grafo AoE2 (Ollama + vector index de Neo4j)"
+requires-python = ">=3.11"
+dependencies = [
+    "neo4j>=5.20",
+    "python-frontmatter>=1.1",
+    "truststore>=0.9",     # TLS vía almacén del SO (proxies/antivirus que interceptan HTTPS)
+    "aoe2-codex-ingest",   # reutiliza codex.config y codex.scanner
+]
+
+# Streamlit solo lo necesitan los dashboards (chat_app.py, analítica). El deploy
+# (query vía API) NO lo usa → queda opcional para no inflar la imagen.
+# Instalar UIs locales: pip install ./rag[ui]
+[project.optional-dependencies]
+ui = ["streamlit>=1.30"]
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["codex_rag*"]

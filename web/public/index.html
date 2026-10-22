@@ -1,0 +1,2625 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>AoE2 Strategy Codex</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=Crimson+Pro:ital,wght@0,400;0,600;0,700;1,400;1,600&display=swap">
+<style>
+  :root {
+    /* Tierra oscura (fondo de opciones nativas y rellenos oscuros) */
+    --earth-800: #21170f;
+
+    /* Pergamino y tinta */
+    --parch-50:  #f5ead0;
+    --parch-100: #ecdcb6;
+    --ink-900: #22150b;
+    --ink-700: #4b331c;
+    --ink-500: #6f5234;
+    --rule: rgba(75, 51, 28, 0.42);        /* filete de tinta sobre pergamino */
+    --rule-soft: rgba(75, 51, 28, 0.2);
+    --on-dark: #e4d4b0;                    /* texto sobre fondo oscuro */
+    --on-dark-dim: #c2ab84;
+    --hair: rgba(228, 212, 176, 0.16);     /* filete claro sobre fondo oscuro */
+
+    /* Rojo profundo: acciones */
+    --red-600: #6e100c;
+    --red-500: #8a1812;
+    --red-400: #a8261b;
+
+    /* Oro: jerarquía y selección */
+    --gold: #c69b45;
+    --gold-hi: #ecd08a;
+    --gold-text: #eed59a;
+    --gold-line: rgba(198, 155, 69, 0.75);
+    --btn-text: #f1e2c4;
+
+    --good: #3d6b17;
+    --bad: #9b2b1a;
+
+    --font-display: 'Cinzel', 'Trajan Pro', Georgia, serif;
+    --font-body: 'Crimson Pro', Georgia, 'Times New Roman', serif;
+
+    /* Texturas (ruido SVG): nada de superficies perfectamente limpias.
+       Nunca grano/ruido sobre superficies oscuras: dificulta la lectura. */
+    --paper: url('/tree/img/Backgrounds/bg_aoe2_hd_paper.jpg');
+    /* Veta de la madera: rayas verticales largas (oscuras y claras) */
+    --wood-grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='360' height='720'%3E%3Cfilter id='d' color-interpolation-filters='sRGB'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.07 .004' numOctaves='3' seed='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .1 0 0 0 0 .05 0 0 0 0 .02 -1.8 0 0 0 1.12'/%3E%3C/filter%3E%3Cfilter id='l' color-interpolation-filters='sRGB'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.11 .006' numOctaves='2' seed='9' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .55 0 0 0 0 .33 0 0 0 0 .2 1.4 0 0 0 -.72'/%3E%3C/filter%3E%3Crect width='360' height='720' filter='url(%23d)'/%3E%3Crect width='360' height='720' filter='url(%23l)'/%3E%3C/svg%3E");
+    /* Manchas suaves del pergamino */
+    --stain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='420' height='420'%3E%3Cfilter id='f' color-interpolation-filters='sRGB'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.011' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .45 0 0 0 0 .28 0 0 0 0 .1 -1.3 0 0 0 .66'/%3E%3C/filter%3E%3Crect width='420' height='420' filter='url(%23f)'/%3E%3C/svg%3E");
+    /* Tablones de madera oscura: viñeta, juntas, tono por tablón, veta y base */
+    --wood:
+      radial-gradient(ellipse at 50% 45%, transparent 35%, rgba(8, 4, 2, 0.55) 100%),
+      repeating-linear-gradient(90deg, rgba(0, 0, 0, 0.55) 0 2px, rgba(255, 214, 170, 0.07) 2px 3px, transparent 3px 126px),
+      repeating-linear-gradient(90deg, rgba(0, 0, 0, 0.1) 0 126px, rgba(255, 205, 160, 0.035) 126px 252px, rgba(0, 0, 0, 0.04) 252px 378px),
+      var(--wood-grain),
+      linear-gradient(180deg, #452719, #36200f 60%, #2b170d);
+    /* Papiro de los controles (desplegables), como los del juego */
+    --papyrus: linear-gradient(180deg, rgba(240, 222, 184, 0.55), rgba(214, 184, 136, 0.55)), var(--paper);
+    --papyrus-text: #3a1c0e;
+    /* Papiro claro: tarjetas sobre un panel de papiro (p. ej. el resumen de counters) */
+    /* Papiro casi blanco: campos donde se escribe (se distinguen de los desplegables) */
+    --papyrus-input: linear-gradient(180deg, rgba(255, 253, 246, 0.9), rgba(252, 247, 232, 0.9)), var(--paper);
+    --papyrus-light: linear-gradient(180deg, rgba(255, 248, 228, 0.66), rgba(248, 234, 204, 0.66)), var(--paper);
+    /* Barra de desplazamiento: botones de acero con flecha y ornamento en el pulgar */
+    --sb-up: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' width='16' height='16'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='0' y2='1'%3E%3Cstop offset='0' stop-color='%235a524a'/%3E%3Cstop offset='1' stop-color='%232a231d'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect x='.5' y='.5' width='15' height='15' fill='url(%23g)' stroke='%23050302'/%3E%3Crect x='1.5' y='1.5' width='13' height='13' fill='none' stroke='%23fffaf0' stroke-opacity='.16'/%3E%3Cpath d='M8 4.2L12.3 11H3.7Z' fill='%23d6cfc4' stroke='%231a130e' stroke-width='.8' stroke-linejoin='round'/%3E%3C/svg%3E");
+    --sb-down: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' width='16' height='16'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='0' y2='1'%3E%3Cstop offset='0' stop-color='%235a524a'/%3E%3Cstop offset='1' stop-color='%232a231d'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect x='.5' y='.5' width='15' height='15' fill='url(%23g)' stroke='%23050302'/%3E%3Crect x='1.5' y='1.5' width='13' height='13' fill='none' stroke='%23fffaf0' stroke-opacity='.16'/%3E%3Cpath d='M8 11.8L12.3 5H3.7Z' fill='%23d6cfc4' stroke='%231a130e' stroke-width='.8' stroke-linejoin='round'/%3E%3C/svg%3E");
+    --sb-knob: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 14 14' width='14' height='14'%3E%3Cpath d='M7 .8L9.1 4.9L13.2 7L9.1 9.1L7 13.2L4.9 9.1L.8 7L4.9 4.9Z' fill='%23cfc8bd' stroke='%231a130e' stroke-width='.8'/%3E%3Ccircle cx='7' cy='7' r='1.7' fill='%236b625a' stroke='%231a130e' stroke-width='.6'/%3E%3C/svg%3E");
+    /* Marco negro de los diálogos (como "Elegir civilización") */
+    --dialog-black: rgba(6, 4, 2, 0.94);
+    /* Filete engrosado de imprenta con rombo central */
+    --ornament: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='12' viewBox='0 0 180 12'%3E%3Cg fill='%234b331c'%3E%3Cpath d='M4 6Q46 4.5 76 6Q46 7.5 4 6Z'/%3E%3Cpath d='M176 6Q134 4.5 104 6Q134 7.5 176 6Z'/%3E%3Cpath d='M90 1.2L94.8 6L90 10.8L85.2 6Z'/%3E%3Ccircle cx='80' cy='6' r='1.4'/%3E%3Ccircle cx='100' cy='6' r='1.4'/%3E%3C/g%3E%3Cpath d='M90 3.6L92.4 6L90 8.4L87.6 6Z' fill='%23ecdcb6'/%3E%3C/svg%3E");
+
+    --parchment:
+      radial-gradient(ellipse at 50% 40%, rgba(255, 246, 222, 0.38), transparent 72%),
+      var(--stain),
+      linear-gradient(rgba(236, 220, 182, 0.35), rgba(236, 220, 182, 0.35)),
+      var(--paper);
+    --burnt-edge: inset 0 0 0 1px rgba(60, 36, 14, 0.35), inset 0 0 24px rgba(112, 70, 28, 0.42), inset 0 0 4px rgba(80, 46, 16, 0.4);
+
+    /* Colores de nodo: pigmentos (lapislázuli, verdín, almagre…) */
+    --unit-c: #2a5d86;  --unit-r: #43437a;  --unit-u: #5d2a63;
+    --tech-c: #2e6a45;  --tech-r: #53682a;  --tech-u: #83551d;
+    --bld-c:  #7b3a22;  --bld-r:  #8a2a1b;  --bld-u:  #792243;
+  }
+  /* Variables del explorador, zona oscura (madera / negro de diálogo).
+     Las fichas de pergamino las redefinen (ver bloque "Tema AoE2" más abajo). */
+  :root {
+    --bg:#1a0f08; --panel:rgba(6,4,2,.72); --line:var(--hair); --ink:var(--on-dark); --dim:var(--on-dark-dim);
+    --chip:rgba(228,212,176,.06); --sunk:rgba(0,0,0,.28); --sel-bg:rgba(198,155,69,.14);
+    --good-c:#9cc26f; --bad-c:#e0775f; --warn-c:#d9a24a;
+    --blue:#8fb3d4; --teal:#7fc0ad; --green:#9cc26f; --purple:#c09ac8; --wood-c:var(--wood-c);
+  }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink);
+    font:15px/1.5 system-ui,Segoe UI,Roboto,sans-serif; }
+
+  /* ── SIDEBAR ─────────────────────────────────────────────────────── */
+  #sidebar {
+    position:fixed; left:0; top:0; height:100vh; width:52px;
+    overflow:hidden; white-space:nowrap; z-index:100;
+    transition:width .2s ease;
+    background:var(--panel); border-right:1px solid var(--line);
+    display:flex; flex-direction:column;
+  }
+  #sidebar:hover { width:190px; }
+  .sb-brand {
+    display:flex; align-items:center; gap:8px;
+    padding:16px 12px 14px; border-bottom:1px solid var(--line);
+    font-size:15px; font-weight:700; color:var(--gold); flex-shrink:0;
+  }
+  .sb-item {
+    display:flex; align-items:center; gap:8px; padding:12px 12px;
+    color:var(--dim); text-decoration:none; cursor:pointer;
+    font-size:14px; transition:.1s; border-left:2px solid transparent;
+    flex-shrink:0;
+  }
+  .sb-item:hover, .sb-item.active { background:var(--chip); color:var(--ink); }
+  .sb-item.active { border-left-color:var(--gold); }
+  .sb-ext { margin-top:auto; }
+  .sb-icon { width:28px; text-align:center; flex-shrink:0; font-size:16px; }
+  .sb-label { opacity:0; transition:opacity .15s .05s; }
+  #sidebar:hover .sb-label { opacity:1; }
+
+  /* ── MAIN ─────────────────────────────────────────────────────────── */
+  #main { margin-left:52px; }
+  header { padding:14px 20px; border-bottom:1px solid var(--line);
+    display:flex; gap:14px; align-items:center; flex-wrap:wrap; }
+  .mob-title { display:none; font-size:16px; font-weight:700; margin-right:auto; }
+  .mob-title span { color:var(--gold); }
+  #stats { color:var(--dim); font-size:13px; }
+  #search { margin-left:auto; background:var(--panel); border:1px solid var(--line);
+    color:var(--ink); padding:9px 13px; border-radius:8px; width:300px; font-size:14px; }
+
+  /* ── VIEWS ────────────────────────────────────────────────────────── */
+  .layout { display:grid; grid-template-columns:1fr 1fr; gap:18px; padding:18px 24px; }
+  @media(max-width:820px){ .layout{ grid-template-columns:1fr; } }
+  .col h2 { font-size:13px; text-transform:uppercase; letter-spacing:.5px;
+    color:var(--dim); margin:0 0 10px; }
+  .h2-sub { font-size:11px; color:var(--dim); text-transform:none;
+    letter-spacing:0; font-weight:400; }
+
+  /* ── CIVS GRID ────────────────────────────────────────────────────── */
+  .grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(120px,1fr)); gap:8px; }
+  .card { background:var(--panel); border:1px solid var(--line); border-radius:8px;
+    padding:10px 10px 8px; cursor:pointer; transition:.12s; text-align:center; }
+  .card:hover { border-color:var(--gold); transform:translateY(-1px); }
+  .civ-img { width:52px; height:52px; object-fit:contain; display:block;
+    margin:0 auto 6px; image-rendering:auto; }
+  .card .t { font-weight:600; font-size:13px; }
+  .card .a { color:var(--dim); font-size:11px; margin-top:2px; }
+  .tier { font-weight:700; font-size:12px;
+    border:1px solid var(--line); border-radius:5px; padding:0 6px;
+    display:inline-block; margin-top:3px; }
+  .tier.A,.tier.S{color:var(--good-c);border-color:var(--good-c)} .tier.B{color:var(--gold)}
+  .tier.C{color:var(--warn-c)} .tier.D,.tier.E,.tier.F{color:var(--bad-c)}
+
+  /* ── DETAIL ──────────────────────────────────────────────────────── */
+  #detail { background:var(--panel); border:1px solid var(--line); border-radius:10px;
+    padding:18px; min-height:200px; }
+  #detail .ph { color:var(--dim); }
+  #detail h3 { margin:0 0 4px; font-size:22px; }
+  #detail .sub { color:var(--dim); margin-bottom:14px; }
+  .sect { margin:14px 0; }
+  .sect b { color:var(--blue); font-size:13px; text-transform:uppercase; letter-spacing:.4px; }
+  .chip { display:inline-block; background:var(--chip); border:1px solid var(--line);
+    border-radius:14px; padding:3px 11px; margin:4px 4px 0 0; font-size:13px; }
+  .chip.u{ border-color:var(--line); } .chip.t{ border-color:var(--line); }
+  table { width:100%; border-collapse:collapse; font-size:13px; margin-top:6px; }
+  td { padding:4px 6px; border-bottom:1px solid var(--line); }
+  td:last-child { text-align:right; color:var(--gold); font-weight:600; }
+
+  /* ── SEARCH RESULTS ──────────────────────────────────────────────── */
+  #results { position:fixed; top:66px; right:24px; width:300px; background:var(--panel);
+    border:1px solid var(--line); border-radius:8px; overflow:hidden; z-index:200; display:none; }
+  #results div { padding:8px 12px; cursor:pointer; border-bottom:1px solid var(--line); }
+  #results div:hover { background:var(--chip); }
+  #results small { color:var(--dim); }
+
+  /* ── CHAT ────────────────────────────────────────────────────────── */
+  #chatlog { display:flex; flex-direction:column; gap:8px; margin-bottom:10px;
+    max-height:340px; overflow-y:auto; }
+  .msg { padding:9px 12px; border-radius:10px; font-size:14px; max-width:92%; }
+  .msg.user { align-self:flex-end; background:var(--dialog-black); }
+  .msg.bot { align-self:flex-start; background:var(--chip); border:1px solid var(--line); }
+  .msg .src { margin-top:8px; color:var(--gold); font-size:12px; }
+  .chatrow { display:flex; gap:8px; }
+  #chatq { flex:1; background:var(--bg); border:1px solid var(--line); color:var(--ink);
+    padding:9px 12px; border-radius:8px; font-size:14px; }
+  #chatsend { background:var(--gold); color:#1a1a1a; border:0; border-radius:8px;
+    padding:0 18px; font-weight:700; cursor:pointer; }
+  #chatsend:disabled { opacity:.5; cursor:default; }
+  #chat-hints { display:flex; flex-wrap:wrap; gap:6px; margin-top:8px; }
+  .hint { background:var(--chip); border:1px solid var(--line); border-radius:14px;
+    padding:4px 12px; font-size:12px; cursor:pointer; color:var(--dim); transition:.1s; }
+  .hint:hover { border-color:var(--gold); color:var(--ink); }
+
+  /* ── GRAPH VIEW ─────────────────────────────────────────────────── */
+  #view-graph { position:relative; height:calc(100vh - 66px); background:var(--bg); }
+  #cy { width:100%; height:100%; }
+  #graph-toolbar {
+    position:absolute; top:12px; left:12px; right:12px; z-index:10;
+    display:flex; align-items:center; gap:10px; flex-wrap:wrap;
+    background:var(--dialog-black); backdrop-filter:blur(6px);
+    border:1px solid var(--line); border-radius:10px; padding:8px 14px;
+  }
+  #graph-title { color:var(--gold); font-weight:700; font-size:14px; margin-right:4px; }
+  .graph-btn {
+    background:var(--panel); border:1px solid var(--line); color:var(--dim);
+    border-radius:7px; padding:4px 12px; cursor:pointer; font-size:13px;
+    transition:.1s;
+  }
+  .graph-btn:hover { border-color:var(--gold); color:var(--ink); }
+  .graph-btn.primary { background:var(--gold); color:#1a1a1a; border-color:var(--gold); font-weight:700; }
+  #graph-hint { color:var(--dim); font-size:12px; margin-left:auto; }
+  #graph-legend { display:flex; gap:10px; flex-wrap:wrap; margin-left:auto; }
+  .leg { display:flex; align-items:center; gap:4px; font-size:11px; color:var(--dim); }
+  .leg-dot { width:10px; height:10px; border-radius:50%; flex-shrink:0; }
+  /* node details sidebar inside graph */
+  #graph-side {
+    position:absolute; top:60px; right:12px; width:260px; z-index:10;
+    background:var(--dialog-black); border:1px solid var(--line); border-radius:10px;
+    padding:14px; display:none;
+  }
+  #graph-side h4 { margin:0 0 6px; font-size:15px; }
+  #graph-side .gs-type { color:var(--dim); font-size:12px; margin-bottom:10px; }
+  #graph-side .gs-links { font-size:12px; color:var(--dim); }
+  #graph-side .gs-link { display:inline-block; background:var(--chip);
+    border:1px solid var(--line); border-radius:12px; padding:2px 9px;
+    margin:3px 3px 0 0; cursor:pointer; font-size:12px; }
+  #graph-side .gs-link:hover { border-color:var(--gold); color:var(--ink); }
+
+  /* ── COUNTER LOOKUP / GRAPH ──────────────────────────────────────── */
+  #view-counters { padding:0; height:calc(100vh - 66px); display:flex; flex-direction:column; }
+  .cg-top { padding:14px 24px 10px; border-bottom:1px solid var(--line); flex-shrink:0; }
+  .cg-top h2 { font-size:13px; text-transform:uppercase; letter-spacing:.5px;
+    color:var(--dim); margin:0 0 8px; }
+  #cg-layout { display:flex; flex:1; overflow:hidden; min-height:400px; }
+  #cg-panel { width:272px; flex-shrink:0; padding:12px; overflow-y:auto;
+    border-right:1px solid var(--line); display:flex; flex-direction:column; gap:10px; }
+  #cy-counters { flex:1; background:var(--bg); }
+  /* Resumen a la derecha: solo en pantallas anchas, donde sobra espacio */
+  #cg-side { display:none; width:340px; flex-shrink:0; overflow-y:auto; padding:12px;
+    border-left:1px solid var(--line); font-size:13px; }
+  @media (min-width:1500px) { #cg-side { display:block; } }
+  @media (min-width:1900px) { #cg-side { width:400px; } }
+  .cs-h { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.4px; margin:10px 0 4px; }
+  .cs-h:first-child { margin-top:0; }
+  .cs-row { display:flex; gap:8px; padding:6px 4px; border-bottom:1px solid var(--line); cursor:pointer; }
+  .cs-row:hover { background:var(--chip); }
+  .cs-row img { width:30px; height:30px; object-fit:contain; flex-shrink:0; border:2px solid; border-radius:50%; }
+  .cs-name { font-weight:700; color:var(--ink); line-height:1.2; }
+  .cs-meta { font-size:11px; color:var(--dim); }
+  .cs-nota { font-size:12px; color:var(--dim); margin-top:2px; line-height:1.35; }
+  #cg-legend { display:flex; flex-direction:column; gap:5px; }
+  .cg-leg { display:flex; align-items:center; gap:8px; font-size:12px; color:var(--dim); }
+  .cg-dot { width:10px; height:10px; border-radius:50%; flex-shrink:0; }
+  #cg-detail { font-size:13px; line-height:1.4; border-top:1px solid var(--line); padding-top:10px; }
+  .cg-unit-name { font-size:15px; font-weight:700; margin-bottom:4px; }
+  .cg-tier-badge { display:inline-block; border-radius:10px; padding:2px 10px;
+    font-size:11px; font-weight:700; margin-bottom:8px; border:1px solid; }
+  .cg-nota-text { color:var(--dim); font-size:12px; font-style:italic; margin:4px 0 8px; }
+  .cg-weight { font-size:11px; color:var(--dim); }
+  #cg-notes { font-size:12px; color:var(--dim); border-top:1px solid var(--line); padding-top:10px; }
+  #cg-notes blockquote { margin:4px 0; padding:4px 8px;
+    border-left:2px solid var(--gold); font-style:italic; }
+  .cg-ph { color:var(--dim); font-size:13px; padding:4px 0; margin:0; }
+  #cg-age { background:var(--panel); border:1px solid var(--line); color:var(--ink);
+    border-radius:8px; padding:0 10px; font-size:14px; cursor:pointer; }
+  /* Globo al pasar el mouse por un nodo: el porqué sin tener que clickear */
+  #cg-tip { position:fixed; z-index:50; pointer-events:none; max-width:260px; display:none;
+    background:#060402ee; color:#e4d4b0; border:1px solid var(--gold); border-radius:6px;
+    padding:7px 10px; font-size:12px; line-height:1.35; }
+  #cg-tip b { color:#ecd08a; }
+  #cg-tip .tip-meta { color:#bfae8a; font-size:11px; margin:2px 0 4px; }
+  .cg-ask { margin-top:10px; background:var(--chip); border:1px solid var(--gold); color:var(--ink);
+    border-radius:8px; padding:6px 10px; font-size:12px; cursor:pointer; width:100%; }
+  .cg-ask:hover { background:var(--sel-bg); }
+  /* ── REASONING PANEL (chat) ──────────────────────────────────────── */
+  .reasoning-toggle { background:none; border:none; color:var(--dim); font-size:12px;
+    cursor:pointer; padding:4px 0 0; display:flex; align-items:center; gap:4px; }
+  .reasoning-toggle:hover { color:var(--ink); }
+  .reasoning-panel { display:none; margin-top:6px; font-size:12px; color:var(--dim);
+    border-top:1px solid var(--line); padding-top:6px; }
+  .reasoning-panel.open { display:block; }
+  .rh-row { padding:2px 0; }
+  .rh-score { color:var(--gold); font-weight:700; margin-right:5px; font-size:11px; }
+  .counter-search-row { display:flex; gap:8px; margin:0; }
+  #cg-quickbar { display:flex; flex-direction:column; gap:7px;
+    border-top:1px solid var(--line); padding-top:10px; }
+  .cg-qgroup { display:flex; flex-direction:column; gap:3px; }
+  .cg-qgroup-h { font-size:10px; color:var(--dim); font-weight:700;
+    text-transform:uppercase; letter-spacing:.4px; opacity:.85; }
+  .cg-qrow { display:grid; grid-template-columns:repeat(3, 1fr); gap:4px; }
+  .cg-qbtn { background:var(--panel); border:1px solid var(--line); border-radius:6px;
+    cursor:pointer; padding:4px 3px 3px; display:flex; flex-direction:column;
+    align-items:center; gap:2px; transition:.1s; min-width:0; overflow:hidden; }
+  /* Chips de civilizaciones seleccionadas (multi-civ) */
+  #cg-civ-chips { display:flex; flex-wrap:wrap; gap:5px; margin-top:8px; }
+  .cg-civ-chip { display:inline-flex; align-items:center; gap:5px; font-size:12px;
+    background:var(--chip); border:1px solid var(--blue); color:var(--blue); border-radius:14px;
+    padding:2px 6px 2px 10px; }
+  .cg-civ-chip.player { border-color:var(--gold); color:var(--gold); background:var(--sel-bg); }
+  .cg-civ-chip button { background:none; border:none; color:inherit; cursor:pointer;
+    font-size:14px; line-height:1; padding:0 2px; opacity:.7; }
+  .cg-civ-chip button:hover { opacity:1; }
+  .cg-civ-count { font-size:11px; color:var(--dim); align-self:center; }
+  .cg-qbtn:hover { border-color:var(--gold); background:var(--chip); }
+  .cg-qbtn.active { border-color:var(--gold); background:var(--sel-bg); box-shadow:0 0 0 1px var(--gold); }
+  .cg-qbtn:disabled { opacity:.22; filter:grayscale(1); cursor:not-allowed; }
+  .cg-qbtn:disabled:hover { background:var(--panel); }
+  /* Color por tipo de unidad: genérica=celeste · regional=aguamarina · única=violeta */
+  .cg-qbtn.k-generic  { border-color:var(--blue); }
+  .cg-qbtn.k-generic  span { color:var(--blue); }
+  .cg-qbtn.k-regional { border-color:var(--teal); background:var(--chip); }
+  .cg-qbtn.k-regional span { color:var(--teal); }
+  .cg-qbtn.k-unique   { border-color:var(--purple); background:var(--chip); }
+  .cg-qbtn.k-unique   span { color:var(--purple); }
+  .cg-qbtn.k-generic:hover, .cg-qbtn.k-regional:hover, .cg-qbtn.k-unique:hover { border-color:var(--gold); }
+  /* Botones UU dinámicos (por civ): violeta como las únicas */
+  .cg-qbtn.uu { border-color:var(--purple); background:var(--chip); }
+  .cg-qbtn.uu span { color:var(--purple); }
+  #cg-civ { background:var(--panel); border:1px solid var(--line); color:var(--ink);
+    border-radius:8px; padding:0 10px; font-size:14px; max-width:190px; cursor:pointer; }
+  #cg-civ:focus { border-color:var(--gold); outline:none; }
+  .cg-qbtn img { width:30px; height:30px; object-fit:contain; image-rendering:pixelated; }
+  .cg-qbtn-ph { width:30px; height:30px; display:flex; align-items:center;
+    justify-content:center; font-size:16px; }
+  .cg-qbtn span { font-size:9px; color:var(--dim); line-height:1.2; max-width:100%;
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  #counter-input { flex:1; background:var(--panel); border:1px solid var(--line);
+    color:var(--ink); padding:9px 13px; border-radius:8px; font-size:14px; }
+  #counter-btn { background:var(--gold); color:#1a1a1a; border:0; border-radius:8px;
+    padding:0 22px; font-weight:700; cursor:pointer; font-size:14px; }
+  #counter-result { display:grid;
+    grid-template-columns:repeat(auto-fill,minmax(310px,1fr)); gap:14px; }
+  .cx-card { background:var(--panel); border:1px solid var(--line);
+    border-radius:10px; padding:16px; }
+  .cx-card-head { display:flex; align-items:center; gap:10px;
+    margin-bottom:12px; font-size:16px; }
+  .cx-unit-icon { width:38px; height:38px; object-fit:contain; }
+  .cx-unit-icon-sm { width:22px; height:22px; object-fit:contain; flex-shrink:0; }
+  .cx-chips { display:flex; flex-direction:column; gap:6px; }
+  .cx-chip { display:flex; align-items:center; gap:8px; padding:6px 10px;
+    background:var(--chip); border-radius:8px; border:1px solid; font-size:13px; }
+  .cx-tier { font-weight:700; font-size:11px; min-width:72px; flex-shrink:0; }
+  .cx-nota { color:var(--dim); font-size:12px; margin-left:auto; max-width:180px;
+    text-align:right; }
+  .cx-card blockquote { margin:10px 0 0; padding:6px 10px;
+    border-left:3px solid var(--gold); color:var(--dim); font-size:12px;
+    font-style:italic; }
+  .cx-empty { color:var(--dim); padding:24px 0; font-size:14px; }
+
+  /* MATCHUP LAB */
+  #view-matchups { min-height:calc(100vh - 66px); padding:18px 24px; }
+  .mu-shell { display:grid; grid-template-columns:320px 1fr; gap:18px; align-items:start; }
+  .mu-panel { background:var(--panel); border:1px solid var(--line); border-radius:8px; padding:16px; }
+  .mu-panel h2, .mu-section h3 { margin:0 0 10px; font-size:13px; text-transform:uppercase;
+    letter-spacing:.5px; color:var(--dim); }
+  .mu-field { display:flex; flex-direction:column; gap:5px; margin-bottom:12px; }
+  .mu-field label { font-size:12px; color:var(--dim); }
+  .mu-field select, .mu-field input { background:var(--bg); border:1px solid var(--line);
+    color:var(--ink); border-radius:8px; padding:9px 11px; font-size:14px; width:100%; }
+  #mu-run, #mu-chat { background:var(--gold); color:#1a1a1a; border:0; border-radius:8px;
+    padding:10px 14px; font-weight:700; cursor:pointer; width:100%; }
+  #mu-chat { margin-top:10px; background:var(--blue); }
+  #mu-run:disabled, #mu-chat:disabled { opacity:.55; cursor:default; }
+  .mu-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; }
+  .mu-section { background:var(--panel); border:1px solid var(--line); border-radius:8px; padding:14px; }
+  .mu-section.wide { grid-column:1 / -1; }
+  .mu-title { display:flex; align-items:center; gap:10px; margin-bottom:10px; }
+  .mu-title img { width:42px; height:42px; object-fit:contain; }
+  .mu-title b { font-size:18px; }
+  .mu-line { display:inline-flex; align-items:center; gap:6px; background:var(--chip);
+    border:1px solid var(--line); border-radius:14px; padding:3px 9px; margin:3px; font-size:12px; }
+  .mu-line img { width:20px; height:20px; object-fit:contain; }
+  .mu-edge { display:grid; grid-template-columns:1fr auto 1fr; gap:8px; align-items:center;
+    border-bottom:1px solid var(--line); padding:7px 0; font-size:13px; }
+  .mu-edge:last-child { border-bottom:0; }
+  .mu-edge span:first-child, .mu-edge span:last-child { display:inline-flex; align-items:center; gap:5px; }
+  .mu-edge img { width:20px; height:20px; object-fit:contain; flex-shrink:0; }
+  .mu-score { font-weight:700; font-size:12px; }
+  .mu-score-strong { color:var(--good-c); }
+  .mu-score-mid    { color:var(--gold); }
+  .mu-score-weak   { color:var(--dim); }
+  .mu-strength { font-size:10px; font-style:italic; opacity:.8; }
+  .mu-context { font-size:10px; background:var(--chip); border:1px solid var(--line); border-radius:8px; padding:1px 6px; color:var(--dim); }
+  .mu-tier-badge { font-size:10px; background:var(--chip); border:1px solid var(--line); border-radius:4px; padding:1px 6px; margin-left:6px; color:var(--gold); vertical-align:middle; }
+  .mu-note { color:var(--dim); font-size:12px; margin-top:2px; grid-column:1 / -1; }
+  .mu-plan { margin:0; padding-left:18px; color:var(--ink); }
+  .mu-plan li { margin:5px 0; }
+  .mu-empty { color:var(--dim); font-size:13px; }
+  .mu-exploit { border-left:3px solid var(--line); padding:7px 11px; margin:7px 0;
+    background:var(--sunk); border-radius:0 4px 4px 0; }
+  .mu-exploit-green  { border-left-color:var(--good-c); }
+  .mu-exploit-yellow { border-left-color:var(--gold); }
+  .mu-exploit-red    { border-left-color:var(--dim); opacity:.7; }
+  .mu-exploit-head { font-size:13px; }
+  .mu-exploit-body { font-size:12px; margin-top:3px; display:flex; flex-wrap:wrap; gap:4px 14px; }
+  .mu-gap  { color:var(--good-c); }
+  .mu-risk { color:var(--gold); }
+  .mu-combos { margin-top:12px; border-top:1px dashed var(--line); padding-top:10px; }
+  .mu-combos-title { font-size:11px; text-transform:uppercase; letter-spacing:.5px; color:var(--dim); margin-bottom:6px; }
+  .mu-combo { font-size:13px; margin:5px 0; }
+  .mu-combo-canonical { background:var(--sunk); border-radius:6px; padding:8px 11px; margin:6px 0; border-left:3px solid var(--gold); }
+  .mu-combo-name { font-size:13px; margin-bottom:4px; }
+  .mu-combo-why { font-size:12px; color:var(--dim); line-height:1.5; }
+  .mu-bonus { font-size:10px; font-weight:600; border-radius:3px; padding:1px 5px; margin-left:6px; vertical-align:middle; }
+  .mu-bonus-propio { color:var(--gold); background:rgba(198,155,69,.16); }
+  .mu-bonus-ajeno  { color:var(--bad-c); background:rgba(155,43,26,.13); }
+  .mu-eco-summary  { font-size:10px; color:var(--dim); padding:4px 0 0; border-top:1px solid var(--line); margin-top:6px; }
+  .mu-composition { background:var(--sunk); border:1px solid var(--line); border-radius:8px; padding:10px 14px; margin-bottom:12px; }
+  .mu-comp-title { font-size:11px; text-transform:uppercase; letter-spacing:.5px; color:var(--dim); margin-bottom:8px; }
+  .mu-comp-slots { display:flex; gap:10px; flex-wrap:wrap; }
+  .mu-comp-slot { flex:1; min-width:100px; border-radius:6px; padding:8px 10px; display:flex; flex-direction:column; gap:2px; border:1px solid var(--line); }
+  .mu-comp-gold  { border-color:var(--good-c); background:rgba(61,107,23,.1); }
+  .mu-comp-trash { border-color:var(--blue); background:rgba(42,93,134,.1); }
+  .mu-comp-siege { border-color:var(--bad-c); background:rgba(155,43,26,.1); }
+  .mu-comp-icon { font-size:16px; }
+  .mu-comp-role { font-size:10px; text-transform:uppercase; letter-spacing:.5px; color:var(--dim); margin-left:6px; }
+  .mu-source { border-left:2px solid var(--gold); padding:6px 10px; margin:8px 0;
+    color:var(--dim); font-size:12px; background:var(--sunk); }
+  .mu-source-link { cursor:pointer; text-decoration:underline dotted; color:var(--ink); }
+  .mu-source-link:hover { color:var(--gold); }
+  @media(max-width:900px){ .mu-shell{ grid-template-columns:1fr; } .mu-grid{ grid-template-columns:1fr; } }
+
+  /* ── PLANES DE PARTIDA ───────────────────────────────────────────── */
+  .mup-plans { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+  @media(max-width:680px){ .mup-plans{ grid-template-columns:1fr; } }
+  .mup-col { display:flex; flex-direction:column; gap:8px; }
+  .mup-civ-head { font-size:14px; font-weight:700; color:var(--gold);
+    border-bottom:1px solid var(--line); padding-bottom:8px; margin-bottom:2px; }
+  .mup-card { background:var(--sunk); border:1px solid var(--line); border-radius:8px;
+    padding:12px 14px; display:flex; flex-direction:column; gap:5px; }
+  .mup-card.plan-a { border-left:3px solid var(--good-c); }
+  .mup-card.plan-b { border-left:3px solid var(--gold); }
+  .mup-plan-label { font-size:9px; font-weight:800; text-transform:uppercase;
+    letter-spacing:1px; }
+  .mup-card.plan-a .mup-plan-label { color:var(--good-c); }
+  .mup-card.plan-b .mup-plan-label { color:var(--gold); }
+  .mup-plan-subtitle { font-size:10px; color:var(--dim); font-weight:400;
+    text-transform:none; letter-spacing:0; margin-left:4px; }
+  .mup-plan-main { font-size:15px; font-weight:700; color:var(--ink); line-height:1.3; margin-top:2px; }
+  .mup-plan-detail { display:flex; flex-direction:column; gap:3px; margin-top:3px; }
+  .mup-plan-gap    { font-size:12px; color:var(--good-c); }
+  .mup-plan-recipe { font-size:12px; color:var(--blue); }
+  .mup-plan-uu     { font-size:12px; color:var(--purple); }
+  .mup-plan-risk   { font-size:12px; color:var(--gold); }
+  .mup-plan-trigger{ font-size:11px; color:var(--dim); font-style:italic; }
+  .mup-plan-pivot  { font-size:14px; font-weight:600; color:var(--ink); }
+  .mup-plan-empty  { font-size:12px; color:var(--dim); font-style:italic; }
+
+  /* ── MOBILE ──────────────────────────────────────────────────────── */
+  @media(max-width:768px) {
+    #sidebar { display:none; }
+    #main { margin-left:0; padding-bottom:62px; }
+    .mob-title { display:block; }
+    #mobile-nav { display:flex; }
+    #search { width:100%; margin-left:0; }
+  }
+  #mobile-nav {
+    display:none; position:fixed; bottom:0; left:0; right:0; z-index:100;
+    background:var(--panel); border-top:1px solid var(--line);
+    justify-content:space-around;
+  }
+  .mn-item { display:flex; flex-direction:column; align-items:center; gap:2px;
+    padding:8px 0; font-size:11px; color:var(--dim); text-decoration:none;
+    cursor:pointer; flex:1; transition:.1s; }
+  .mn-item:hover, .mn-item.active { color:var(--gold); }
+  .mn-icon { font-size:20px; }
+</style>
+<style id="aoe-theme">
+  /* ═══ Tema AoE2 — docs/GUIA-DE-ESTILO.md de Aoe2-Tech-Tree-Advanced ═══════
+     Madera = fondo · negro de diálogo = barras y overlays · pergamino = fichas
+     de contenido · papiro = controles · rojo = acciones · oro = selección.
+     Cinzel para títulos, Crimson Pro para texto, esquinas rectas. */
+  *, *::before, *::after { border-radius:0 !important; }
+  body { font:16px/1.5 var(--font-body); color:var(--ink);
+    background:var(--wood); background-attachment:fixed; background-color:#2b170d; }
+  h2, h3, h4, .sb-brand, .cg-unit-name, #graph-title, .mup-civ-head, .calc-title, .mu-title b {
+    font-family:var(--font-display); letter-spacing:.04em; }
+  .col h2, .cg-top h2, .mu-panel h2, .mu-section h3, .calc-title { font-weight:700; color:var(--dim); }
+  ::selection { background:rgba(138,24,18,.3); }
+  :focus-visible { outline:2px solid var(--parch-100); outline-offset:2px; }
+
+  /* Barra de desplazamiento de acero (copiada del árbol) */
+  ::-webkit-scrollbar { width: 16px; height: 16px; }
+  ::-webkit-scrollbar-track {
+    background: linear-gradient(90deg, #120c08, #2a211a 45%, #1c140e);
+    box-shadow: inset 1px 0 0 #050302;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: var(--sb-knob) center / 14px 14px no-repeat, linear-gradient(90deg, #3b332c, #6f665d 50%, #3b332c);
+    border: 1px solid #050302;
+    box-shadow: inset 0 0 0 1px rgba(255, 250, 240, 0.12);
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--sb-knob) center / 14px 14px no-repeat, linear-gradient(90deg, #4a4139, #867c72 50%, #4a4139);
+  }
+  ::-webkit-scrollbar-button:single-button {
+    display: block;
+    width: 16px; height: 16px;
+    background: #1c140e var(--sb-up) center / 16px 16px no-repeat;
+  }
+  ::-webkit-scrollbar-button:single-button:vertical:increment { background-image: var(--sb-down); }
+  ::-webkit-scrollbar-button:vertical:start:increment,
+  ::-webkit-scrollbar-button:vertical:end:decrement,
+  ::-webkit-scrollbar-button:horizontal { display: none; }
+  ::-webkit-scrollbar-track:horizontal { background: linear-gradient(180deg, #120c08, #2a211a 45%, #1c140e); box-shadow: inset 0 1px 0 #050302; }
+  ::-webkit-scrollbar-thumb:horizontal { background: var(--sb-knob) center / 14px 14px no-repeat, linear-gradient(180deg, #3b332c, #6f665d 50%, #3b332c); }
+  ::-webkit-scrollbar-corner { background: #120c08; }
+  /* Firefox no permite botones ni imágenes: al menos los mismos colores */
+  @supports not selector(::-webkit-scrollbar) {
+    * { scrollbar-color: #6f665d #1c140e; }
+  }
+
+  /* Barras laterales / cabecera sobre la madera */
+  #sidebar { background:rgba(10,6,3,.88); border-right:1px solid var(--gold-line);
+    box-shadow:1px 0 0 #0b0603, 6px 0 18px rgba(0,0,0,.4); }
+  .sb-brand { color:var(--gold-text); border-bottom-color:var(--hair); }
+  .sb-item { font-family:var(--font-display); font-weight:600; letter-spacing:.03em; }
+  .sb-item:hover { background:rgba(138,24,18,.35); color:var(--on-dark); }
+  .sb-item.active { background:rgba(198,155,69,.1); color:var(--gold-text); border-left-color:var(--gold); }
+  header { border-bottom:1px solid var(--gold-line); box-shadow:0 1px 0 #0b0603; }
+  .mob-title { font-family:var(--font-display); } .mob-title span { color:var(--gold-text); }
+  #mobile-nav { background:rgba(10,6,3,.94); border-top-color:var(--gold-line); }
+  .mn-item { font-family:var(--font-display); }
+  .mn-item:hover, .mn-item.active { color:var(--gold-text); }
+
+  /* Fichas de pergamino: redefinen las variables → las reglas existentes
+     (que usan --ink, --dim, --line, --gold…) pasan a tinta sobre papel.
+     Sobre papiro el oro no se lee: la selección/acento va en rojo. */
+  /* html body: gana sobre los <style> propios de cada vista (p.ej. la calculadora). */
+  html body :is(.card, #detail, .cx-card, .mu-panel, .mu-section, .calc-panel, #calc-supply, #cg-panel, #cg-side, .msg.bot) {
+    --ink:var(--ink-900); --dim:var(--ink-500); --line:var(--rule);
+    --panel:rgba(255,248,228,.3); --bg:rgba(255,248,228,.45);
+    --chip:rgba(255,248,228,.42); --sunk:rgba(75,51,28,.07); --sel-bg:rgba(138,24,18,.1);
+    --good-c:#3d6b17; --bad-c:#9b2b1a; --warn-c:#83551d;
+    --blue:#2a5d86; --teal:#2e6a45; --green:#3d6b17; --purple:#5d2a63; --wood-c:#83551d;
+    --gold:var(--red-500);
+    color:var(--ink); background:var(--parchment);
+    border:1px solid var(--gold-line); box-shadow:0 0 0 1px #0b0603, var(--burnt-edge);
+  }
+  .card:hover { transform:none; box-shadow:0 0 0 1px #0b0603, var(--burnt-edge), inset 3px 0 0 var(--red-500); }
+  .sect b { font-family:var(--font-display); }
+  .msg { font-size:15px; }
+  .msg.user { background:var(--dialog-black); border:1px solid var(--gold); color:var(--on-dark); }
+  #cg-panel { box-shadow:inset -1px 0 0 var(--gold-line); border:0; }
+  /* Resumen derecho: papiro medio de fondo, cada unidad en papiro claro */
+  html body #cg-side { background:var(--papyrus); color:var(--papyrus-text); border:0;
+    box-shadow:inset 1px 0 0 var(--gold-line), var(--burnt-edge); }
+  #cg-side .cs-row { background:var(--papyrus-light); border:1px solid rgba(75,51,28,.22);
+    border-radius:4px; margin-bottom:5px; }
+  #cg-side .cs-row:hover { border-color:var(--red-500); box-shadow:inset 3px 0 0 var(--red-500); }
+  .mu-exploit, .mu-combo-canonical, .mup-card, .mu-source, .mu-composition { background:var(--sunk); }
+
+  /* Controles: papiro */
+  html body :is(#search, #chatq, #counter-input, #cg-civ, #cg-age, .mu-field select, .mu-field input, #view-calc select, .sup-pass input, .contrib-row input) {
+    background:var(--papyrus); color:var(--papyrus-text); border:1px solid rgba(58,28,14,.55);
+    font-family:var(--font-body); font-weight:600; font-size:15px;
+    box-shadow:inset 0 0 0 1px rgba(255,246,222,.35), 0 1px 0 rgba(0,0,0,.15); }
+  /* Campos donde se escribe: papiro casi blanco (los desplegables siguen en papiro).
+     :is() toma la especificidad de su argumento más fuerte: #view-calc input
+     iguala a #view-calc select de la regla de arriba, y gana por ir después. */
+  html body :is(#search, #chatq, #counter-input, #view-calc input, textarea,
+    input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="button"]):not([type="submit"])) {
+    background:var(--papyrus-input); color:var(--papyrus-text); }
+  #search::placeholder, #chatq::placeholder, #counter-input::placeholder, .mu-field input::placeholder {
+    color:rgba(58,28,14,.6); font-style:italic; font-weight:400; }
+  #cg-civ:focus, #cg-age:focus, #search:focus-visible, #chatq:focus-visible, #counter-input:focus-visible,
+  .mu-field select:focus-visible, .mu-field input:focus-visible { outline:2px solid var(--red-500); outline-offset:1px; }
+  #results { background:var(--papyrus); color:var(--papyrus-text); border:1px solid rgba(58,28,14,.6);
+    box-shadow:0 0 0 1px #0b0603, 0 10px 24px rgba(0,0,0,.5); }
+  #results div { border-bottom-color:rgba(58,28,14,.18); font-weight:600; }
+  #results div:hover { background:rgba(58,28,14,.14); color:var(--red-500); }
+  #results small { color:rgba(58,28,14,.65); }
+
+  /* Botón de acción: rojo profundo con filete dorado (menú del juego) */
+  #chatsend, #counter-btn, #mu-run, .graph-btn.primary, .calc-btn.primary {
+    background:linear-gradient(180deg,#8c1a13 0%,#6a0e0a 48%,#4c0706 100%) !important;
+    border:1px solid var(--gold) !important; color:var(--btn-text) !important;
+    box-shadow:0 0 0 1px #0b0503, inset 0 0 0 1px rgba(20,2,1,.6), inset 0 0 14px rgba(20,0,0,.55), 0 3px 8px rgba(0,0,0,.35);
+    font-family:var(--font-display); font-weight:700; letter-spacing:.05em;
+    text-shadow:0 1px 0 #1c0302, 0 0 4px rgba(0,0,0,.7); }
+  #chatsend:hover, #counter-btn:hover, #mu-run:hover, .graph-btn.primary:hover, .calc-btn.primary:hover {
+    background:linear-gradient(180deg,#a3241a 0%,#7b140e 48%,#5a0a08 100%) !important; }
+  #chatsend:disabled, #mu-run:disabled { opacity:.55; }
+  #mu-chat { background:transparent; color:var(--ink); border:1px solid var(--rule);
+    font-family:var(--font-display); font-weight:700; }
+  #mu-chat:hover:not(:disabled) { border-color:var(--red-500); color:var(--red-500); }
+  .graph-btn, .calc-btn, .hint { font-family:var(--font-body); }
+  .graph-btn:hover, .hint:hover, .calc-btn:hover { border-color:var(--red-500); background:rgba(138,24,18,.3); color:var(--on-dark); }
+  .calc-btn:hover { color:var(--ink); }
+  .calc-total b, .res-v, .calc-step .n { font-variant-numeric:lining-nums tabular-nums; }
+
+  /* Grafos: se dibujan sobre pergamino, como el árbol */
+  #view-graph, #cy-counters { background:transparent; }
+  #cy, #cy-counters { background:var(--parchment); box-shadow:inset 0 0 0 1px var(--gold-line), var(--burnt-edge); }
+  #graph-toolbar, #graph-side { border-color:var(--gold); box-shadow:0 0 0 1px #000, 0 10px 24px rgba(0,0,0,.5); }
+  #graph-title { color:var(--gold-text); }
+  #graph-side h4 { font-family:var(--font-display); color:var(--gold-text); }
+</style>
+</head>
+<body>
+
+<!-- Cytoscape.js para la visualización del grafo -->
+<script src="/cytoscape.min.js"></script>
+<!-- IMG_MAP del árbol: desde el Update 185872 no hay img_map.js; el módulo de datos
+     (data/index.js) publica window.NODES / window.IMG_MAP y de ahí se arma el mapa
+     id → ícono. Se agregan los alias viejos que siguen usando los counters/UUs. -->
+<script type="module">
+import('/tree/src/data/index.js').then(() => {
+  try {
+    window.IMG_MAP = {
+      ...Object.fromEntries((window.NODES || []).filter(n => n.imgPath).map(n => [n.id, n.imgPath])),
+      ...(window.IMG_MAP || {}),
+      liao_dao: 'img/Unit/463.png',
+      white_feather: 'img/Unit/434.png',
+      longboat: 'img/Unit/40.png',   // renombrado a longship en el Update 185872
+    };
+    renderQuickBar();
+    if (typeof renderCivChips === 'function') renderCivChips();
+  } catch(e){ console.warn('IMG_MAP load error',e); }
+}).catch((e) => console.warn('IMG_MAP load error', e));
+</script>
+
+<!-- SIDEBAR -->
+<nav id="sidebar">
+  <div class="sb-brand">
+    <span class="sb-icon">⚔️</span>
+    <span class="sb-label">Codex</span>
+  </div>
+  <a class="sb-item active" data-view="explorer">
+    <span class="sb-icon">🏠</span><span class="sb-label">Explorador</span>
+  </a>
+  <a class="sb-item" data-view="counters">
+    <span class="sb-icon">🛡️</span><span class="sb-label">Counters</span>
+  </a>
+  <a class="sb-item" data-view="matchups">
+    <span class="sb-icon">VS</span><span class="sb-label">Matchups</span>
+  </a>
+  <a class="sb-item" data-view="graph">
+    <span class="sb-icon">🕸️</span><span class="sb-label">Grafo</span>
+  </a>
+  <a class="sb-item" data-view="tree">
+    <span class="sb-icon">🌳</span><span class="sb-label">Tech Tree</span>
+  </a>
+  <a class="sb-item" data-view="calc">
+    <span class="sb-icon">🧮</span><span class="sb-label">Calculadora</span>
+  </a>
+</nav>
+
+<!-- MOBILE NAV -->
+<nav id="mobile-nav">
+  <a class="mn-item active" data-view="explorer">
+    <span class="mn-icon">🏠</span>Explorador
+  </a>
+  <a class="mn-item" data-view="counters">
+    <span class="mn-icon">🛡️</span>Counters
+  </a>
+  <a class="mn-item" data-view="matchups">
+    <span class="mn-icon">VS</span>Matchups
+  </a>
+  <a class="mn-item" data-view="graph">
+    <span class="mn-icon">🕸️</span>Grafo
+  </a>
+  <a class="mn-item" data-view="tree">
+    <span class="mn-icon">🌳</span>Tech Tree
+  </a>
+  <a class="mn-item" data-view="calc">
+    <span class="mn-icon">🧮</span>Calc
+  </a>
+</nav>
+
+<!-- MAIN -->
+<div id="main">
+  <header>
+    <span class="mob-title">⚔️ <span>Strategy Codex</span></span>
+    <span id="stats"></span>
+    <input id="search" placeholder="Buscar (ES/EN): Hostigador, Aztecas, Bloodlines…" autocomplete="off" />
+  </header>
+  <div id="results"></div>
+
+  <!-- VIEW: EXPLORADOR ────────────────────────────────────────────── -->
+  <div id="view-explorer" class="view layout">
+    <div class="col">
+      <h2>Civilizaciones <span id="civcount" style="color:var(--dim)"></span></h2>
+      <div class="grid" id="civs"></div>
+    </div>
+    <div class="col">
+      <h2>Chat <span class="h2-sub">GraphRAG · Gemini</span></h2>
+      <div id="chatlog"></div>
+      <div class="chatrow">
+        <input id="chatq" placeholder="¿Cómo juego Scout Rush con Georgianos?" autocomplete="off" />
+        <button id="chatsend">Enviar</button>
+      </div>
+      <div id="chat-hints">
+        <span class="hint" data-q="¿Cómo juego Scout Rush con Georgianos?">Scout Rush Georgians</span>
+        <span class="hint" data-q="¿Qué civs son S-tier en Arabia según Hera?">S-tier Arabia</span>
+        <span class="hint" data-q="¿Cuáles son los counters del Paladín?">Counters Paladín</span>
+        <span class="hint" data-q="¿Qué hace especial el FC con Burgundians?">FC Burgundians</span>
+      </div>
+      <h2 style="margin-top:20px">Detalle</h2>
+      <div id="detail"><div class="ph">Elegí una civilización o buscá una unidad/tecnología.</div></div>
+    </div>
+  </div>
+
+  <!-- VIEW: GRAFO ─────────────────────────────────────────────────── -->
+  <div id="view-matchups" class="view" style="display:none">
+    <div class="mu-shell">
+      <div class="mu-panel">
+        <h2>Matchup Lab</h2>
+        <div class="mu-field">
+          <label for="mu-me">Tu civilizacion</label>
+          <select id="mu-me"></select>
+        </div>
+        <div class="mu-field">
+          <label for="mu-vs">Rival</label>
+          <select id="mu-vs"></select>
+        </div>
+        <div class="mu-field">
+          <label for="mu-map">Mapa</label>
+          <input id="mu-map" placeholder="Arabia, Arena, Nomad..." autocomplete="off" />
+        </div>
+        <button id="mu-run">Analizar matchup</button>
+        <button id="mu-chat" disabled>Convertir en briefing GraphRAG</button>
+      </div>
+      <div id="mu-result" class="mu-grid">
+        <div class="mu-section wide">
+          <div class="mu-empty">Elegí dos civilizaciones para cruzar tech tree, counters y notas del grafo.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="view-graph" class="view" style="display:none">
+    <div id="graph-toolbar">
+      <button class="graph-btn" id="graph-back" style="display:none">← Atrás</button>
+      <span id="graph-title">Seleccioná una civilización o nodo para explorar</span>
+      <button class="graph-btn" id="graph-fit">⊞ Fit</button>
+      <div id="graph-legend">
+        <span class="leg"><span class="leg-dot" style="background:#8a1812"></span>Civ</span>
+        <span class="leg"><span class="leg-dot" style="background:#2a5d86"></span>Unit</span>
+        <span class="leg"><span class="leg-dot" style="background:#5d2a63"></span>Strategy</span>
+        <span class="leg"><span class="leg-dot" style="background:#2e6a45"></span>Tech</span>
+        <span class="leg"><span class="leg-dot" style="background:#7b3a22"></span>Building</span>
+        <span class="leg"><span class="leg-dot" style="background:#6f5234"></span>Otros</span>
+      </div>
+      <span id="graph-hint">Click en un nodo → explorar sus conexiones</span>
+    </div>
+    <div id="graph-side">
+      <h4 id="gs-title"></h4>
+      <div class="gs-type" id="gs-type"></div>
+      <div class="gs-links" id="gs-links"></div>
+      <div style="margin-top:10px;display:flex;gap:6px">
+        <button class="graph-btn primary" id="gs-explore">Explorar</button>
+        <button class="graph-btn" id="gs-detail">Ver detalle</button>
+      </div>
+    </div>
+    <div id="cy"></div>
+  </div>
+
+  <!-- VIEW: TECH TREE ─────────────────────────────────────────────── -->
+  <div id="view-tree" class="view" style="display:none">
+    <iframe id="tree-frame" src="about:blank" style="width:100%;height:calc(100vh - 66px);border:none;display:block;"></iframe>
+  </div>
+
+  <!-- VIEW: COUNTERS ──────────────────────────────────────────────── -->
+  <div id="view-counters" class="view" style="display:none">
+    <div class="cg-top">
+      <h2>🛡️ Counter Graph</h2>
+      <div class="counter-search-row">
+        <select id="cg-civ" title="Agregá civilizaciones (hasta 8)">
+          <option value="">➕ Agregar civ…</option>
+        </select>
+        <select id="cg-age" title="Edad: oculta lo que todavía no existe y usa el contexto early/late que vale en esa edad">
+          <option value="">Todas las edades</option>
+          <option value="feudal">Feudal</option>
+          <option value="castle">Castillos</option>
+          <option value="imperial">Imperial</option>
+        </select>
+        <input id="counter-input"
+          placeholder="Buscar unidad: Paladin, Archer, Skirmisher, Mangonel, Monk…"
+          autocomplete="off" />
+        <button id="counter-btn">Buscar</button>
+      </div>
+      <div id="cg-civ-chips"></div>
+    </div>
+    <div id="cg-layout">
+      <div id="cg-panel">
+        <div id="cg-legend">
+          <div class="cg-leg" style="font-weight:600;color:var(--ink)">🛡️ La counterean (izq.)</div>
+          <div class="cg-leg"><span class="cg-dot" style="background:#9b2b1a"></span>Hard (Primario)</div>
+          <div class="cg-leg"><span class="cg-dot" style="background:#83551d"></span>Sólido</div>
+          <div class="cg-leg" style="font-weight:600;color:var(--ink);margin-top:4px">⚔️ Es fuerte contra (der.)</div>
+          <div class="cg-leg"><span class="cg-dot" style="background:#3d6b17"></span>Fuerte (Primario)</div>
+          <div class="cg-leg"><span class="cg-dot" style="background:#53682a"></span>Levemente fuerte</div>
+        </div>
+        <div id="cg-quickbar"></div>
+        <div id="cg-detail"><p class="cg-ph">Buscá una unidad para ver el grafo de counters.</p></div>
+        <div id="cg-notes"></div>
+      </div>
+      <div id="cy-counters"></div>
+      <aside id="cg-side"></aside>
+    </div>
+    <div id="cg-tip"></div>
+  </div>
+
+  <!-- VIEW: CALCULADORA DE PRODUCCIÓN ─────────────────────────────────── -->
+  <div id="view-calc" class="view" style="display:none">
+    <style>
+      #view-calc { padding:18px 24px; }
+      .calc-controls { display:flex; gap:14px; flex-wrap:wrap; align-items:flex-end; margin-bottom:16px; }
+      .calc-controls label { display:flex; flex-direction:column; gap:4px; font-size:12px; color:var(--dim); }
+      .calc-controls select, #view-calc select { background:var(--panel); border:1px solid var(--line);
+        color:var(--ink); padding:8px 10px; border-radius:8px; font-size:14px; }
+      .calc-title { font-size:13px; text-transform:uppercase; letter-spacing:.5px; color:var(--dim); margin:0 0 10px; }
+      .calc-grid { display:grid; grid-template-columns:1fr 1fr; gap:18px; }
+      @media(max-width:900px){ .calc-grid{ grid-template-columns:1fr; } }
+      .calc-panel { background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:14px; }
+      .calc-add { display:flex; gap:8px; margin-bottom:12px; }
+      .calc-add select { flex:1; }
+      .calc-btn { background:var(--chip); border:1px solid var(--line); color:var(--ink);
+        padding:8px 12px; border-radius:8px; cursor:pointer; font-size:14px; }
+      .calc-btn:hover { border-color:var(--gold); }
+      .calc-btn.primary { background:var(--gold); color:#111; border-color:var(--gold); font-weight:600; }
+      .calc-row { display:flex; align-items:center; gap:10px; padding:8px 0; border-top:1px solid var(--line); }
+      .calc-row:first-child { border-top:none; }
+      .calc-row .nm { flex:1; font-size:14px; }
+      .calc-row .nm small { color:var(--dim); font-size:11px; display:block; }
+      .calc-step { display:flex; align-items:center; gap:6px; }
+      .calc-step button { width:26px; height:26px; border-radius:6px; border:1px solid var(--line);
+        background:var(--chip); color:var(--ink); cursor:pointer; font-size:15px; line-height:1; }
+      .calc-step button:hover { border-color:var(--gold); }
+      .calc-step .n { min-width:20px; text-align:center; font-weight:600; }
+      .calc-x { color:var(--dim); cursor:pointer; font-size:16px; padding:0 4px; }
+      .calc-x:hover { color:var(--bad-c); }
+      .calc-empty { color:var(--dim); font-size:13px; padding:10px 0; }
+      .calc-total { font-size:15px; margin-bottom:12px; }
+      .calc-total b { font-size:26px; color:var(--gold); }
+      .res-row { display:grid; grid-template-columns:70px 1fr 46px; align-items:center; gap:10px; margin:9px 0; }
+      .res-row .lbl { font-size:13px; text-transform:capitalize; }
+      .res-row .lbl small { color:var(--dim); display:block; font-size:10px; text-transform:none; }
+      .res-bar { height:20px; background:var(--sunk); border-radius:5px; overflow:hidden; border:1px solid var(--line); }
+      .res-bar > span { display:block; height:100%; }
+      .res-v { text-align:right; font-weight:700; font-size:16px; }
+      .res-row.bottleneck .res-v { color:var(--warn-c); }
+      .food span{background:var(--green);} .wood span{background:var(--wood-c);}
+      .gold span{background:var(--gold);} .stone span{background:var(--dim);}
+      .calc-notes { margin-top:12px; padding-top:10px; border-top:1px solid var(--line);
+        font-size:12px; color:var(--dim); }
+      .calc-notes div { margin:5px 0; }
+      #calc-supply { margin-bottom:16px; background:var(--panel); border:1px solid var(--line);
+        border-radius:10px; padding:0 14px; }
+      #calc-supply summary { cursor:pointer; padding:13px 0; font-size:13px; color:var(--ink);
+        text-transform:uppercase; letter-spacing:.5px; }
+      .sup-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:14px; padding:6px 0 14px; }
+      .sup-res label { display:block; font-size:12px; color:var(--dim); margin-bottom:5px; text-transform:capitalize; }
+      .sup-res select { width:100%; }
+      .sup-techs { padding:10px 0 14px; border-top:1px solid var(--line); }
+      .sup-techs label { display:inline-flex; align-items:center; gap:5px; font-size:12px;
+        margin:0 12px 6px 0; color:var(--dim); cursor:pointer; }
+      .sup-pass { display:flex; gap:14px; flex-wrap:wrap; padding:10px 0 14px; border-top:1px solid var(--line); }
+      .sup-pass label { display:flex; align-items:center; gap:6px; font-size:12px; color:var(--dim); }
+      .sup-pass input, .contrib-row input { width:60px; background:var(--sunk); border:1px solid var(--line); color:var(--ink);
+        padding:6px 8px; border-radius:6px; }
+      /* iconos */
+      .ic { width:24px; height:24px; object-fit:contain; vertical-align:middle; image-rendering:auto; }
+      .ric { width:14px; height:14px; object-fit:contain; vertical-align:-2px; }
+      .emblem { width:22px; height:22px; object-fit:contain; vertical-align:middle; }
+      /* picker de iconos */
+      .pick-cat { font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:.4px;
+        color:var(--dim); margin:10px 0 6px; }
+      .pick-grid { display:flex; flex-wrap:wrap; gap:6px; }
+      .pick-b { width:60px; display:flex; flex-direction:column; align-items:center; gap:3px;
+        padding:6px 2px; border:1px solid var(--line); border-radius:8px; background:var(--chip);
+        cursor:pointer; transition:.1s; }
+      .pick-b:hover { border-color:var(--gold); background:var(--chip); }
+      .pick-b.on { border-color:var(--gold); box-shadow:inset 0 0 0 1px var(--gold); }
+      .pick-b .lb { font-size:10px; color:var(--dim); text-align:center; line-height:1.1;
+        max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+      .pick-b .badge { position:relative; }
+      .pick-b .cnt { position:absolute; top:-6px; right:-8px; background:var(--gold); color:var(--btn-text);
+        font-size:10px; font-weight:700; border-radius:8px; padding:0 4px; min-width:14px; text-align:center; }
+      .pick-b.regional { border-left:2px solid var(--blue); }
+      .pick-b.unique { border-left:2px solid var(--purple); }
+      .contrib-row { display:flex; align-items:center; gap:6px; margin:6px 0; }
+      .contrib-row select { flex:1; }
+      .contrib-add { margin-top:8px; }
+    </style>
+    <div class="calc-controls">
+      <label>Civilización
+        <span style="display:flex;align-items:center;gap:8px">
+          <img id="calc-civ-emblem" class="emblem" alt="" style="display:none">
+          <select id="calc-civ"><option value="">Genérica (sin bonos)</option></select>
+        </span>
+      </label>
+      <label>Edad
+        <select id="calc-age">
+          <option value="dark">Oscura</option>
+          <option value="feudal" selected>Feudal</option>
+          <option value="castle">Castillos</option>
+          <option value="imperial">Imperial</option>
+        </select>
+      </label>
+      <button class="calc-btn" id="calc-reset">Limpiar</button>
+    </div>
+
+    <details id="calc-supply">
+      <summary>⚙️ Economía — fuentes, tecnologías e ingreso pasivo (por defecto: economía estándar de la edad)</summary>
+      <div class="calc-title" style="margin-top:12px">Fuente de relleno por recurso (marginal)</div>
+      <div class="sup-grid" id="calc-sup-sources"></div>
+      <div class="sup-techs" id="calc-sup-contrib">
+        <div style="font-size:12px;color:var(--dim);margin-bottom:8px">Recolectores fijos que ya tenés (podés mezclar varias fuentes)</div>
+        <div id="contrib-list"></div>
+        <button class="calc-btn contrib-add" id="contrib-add">+ Agregar fuente</button>
+      </div>
+      <div class="sup-techs" id="calc-sup-techs"></div>
+      <div class="sup-pass" id="calc-sup-pass">
+        <label>🏛️ Reliquias <input type="number" min="0" id="sup-relics" value="0"></label>
+        <label>🐫 Trade carts <input type="number" min="0" id="sup-trade" value="0"></label>
+        <label>🏯 Feitorias <input type="number" min="0" id="sup-feitoria" value="0"></label>
+      </div>
+    </details>
+
+    <div class="calc-grid">
+      <div class="calc-panel">
+        <h3 class="calc-title">Producción a sostener</h3>
+        <div id="calc-selected"><div class="calc-empty">Elegí unidades/edificios abajo. Cada línea = un edificio produciendo sin parar.</div></div>
+        <div id="calc-picker"></div>
+      </div>
+
+      <div class="calc-panel">
+        <h3 class="calc-title">Aldeanos necesarios</h3>
+        <div id="calc-result"><div class="calc-empty">Elegí qué producir para calcular.</div></div>
+      </div>
+    </div>
+  </div>
+</div><!-- #main -->
+
+<script>
+const api = (p) => fetch(p).then(r => r.json());
+const esc = (s) => String(s).replace(/[&<>"]/g,
+  c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+// ── VIEW SWITCHING ────────────────────────────────────────────────────
+function switchView(name) {
+  document.querySelectorAll('[data-view]').forEach(x =>
+    x.classList.toggle('active', x.dataset.view === name));
+  document.querySelectorAll('.view').forEach(v => v.style.display = 'none');
+  document.getElementById('view-' + name).style.display = '';
+  if (name === 'tree') {
+    const f = document.getElementById('tree-frame');
+    if (f.src === 'about:blank') f.src = '/tree/';
+  }
+  if (name === 'calc') initCalc();
+  if (name === 'counters') syncCounterUrl();
+  else if (new URLSearchParams(location.search).get('view') === 'counters')
+    history.replaceState(null, '', location.pathname);
+}
+
+function openCivInTree(slug) {
+  switchView('tree');
+  const f = document.getElementById('tree-frame');
+  const target = location.origin + '/tree/?civ=' + encodeURIComponent(slug.toLowerCase());
+  if (f.src !== target) f.src = target;
+}
+document.querySelectorAll('[data-view]').forEach(el =>
+  el.onclick = () => {
+    // El grafo abre siempre en las Preguntas frecuentes si todavía no se exploró nada.
+    if (el.dataset.view === 'graph' && !graphStack.length) loadGraph(GRAPH_HOME);
+    else switchView(el.dataset.view);
+  });
+
+// ── INIT ──────────────────────────────────────────────────────────────
+async function init() {
+  const s = await api("/api/stats");
+  document.getElementById("stats").textContent =
+    `${s.notes} notas · ${s.links} enlaces · ${s.uu} unidades únicas · ${s.ut} techs únicas`;
+  const civs = await api("/api/civs");
+  document.getElementById("civcount").textContent = `(${civs.length})`;
+  const grid = document.getElementById("civs");
+  grid.innerHTML = "";
+  for (const c of civs) {
+    const slug = c.path.replace("civs/","").replace(".md","");
+    const slugLower = slug.toLowerCase();
+    const tier = c.tierArabia ? `<span class="tier ${c.tierArabia}">${c.tierArabia}</span>` : "";
+    const al = c.aliases?.length ? `<div class="a">${c.aliases.join(" · ")}</div>` : "";
+    const el = document.createElement("div");
+    el.className = "card";
+    el.innerHTML = `<img class="civ-img" src="/img/civs/${slugLower}.png" alt="" onerror="this.style.display='none'"><div class="t">${c.title}</div>${tier}${al}`;
+    el.onclick = () => showCiv(slug);
+    grid.appendChild(el);
+  }
+  // Selector de civ del Counter Graph (filtra la botonera de unidades)
+  const sel = document.getElementById("cg-civ");
+  if (sel) {
+    for (const c of civs) {
+      const slug = c.path.replace("civs/","").replace(".md","");
+      const opt = document.createElement("option");
+      opt.value = slug;
+      opt.textContent = c.title;
+      sel.appendChild(opt);
+    }
+  }
+  populateMatchupSelects(civs);
+  await restoreCounterFromUrl();
+}
+
+function populateMatchupSelects(civs) {
+  const me = document.getElementById("mu-me");
+  const vs = document.getElementById("mu-vs");
+  if (!me || !vs) return;
+  const opts = civs.map(c => {
+    const slug = c.path.replace("civs/","").replace(".md","").toLowerCase();
+    return `<option value="${esc(slug)}">${esc(c.title)}</option>`;
+  }).join("");
+  me.innerHTML = `<option value="">Elegir...</option>${opts}`;
+  vs.innerHTML = `<option value="">Elegir...</option>${opts}`;
+  me.value = "franks";
+  vs.value = "mayans";
+}
+
+let lastMatchup = null;
+
+function civBadge(civ, tiers) {
+  const arabTier = tiers?.find(t => t.list.toLowerCase().includes('arabia'));
+  const tierBadge = arabTier ? `<span class="mu-tier-badge">${esc(arabTier.tier)}</span>` : '';
+  return `<div class="mu-title">
+    <img src="/img/civs/${esc(civ.slug.toLowerCase())}.png" alt="" onerror="this.style.display='none'">
+    <div><b>${esc(civ.title)}</b>${tierBadge}<div class="mu-empty">${esc(civ.aliases?.join(" / ") || civ.path)}</div></div>
+  </div>`;
+}
+
+function chipList(items, empty = "sin datos") {
+  if (!items?.length) return `<span class="mu-empty">${empty}</span>`;
+  return items.map(x => `<span class="chip">${esc(x.title || x.label || x.id)}</span>`).join("");
+}
+
+function lineChip(line) {
+  const imap = (typeof IMG_MAP !== 'undefined' && IMG_MAP) || window.IMG_MAP;
+  const src = line.imgKey && imap?.[line.imgKey] ? '/tree/' + imap[line.imgKey] : '';
+  const img = src ? `<img src="${src}" alt="" onerror="this.style.display='none'">` : '';
+  const bonus = line.bonus?.labels?.length
+    ? `<span class="mu-bonus mu-bonus-${line.bonus.tag}">${line.bonus.tag === 'propio' ? '★' : '⚠'} ${esc(line.bonus.labels.join(' · '))}</span>`
+    : '';
+  return `<span class="mu-line">${img}${esc(line.label)}${bonus}</span>`;
+}
+
+function edgeRows(rows, empty) {
+  if (!rows?.length) return `<div class="mu-empty">${empty}</div>`;
+  const imap = (typeof IMG_MAP !== 'undefined' && IMG_MAP) || window.IMG_MAP;
+  return rows.slice(0, 10).map(r => {
+    const fromSrc = r.fromImg && imap?.[r.fromImg] ? '/tree/' + imap[r.fromImg] : '';
+    const toSrc   = r.targetImg && imap?.[r.targetImg] ? '/tree/' + imap[r.targetImg] : '';
+    const fromImg = fromSrc ? `<img src="${fromSrc}" alt="" onerror="this.style.display='none'">` : '';
+    const toImg   = toSrc   ? `<img src="${toSrc}"   alt="" onerror="this.style.display='none'">` : '';
+    const w = Number(r.weight || 0);
+    const scoreClass = w >= 0.8 ? 'mu-score-strong' : w >= 0.5 ? 'mu-score-mid' : 'mu-score-weak';
+    const label = w >= 0.8 ? 'fuerte' : w >= 0.5 ? 'moderado' : 'débil';
+    const ctx = r.context && r.context !== '-' ? `<span class="mu-context">${esc(r.context)}</span>` : '';
+    return `<div class="mu-edge">
+      <span>${fromImg}${esc(r.from)}</span>
+      <span class="mu-score ${scoreClass}">${w.toFixed(2)} <span class="mu-strength">${label}</span>${ctx}</span>
+      <span>${toImg}${esc(r.target)}</span>
+      ${r.notes && r.notes !== '-' ? `<div class="mu-note">${esc(r.notes)}</div>` : ''}
+    </div>`;
+  }).join("");
+}
+
+function exploitRows(ex) {
+  if (!ex?.lines?.length) return `<div class="mu-empty">Sin lineas propias detectadas para analizar.</div>`;
+  const dot = { green: '🟢', yellow: '🟡', red: '🔴' };
+
+  // Composicion recomendada (gold/trash/siege)
+  let compHtml = '';
+  if (ex.composition && (ex.composition.gold || ex.composition.trash || ex.composition.siege)) {
+    const c = ex.composition;
+    const bonusBadge = (b) => b?.labels?.length
+      ? `<span class="mu-bonus mu-bonus-propio">★ ${esc(b.labels.join(' · '))}</span>` : '';
+    const slot = (role, line, bonus, icon) => line
+      ? `<div class="mu-comp-slot mu-comp-${role}">
+           <span class="mu-comp-icon">${icon}</span>
+           <b>${esc(typeof line === 'string' ? line : line.label)}</b>
+           ${bonusBadge(bonus)}
+           <span class="mu-comp-role">${role}</span>
+         </div>` : '';
+    // Eco summary: recoger bonuses eco de todas las líneas del exploit
+    const ecoItems = [...new Set((ex.lines || []).flatMap((l) => l.eco || []))];
+    const ecoHtml = ecoItems.length
+      ? `<div class="mu-eco-summary">Eco: ${esc(ecoItems.join(' · '))}</div>` : '';
+    compHtml = `<div class="mu-composition">
+      <div class="mu-comp-title">Composicion recomendada (gold + trash + siege)</div>
+      <div class="mu-comp-slots">
+        ${slot('gold', c.gold, c.goldBonus, '⚔️')}
+        ${slot('trash', c.trash, c.trashBonus, '🛡️')}
+        ${slot('siege', c.siege, null, '💥')}
+      </div>
+      ${ecoHtml}
+    </div>`;
+  }
+
+  // Lineas individuales con semaforo
+  const rows = ex.lines.map(l => {
+    const gaps = l.gaps?.length
+      ? `<span class="mu-gap">el rival NO tiene: ${esc(l.gaps.map(g => g.label).join(", "))}</span>`
+      : (l.status === 'green' ? `<span class="mu-gap">sin counters curados — linea libre</span>` : '');
+    const risks = l.risks?.length
+      ? `<span class="mu-risk">⚠ ojo: tiene ${esc(l.risks.map(r => r.label).join(", "))}</span>`
+      : '';
+    const role = l.role ? `<span class="mu-comp-role">${esc(l.role)}</span>` : '';
+    const bonus = l.bonus?.labels?.length
+      ? `<span class="mu-bonus mu-bonus-${l.bonus.tag}">${l.bonus.tag === 'propio' ? '★' : '⚠'} ${esc(l.bonus.labels.join(' · '))}</span>`
+      : '';
+    return `<div class="mu-exploit mu-exploit-${l.status}">
+      <div class="mu-exploit-head">${dot[l.status] || '⚪'} <b>${esc(l.label)}</b>${role}${bonus}</div>
+      <div class="mu-exploit-body">${gaps}${risks}</div>
+    </div>`;
+  }).join("");
+
+  // Recetas canonicas detectadas (Crossbow+Knights, Scouts+Archers)
+  let recipesHtml = '';
+  if (ex.recipes?.length) {
+    recipesHtml = `<div class="mu-combos">
+      <div class="mu-combos-title">🔥 Combos canonicos disponibles en este matchup</div>
+      ${ex.recipes.map(r => `<div class="mu-combo mu-combo-canonical">
+        <div class="mu-combo-name">⚔️ <b>${esc(r.name)}</b> <span class="mu-comp-role">${esc(r.age)} Age</span>${r.risky ? ' <span class="mu-risk" title="Alguna pieza esta individualmente contrareada — el combo la cubre">⚠ riesgo</span>' : ''}</div>
+        <div class="mu-combo-why">${esc(r.why)}</div>
+      </div>`).join("")}
+    </div>`;
+  }
+
+  return compHtml + rows + recipesHtml;
+}
+
+function tierRows(rows) {
+  if (!rows?.length) return `<span class="mu-empty">sin tiers</span>`;
+  return `<table>${rows.map(t => `<tr><td>${esc(t.list)}</td><td>${esc(t.tier)}</td></tr>`).join("")}</table>`;
+}
+
+function buildPlanCards(kit, exploits, answers, threats) {
+  const lines   = exploits?.lines   || [];
+  const comp    = exploits?.composition || null;
+  const recipes = exploits?.recipes || [];
+
+  // Plan A: mejor línea explotable + composición recomendada
+  const topLine   = lines.find(l => l.status !== 'red');
+  const planAMain = comp
+    ? [comp.gold, comp.trash, comp.siege].filter(Boolean).join(' + ')
+    : (topLine?.label || null);
+  const planAGap    = topLine?.gaps?.slice(0, 2).map(g => g.label).join(', ') || null;
+  const planARisk   = topLine?.risks?.[0]?.label || null;
+  const planARecipe = recipes.find(r => !r.risky);
+  const planAUU     = kit?.uniqueUnits?.[0]?.title || null;
+
+  // Plan B: segunda línea o recipe como pivote si Plan A es cerrado
+  const otherLine    = lines.find(l => l.id !== topLine?.id && l.status !== 'red');
+  const backupRecipe = recipes.find(r => r.name !== planARecipe?.name);
+  const strongAns    = answers?.filter(a => (a.weight || 0) >= 0.8)[0];
+  const strongThreat = threats?.filter(t => (t.weight || 0) >= 0.8)[0];
+
+  const planBTrigger = planARisk
+    ? `rival usa ${planARisk}`
+    : (strongThreat ? `rival presiona con ${strongThreat.from}` : null);
+  const planBPivot = otherLine?.label
+    || backupRecipe?.name
+    || (strongAns ? `${strongAns.from} → ${strongAns.target}` : null)
+    || null;
+  const planBGap = otherLine?.gaps?.[0]?.label || null;
+
+  return {
+    a: { main: planAMain, gap: planAGap, risk: planARisk, recipe: planARecipe?.name || null, uu: planAUU },
+    b: { trigger: planBTrigger, pivot: planBPivot, gap: planBGap },
+  };
+}
+
+function renderPlanCol(civTitle, kit, exploits, answers, threats) {
+  const { a, b } = buildPlanCards(kit, exploits, answers, threats);
+  return `<div class="mup-col">
+    <div class="mup-civ-head">${esc(civTitle)}</div>
+    <div class="mup-card plan-a">
+      <div class="mup-plan-label">Plan A <span class="mup-plan-subtitle">— Win condition</span></div>
+      ${a.main
+        ? `<div class="mup-plan-main">${esc(a.main)}</div>`
+        : `<div class="mup-plan-empty">Sin datos suficientes</div>`}
+      <div class="mup-plan-detail">
+        ${a.gap    ? `<span class="mup-plan-gap">✓ Hueco: rival sin ${esc(a.gap)}</span>`   : ''}
+        ${a.recipe ? `<span class="mup-plan-recipe">⚔ Combo: ${esc(a.recipe)}</span>`        : ''}
+        ${a.uu     ? `<span class="mup-plan-uu">★ UU Castle: ${esc(a.uu)}</span>`             : ''}
+        ${a.risk   ? `<span class="mup-plan-risk">⚠ Cerrado si: rival tiene ${esc(a.risk)}</span>` : ''}
+      </div>
+    </div>
+    <div class="mup-card plan-b">
+      <div class="mup-plan-label">Plan B <span class="mup-plan-subtitle">— Pivote</span></div>
+      ${b.trigger ? `<div class="mup-plan-trigger">Si: ${esc(b.trigger)}</div>` : ''}
+      ${b.pivot
+        ? `<div class="mup-plan-pivot">→ ${esc(b.pivot)}</div>`
+        : `<div class="mup-plan-empty">Adaptar en partida</div>`}
+      ${b.gap ? `<div class="mup-plan-detail"><span class="mup-plan-gap">✓ Sin counter: ${esc(b.gap)}</span></div>` : ''}
+    </div>
+  </div>`;
+}
+
+function renderPlans(d) {
+  const meCol = renderPlanCol(d.me.title, d.kits.me, d.exploits,   d.counters.answers, d.counters.threats);
+  const vsCol = renderPlanCol(d.vs.title, d.kits.vs, d.vsExploits, d.counters.threats, d.counters.answers);
+  return `<div class="mup-plans">${meCol}${vsCol}</div>`;
+}
+
+function renderMatchup(d) {
+  const out = document.getElementById("mu-result");
+  const map = document.getElementById("mu-map").value.trim();
+  out.innerHTML = `
+    <div class="mu-section">${civBadge(d.me, d.kits.me.tiers)}
+      <h3>Kit unico</h3>${chipList(d.kits.me.uniqueUnits)}
+      <div style="margin-top:8px">${chipList(d.kits.me.uniqueTechs)}</div>
+      <h3 style="margin-top:12px">Tiers</h3>${tierRows(d.kits.me.tiers)}
+    </div>
+    <div class="mu-section">${civBadge(d.vs, d.kits.vs.tiers)}
+      <h3>Kit unico</h3>${chipList(d.kits.vs.uniqueUnits)}
+      <div style="margin-top:8px">${chipList(d.kits.vs.uniqueTechs)}</div>
+      <h3 style="margin-top:12px">Tiers</h3>${tierRows(d.kits.vs.tiers)}
+    </div>
+    <div class="mu-section wide">
+      <h3>Planes probables de partida${map ? ` · ${esc(map)}` : ""}</h3>
+      ${renderPlans(d)}
+    </div>
+    <div class="mu-section">
+      <h3>Tus respuestas</h3>
+      ${edgeRows(d.counters.answers, "No hay counters directos curados entre las lineas disponibles.")}
+    </div>
+    <div class="mu-section">
+      <h3>Amenazas del rival</h3>
+      ${edgeRows(d.counters.threats, "No hay amenazas directas curadas entre las lineas disponibles.")}
+    </div>
+    <div class="mu-section wide">
+      <h3>🎯 Como explotar al rival</h3>
+      ${exploitRows(d.exploits)}
+    </div>
+    <div class="mu-section">
+      <h3>Tus lineas</h3>${d.lines.me.map(lineChip).join("") || "<span class='mu-empty'>sin lineas detectadas</span>"}
+    </div>
+    <div class="mu-section">
+      <h3>Lineas rivales</h3>${d.lines.vs.map(lineChip).join("") || "<span class='mu-empty'>sin lineas detectadas</span>"}
+    </div>
+    <div class="mu-section wide">
+      <h3>Notas donde aparecen ambas civs</h3>
+      ${d.sharedNotes?.length ? d.sharedNotes.map(n => `
+        <div class="mu-source">
+          <b class="mu-source-link" onclick="switchView('explorer');showNote('${esc(n.note)}')" title="Abrir nota en el explorador">${esc(n.heading || n.note)}</b>
+          ${n.heading ? `<span class="mu-empty"> · ${esc(n.note)}</span>` : ''}
+          <br>${esc(n.excerpt || "")}
+        </div>`).join("")
+        : "<div class='mu-empty'>No encontre chunks que mencionen ambas civs juntas.</div>"}
+    </div>`;
+}
+
+async function runMatchup() {
+  const me = document.getElementById("mu-me").value;
+  const vs = document.getElementById("mu-vs").value;
+  const out = document.getElementById("mu-result");
+  const chatBtn = document.getElementById("mu-chat");
+  if (!me || !vs) return;
+  out.innerHTML = `<div class="mu-section wide"><div class="mu-empty">analizando...</div></div>`;
+  chatBtn.disabled = true;
+  const map = document.getElementById("mu-map")?.value?.trim() || "";
+  const d = await api(`/api/matchup?me=${encodeURIComponent(me)}&vs=${encodeURIComponent(vs)}&map=${encodeURIComponent(map)}`);
+  if (d.error) {
+    out.innerHTML = `<div class="mu-section wide"><div class="mu-empty">${esc(d.error)}</div></div>`;
+    return;
+  }
+  lastMatchup = d;
+  renderMatchup(d);
+  chatBtn.disabled = false;
+}
+
+function matchupPrompt() {
+  if (!lastMatchup) return "";
+  const map = document.getElementById("mu-map").value.trim();
+  const answers = lastMatchup.counters.answers.slice(0, 5).map(x => `${x.from}>${x.target}`).join(", ");
+  const threats = lastMatchup.counters.threats.slice(0, 5).map(x => `${x.from}>${x.target}`).join(", ");
+  const myUU = lastMatchup.kits.me.uniqueUnits.map(x => x.title).join(", ") || "sin UU";
+  const myUT = lastMatchup.kits.me.uniqueTechs.map(x => x.title).join(", ") || "sin UT";
+  const vsUU = lastMatchup.kits.vs.uniqueUnits.map(x => x.title).join(", ") || "sin UU";
+  const meTier = lastMatchup.kits.me.tiers.find(t => t.list.toLowerCase().includes('arabia'));
+  const vsTier = lastMatchup.kits.vs.tiers.find(t => t.list.toLowerCase().includes('arabia'));
+  const tierCtx = meTier && vsTier ? ` Tier Arabia: yo ${meTier.tier} vs rival ${vsTier.tier}.` : '';
+  return `Dame un briefing practico para jugar ${lastMatchup.me.title} vs ${lastMatchup.vs.title}${map ? ` en ${map}` : ""}. Mi civ: UU=${myUU}, techs=${myUT}. Rival UU=${vsUU}.${tierCtx} Counters nuestros: ${answers || "ninguno"}. Amenazas rivales: ${threats || "ninguna"}. Dividilo por Dark, Feudal, Castle e Imperial. Enfocate en la win condition principal.`;
+}
+
+document.getElementById("mu-run").onclick = runMatchup;
+["mu-me","mu-vs"].forEach(id => {
+  document.getElementById(id).onchange = () => {
+    lastMatchup = null;
+    document.getElementById("mu-chat").disabled = true;
+  };
+});
+document.getElementById("mu-chat").onclick = () => {
+  const q = matchupPrompt();
+  if (!q) return;
+  switchView("explorer");
+  chatq.value = q;
+  chatq.focus();
+};
+
+async function showCiv(slug) {
+  const d = await api(`/api/civ/${slug}`);
+  const det = document.getElementById("detail");
+  if (d.error) { det.innerHTML = `<div class="ph">No encontrado.</div>`; return; }
+  const chips = (arr, cls) => arr.length
+    ? arr.map(x => `<span class="chip ${cls}">${x.title}</span>`).join("")
+    : `<span class="ph">—</span>`;
+  const tiers = d.tiers.length
+    ? `<table>${d.tiers.map(t => `<tr><td>${t.list}</td><td>${t.tier}</td></tr>`).join("")}</table>`
+    : `<span class="ph">sin tier</span>`;
+  det.innerHTML = `
+    <h3>${d.title}</h3>
+    <div class="sub">${d.aliases?.length ? "🌎 " + d.aliases.join(" / ") : ""}</div>
+    <div class="sect"><b>Unidades únicas</b><br>${chips(d.uniqueUnits,"u")}</div>
+    <div class="sect"><b>Tecnologías únicas</b><br>${chips(d.uniqueTechs,"t")}</div>
+    <div class="sect"><b>Tier por lista</b>${tiers}</div>
+    <div class="sect">
+      <button class="graph-btn" onclick="openInGraph('${d.path}')">🕸️ Ver en el grafo</button>
+      <button class="graph-btn" onclick="openCivInTree('${slug}')">🌳 Ver árbol</button>
+    </div>`;
+}
+
+// ── BÚSQUEDA GLOBAL ───────────────────────────────────────────────────
+const box = document.getElementById("search");
+const results = document.getElementById("results");
+let timer;
+box.oninput = () => {
+  clearTimeout(timer);
+  const q = box.value.trim();
+  if (!q) { results.style.display = "none"; return; }
+  timer = setTimeout(async () => {
+    const rows = await api(`/api/search?q=${encodeURIComponent(q)}`);
+    if (!rows.length) { results.style.display = "none"; return; }
+    results.innerHTML = rows.map(r => {
+      const al = r.aliases?.length ? ` · <small>${r.aliases.join(", ")}</small>` : "";
+      return `<div data-path="${r.path}" data-type="${r.type}">${r.title}
+        <small>(${r.type})</small>${al}</div>`;
+    }).join("");
+    results.style.display = "block";
+    results.querySelectorAll("div").forEach(el => el.onclick = () => {
+      results.style.display = "none"; box.value = "";
+      if (el.dataset.type === "civs")
+        showCiv(el.dataset.path.replace("civs/","").replace(".md",""));
+      else showNote(el.dataset.path);
+    });
+  }, 180);
+};
+document.addEventListener("click", e => { if (e.target !== box) results.style.display = "none"; });
+
+async function showNote(path) {
+  const d = await api(`/api/note?path=${encodeURIComponent(path)}`);
+  const det = document.getElementById("detail");
+  if (d.error) { det.innerHTML = `<div class="ph">No encontrado.</div>`; return; }
+  const nb = d.neighbors.slice(0,30).map(n =>
+    `<span class="chip" data-p="${n.path}" data-ty="${n.type}">${n.title}</span>`).join("");
+  det.innerHTML = `
+    <h3>${d.title}</h3>
+    <div class="sub">${d.type}${d.aliases?.length ? " · 🌎 "+d.aliases.join(" / ") : ""}</div>
+    <div class="sect"><b>Conexiones en el grafo</b><br>${nb || "<span class='ph'>—</span>"}</div>
+    <div class="sect">
+      <button class="graph-btn" onclick="openInGraph('${path}')">🕸️ Ver en el grafo</button>
+    </div>`;
+  det.querySelectorAll(".chip[data-p]").forEach(el => el.onclick = () => {
+    el.dataset.ty === "civs"
+      ? showCiv(el.dataset.p.replace("civs/","").replace(".md",""))
+      : showNote(el.dataset.p);
+  });
+}
+
+// ── CHAT ──────────────────────────────────────────────────────────────
+const chatq = document.getElementById("chatq");
+const chatsend = document.getElementById("chatsend");
+const chatlog = document.getElementById("chatlog");
+let msgId = 0;
+
+function addMsg(cls, html) {
+  const id = `m${++msgId}`;
+  const el = document.createElement("div");
+  el.className = `msg ${cls}`; el.id = id; el.innerHTML = html;
+  chatlog.appendChild(el); chatlog.scrollTop = chatlog.scrollHeight;
+  return id;
+}
+
+async function ask() {
+  const q = chatq.value.trim();
+  if (!q) return;
+  addMsg("user", esc(q));
+  chatq.value = ""; chatsend.disabled = true;
+  const tid = addMsg("bot", "⏳ consultando Gemini…");
+  try {
+    const r = await fetch("/api/chat", {
+      method:"POST", headers:{"Content-Type":"application/json"},
+      body: JSON.stringify({question: q}),
+    }).then(x => x.json());
+    const el = document.getElementById(tid);
+    if (r.error) { el.innerHTML = "⚠️ " + esc(r.error); return; }
+    let html = esc(r.text).replace(/\n/g,"<br>");
+    if (!r.abstained && r.sources?.length)
+      html += `<div class="src">📚 ${r.sources.map(esc).join(", ")}</div>`;
+    if (r.hits_meta?.length) {
+      const rId = 'rs-' + tid;
+      const hitsHtml = r.hits_meta.map(h =>
+        `<div class="rh-row"><span class="rh-score">${h.score}</span><b>${esc(h.note)}</b>` +
+        (h.heading ? ` — ${esc(h.heading)}` : '') + '</div>'
+      ).join('');
+      html += `<button class="reasoning-toggle" onclick="toggleReasoning('${rId}',this)">🔍 Ver razonamiento</button>` +
+              `<div id="${rId}" class="reasoning-panel">${hitsHtml}</div>`;
+    }
+    el.innerHTML = html;
+  } catch(e) {
+    document.getElementById(tid).innerHTML = "⚠️ " + esc(String(e));
+  } finally {
+    chatsend.disabled = false; chatlog.scrollTop = chatlog.scrollHeight;
+  }
+}
+chatsend.onclick = ask;
+chatq.onkeydown = e => { if (e.key === "Enter") ask(); };
+
+document.querySelectorAll(".hint").forEach(h =>
+  h.onclick = () => { chatq.value = h.dataset.q; chatq.focus(); });
+
+// ── COUNTER GRAPH (Cytoscape) ─────────────────────────────────────────
+// kind: 'generic' (celeste) · 'regional' (aguamarina) · 'unique' (violeta)
+const QUICK_UNITS = [
+  { id:'archer-line',     label:'Archer',    imgKey:'archer',          kind:'generic' },
+  { id:'skirmisher-line', label:'Skirm',     imgKey:'skirmisher',      kind:'generic' },
+  { id:'hand-cannoneer',  label:'HC',        imgKey:'handcannon',      kind:'generic' },
+  { id:'cavalry-archer',  label:'Cav Arch',  imgKey:'cavarcher',       kind:'generic' },
+  { id:'mounted-crossbowman', label:'Mtd Xbow', imgKey:'heavy_mounted_crossbow', kind:'regional' },
+  { id:'elephant-archer', label:'Ele Arch',  imgKey:'elephant_archer', kind:'regional' },
+  { id:'militia-line',    label:'Militia',   imgKey:'champion',        kind:'generic' },
+  { id:'varangian-guard', label:'Varangian', imgKey:'elite_varangian_guard', kind:'regional' },
+  { id:'spearman-line',   label:'Halbs',     imgKey:'halberdier',      kind:'generic' },
+  { id:'eagle-warrior',   label:'Eagle',     imgKey:'eaglewarrior',    kind:'regional' },
+  { id:'scout-line',      label:'Scout',     imgKey:'hussar',          kind:'generic' },
+  { id:'knight-line',     label:'Knight',    imgKey:'paladin',         kind:'generic' },
+  { id:'camel-line',      label:'Camel',     imgKey:'camel',           kind:'regional' },
+  { id:'battle-elephant', label:'Bat Ele',   imgKey:'battleeleph',     kind:'regional' },
+  { id:'steppe-lancer',   label:'Steppe',    imgKey:'steppe_lancer',   kind:'regional' },
+  { id:'ram-line',        label:'Ram',       imgKey:'siegeram',        kind:'generic' },
+  { id:'siege-elephant',  label:'Siege Ele', imgKey:'siege_elephant',  kind:'regional' },
+  { id:'mangonel-line',   label:'Mangonel',  imgKey:'mangonel',        kind:'generic' },
+  { id:'scorpion-line',   label:'Scorpion',  imgKey:'scorpion',        kind:'generic' },
+  { id:'bombard-cannon',  label:'BBC',       imgKey:'bombcannon',      kind:'generic' },
+  { id:'monk',            label:'Monk',      imgKey:'monk',            kind:'generic' },
+  // Naval genérico
+  { id:'galley-line',     label:'Galley',    imgKey:'galley',          kind:'generic' },
+  { id:'fire-ship-line',  label:'Fire Ship', imgKey:'fireship',        kind:'generic' },
+  { id:'demo-ship',       label:'Demo Ship', imgKey:'demoship',        kind:'generic' },
+  { id:'hulk-line',       label:'Hulk',      imgKey:'hulk',            kind:'generic' },
+  { id:'cannon-galleon',  label:'Cannon G.', imgKey:'cannongalleon',   kind:'generic' },
+  // Naval regional (largo alcance, por grupo de civs)
+  { id:'lou-chuan',       label:'Lou Chuan', imgKey:'lou_chuan',       kind:'regional' },
+  { id:'dromon',          label:'Dromon',    imgKey:'dromon',          kind:'regional' },
+  { id:'catapult-galleon',label:'Catapult G.',imgKey:'catapult_gall',  kind:'regional' },
+  // Regionales terrestres (chinas / sudamericanas)
+  { id:'fire-lancer',     label:'Fire Lanc', imgKey:'fire_lancer',     kind:'regional' },
+  { id:'hei-guang-cavalry',label:'Hei Guang',imgKey:'hei_guang',       kind:'regional' },
+  { id:'rocket-cart',     label:'Rocket',    imgKey:'rocket_cart',     kind:'regional' },
+  { id:'champi-line',     label:'Champi',    imgKey:'champiwarrior',   kind:'regional' },
+  { id:'slinger',         label:'Slinger',   imgKey:'slinger',         kind:'regional' },
+  // Únicas (1 civ)
+  { id:'turtle-ship',     label:'Turtle',    imgKey:'turtle_ship',     kind:'unique' },
+  { id:'caravel',         label:'Caravel',   imgKey:'caravel_d',       kind:'unique' },
+  { id:'longship',        label:'Longship',  imgKey:'longship',        kind:'regional' }, // ex Longboat (Update 185872)
+  { id:'thirisadai',      label:'Thirisadai',imgKey:'thirisadai',      kind:'unique' },
+  { id:'dragon-ship',     label:'Dragon Sh', imgKey:'dragon_ship',     kind:'unique' },
+  { id:'liao-dao',        label:'Liao Dao',  imgKey:'liao_dao',        kind:'unique' },
+  { id:'white-feather-guard',label:'W.Feather',imgKey:'white_feather', kind:'unique' },
+  { id:'jian-swordsman',  label:'Jian Sw',   imgKey:'jian_swordsman',  kind:'unique' },
+  { id:'xianbei-raider',  label:'Xianbei',   imgKey:'xianbei_raider',  kind:'unique' },
+];
+
+// Edificio de origen (nodes.js) + claves del árbol tecnológico por unidad.
+// `keys`: ids del array `available` de cada civ → para filtrar disponibilidad.
+// `pic`: picture_index (solo UUs de castillo, que en `available` usan placeholder
+//        'uniqueunit' → se detectan vía civ.uniqueUnits[].imgPic).
+// `uuName`: nombre completo (para no duplicar el botón UU dinámico de la civ).
+const UNIT_META = {
+  'archer-line':      { b:'archery',   keys:['archer','crossbow','arbalester'] },
+  'skirmisher-line':  { b:'archery',   keys:['skirmisher','eliteskirm','imp_skirmisher'] },
+  'hand-cannoneer':   { b:'archery',   keys:['handcannon'] },
+  'cavalry-archer':   { b:'archery',   keys:['cavarcher','hcavarcher'] },
+  'mounted-crossbowman': { b:'archery', keys:['mounted_crossbow','heavy_mounted_crossbow'] },
+  'elephant-archer':  { b:'archery',   keys:['elephant_archer','elite_elephant_archer'] },
+  'slinger':          { b:'archery',   keys:['slinger'] },
+  'xianbei-raider':   { b:'archery',   keys:['xianbei_raider'], uuName:'Xianbei Raider' },
+  'militia-line':     { b:'barracks',  keys:['militia','manatarms','longsword','twohanded','champion'] },
+  'varangian-guard':  { b:'barracks',  keys:['varangian_guard','elite_varangian_guard'] },
+  'spearman-line':    { b:'barracks',  keys:['spearman','pikeman','halberdier'] },
+  'eagle-warrior':    { b:'barracks',  keys:['eaglescout','eaglewarrior','eliteeagle'] },
+  'fire-lancer':      { b:'barracks',  keys:['fire_lancer','elite_fire_lancer'] },
+  'champi-line':      { b:'barracks',  keys:['champiscout','champirunner','champiwarrior','elitechampi'] },
+  'jian-swordsman':   { b:'barracks',  keys:['jian_swordsman'], uuName:'Jian Swordsman' },
+  'scout-line':       { b:'stable',    keys:['scout','lightcav','hussar','winged_hussar'] },
+  'knight-line':      { b:'stable',    keys:['knight','cavalier','paladin'] },
+  'camel-line':       { b:'stable',    keys:['camel','heavycamel','imp_camel'] },
+  'battle-elephant':  { b:'stable',    keys:['battleeleph','eliteeleph'] },
+  'steppe-lancer':    { b:'stable',    keys:['steppe_lancer','elite_steppe_lancer'] },
+  'hei-guang-cavalry':{ b:'stable',    keys:['hei_guang','heavy_hei_guang'] },
+  'ram-line':         { b:'siege',     keys:['batteringram','cappedram','siegeram'] },
+  'siege-elephant':   { b:'siege',     keys:['armored_elephant','siege_elephant'] },
+  'mangonel-line':    { b:'siege',     keys:['mangonel','onager','siegeonager'] },
+  'scorpion-line':    { b:'siege',     keys:['scorpion','heavyscorpion'] },
+  'bombard-cannon':   { b:'siege',     keys:['bombcannon'] },
+  'rocket-cart':      { b:'siege',     keys:['rocket_cart','heavy_rocket_cart'] },
+  'monk':             { b:'monastery', keys:['monk'] },
+  'galley-line':      { b:'dock',      keys:['galley','wargalley','galleon'] },
+  'fire-ship-line':   { b:'dock',      keys:['firegalley','fireship','fastfireship'] },
+  'demo-ship':        { b:'dock',      keys:['demoraft','demoship','heavydemo'] },
+  'hulk-line':        { b:'dock',      keys:['hulk','war_hulk','carrack'] },
+  'cannon-galleon':   { b:'dock',      keys:['cannongalleon','elitecannon','elitecannongalleon'] },
+  'lou-chuan':        { b:'dock',      keys:['lou_chuan'] },
+  'dromon':           { b:'dock',      keys:['dromon'] },
+  'catapult-galleon': { b:'dock',      keys:['catapult_gall'] },
+  'turtle-ship':      { b:'dock',      keys:['turtle_ship'], uuName:'Turtle Ship' },
+  'caravel':          { b:'dock',      keys:['caravel_d'], uuName:'Caravel' },
+  'longship':         { b:'dock',      keys:['longship','elite_longship'] },
+  'thirisadai':       { b:'dock',      keys:['thirisadai'], uuName:'Thirisadai' },
+  'dragon-ship':      { b:'dock',      keys:['dragon_ship'], uuName:'Dragon Ship' },
+  'liao-dao':         { b:'castle',    keys:[], pic:463, uuName:'Liao Dao' },
+  'white-feather-guard':{ b:'castle',  keys:[], pic:434, uuName:'White Feather Guard' },
+};
+QUICK_UNITS.forEach(u => { const m = UNIT_META[u.id] || {}; u.building = m.b || 'castle'; u.keys = m.keys || []; if (m.pic) u.pic = m.pic; if (m.uuName) u.uuName = m.uuName; });
+
+// Nombres completos de las UUs que YA son nodos del grafo (para no duplicar el
+// botón UU dinámico de la civ).
+const STATIC_UU_NAMES = new Set(
+  QUICK_UNITS.filter(u => u.uuName).map(u => u.uuName.toLowerCase()));
+
+// Edificios en orden de despliegue del quickbar.
+const QB_BUILDINGS = [
+  ['barracks','⚔️ Cuartel'], ['archery','🏹 Arquería'], ['stable','🐎 Establo'],
+  ['siege','💣 Asedio'], ['dock','⚓ Muelle'], ['monastery','✝️ Monasterio'],
+  ['castle','🏰 Castillo'],
+];
+
+// Multi-civ: jugador + hasta 7 más (8 total). El filtro es la UNIÓN de unidades
+// construibles por las civs elegidas.
+const MAX_CIVS = 8;
+let selectedCivs = [];          // [{slug, name, civ, loc}] — la 1ª es "el jugador"
+let civUnitFilter = null;       // null = todas; Set de QUICK_UNIT ids disponibles (unión)
+let civFilterName = '';
+let civUniqueUnits = [];        // [{title, imgUrl, civ}] UUs de las civs (botones dinámicos)
+let uuCenterImg = '';           // ícono para el nodo central al buscar una UU
+let cgAge = '';                 // '' = todas | feudal | castle | imperial
+let cgAskQ = '';                // pregunta armada para el chat desde el nodo elegido
+
+// ── Edad y contexto ────────────────────────────────────────────────────
+// Cada línea trae su edad mínima (YAML del vault) y cada relación un contexto:
+// early vale hasta Castillos, late desde Castillos, general/en-masa siempre.
+const AGE_IDX = { dark:0, feudal:1, castle:2, imperial:3 };
+const AGE_LABEL = { dark:'Alta Edad Media', feudal:'Edad Feudal', castle:'Edad de los Castillos', imperial:'Edad Imperial' };
+const CTX_LABEL = { early:'early game', late:'late game', 'en-masa':'en masa', general:'general' };
+const ctxValidAt = (ctx, age) =>
+  !age || (ctx === 'early' ? age !== 'imperial' : ctx === 'late' ? AGE_IDX[age] >= AGE_IDX.castle : true);
+
+// Saca las líneas que todavía no existen en la edad y recalcula la fuerza de
+// cada nodo con el contexto que vale en esa edad.
+function filterByAge(data, age) {
+  if (!age) return data;
+  const strengthOf = w => w >= 0.9 ? 'hard' : w >= 0.65 ? 'soft' : 'situational';
+  const tooLate = d => d.age && AGE_IDX[d.age] > AGE_IDX[age];
+  const nodes = [];
+  for (const n of data.nodes) {
+    const d = n.data;
+    if (d.type !== 'center' && tooLate(d)) continue;
+    if (d.type === 'center' || !d.contexts) { nodes.push(n); continue; }
+    const ctxs = d.contexts.filter(x => ctxValidAt(x.context, age));
+    if (!ctxs.length) continue;
+    const best = ctxs.reduce((a, b) => b.weight > a.weight ? b : a);
+    const base = strengthOf(best.weight);
+    nodes.push({ data: { ...d, contexts: ctxs, tier: best.tier, nota: best.nota, weight: best.weight,
+      context: best.context, type: d.dir === 'beats' ? `beats-${base}` : base } });
+  }
+  const keep = new Set(nodes.map(n => n.data.id));
+  const edges = data.edges.filter(e =>
+    keep.has(e.data.source) && keep.has(e.data.target) && ctxValidAt(e.data.context, age));
+  return { ...data, nodes, edges };
+}
+
+// Leyenda armada con lo que hay en el grafo actual (sin categorías vacías).
+const CG_LEGEND = [
+  ['hard', '#9b2b1a', 'Hard (Primario)', 'counter'], ['soft', '#83551d', 'Sólido', 'counter'],
+  ['situational', '#6f5234', 'Situacional', 'counter'],
+  ['beats-hard', '#3d6b17', 'Fuerte (Primario)', 'beats'], ['beats-soft', '#53682a', 'Levemente fuerte', 'beats'],
+  ['beats-situational', '#2a5d86', 'Situacional', 'beats'],
+];
+function renderCgLegend(nodes) {
+  const counts = {};
+  (nodes || []).forEach(n => { counts[n.data.type] = (counts[n.data.type] || 0) + 1; });
+  const head = (txt, mt) => `<div class="cg-leg" style="font-weight:600;color:var(--ink)${mt ? ';margin-top:4px' : ''}">${txt}</div>`;
+  const rows = dir => {
+    const ls = CG_LEGEND.filter(l => l[3] === dir && (nodes ? counts[l[0]] : !l[0].includes('situational')));
+    if (!ls.length) return '<div class="cg-leg">— ninguna documentada</div>';
+    return ls.map(([t, c, label]) =>
+      `<div class="cg-leg"><span class="cg-dot" style="background:${c}"></span>${label}${nodes ? ` · ${counts[t]}` : ''}</div>`).join('');
+  };
+  document.getElementById('cg-legend').innerHTML =
+    head('🛡️ La counterean (izq.)') + rows('counter') + head('⚔️ Es fuerte contra (der.)', true) + rows('beats');
+}
+
+// Resumen lateral: todas las relaciones con su porqué, para leer sin clickear
+// nodo por nodo. Click en una fila = seleccionar ese nodo en el grafo.
+const CS_COLOR = { hard:'#9b2b1a', soft:'#83551d', situational:'#6f5234',
+  'beats-hard':'#3d6b17', 'beats-soft':'#53682a', 'beats-situational':'#2a5d86' };
+function renderCgSide(nodes, heading) {
+  const side = document.getElementById('cg-side');
+  if (!nodes) { side.innerHTML = ''; return; }
+  const order = { hard:0, soft:1, situational:2 };
+  const base = t => (t || '').replace('beats-', '');
+  const group = (title, color, list) => !list.length ? '' :
+    `<div class="cs-h" style="color:${color}">${title} (${list.length})</div>` +
+    list.sort((a, b) => order[base(a.data.type)] - order[base(b.data.type)]).map(n => {
+      const d = n.data, c = CS_COLOR[d.type] || '#6f5234';
+      const ctx = d.context && d.context !== 'general' ? ` · ${CTX_LABEL[d.context] || esc(d.context)}` : '';
+      const nota = d.nota && d.nota !== '—' ? `<div class="cs-nota">${esc(d.nota)}</div>` : '';
+      const img = d.imgSrc ? `<img src="${d.imgSrc}" alt="" style="border-color:${c}">` : '';
+      return `<div class="cs-row" onclick="selectCgNode('${d.id}')">${img}<div>
+        <div class="cs-name">${esc(d.full || d.label)}</div>
+        <div class="cs-meta" style="color:${c}">${esc(d.tier || '')}${ctx}</div>${nota}</div></div>`;
+    }).join('');
+  const others = nodes.filter(n => n.data.type !== 'center');
+  side.innerHTML =
+    group(`🛡️ Counterean a ${esc(heading)}`, '#9b2b1a', others.filter(n => n.data.dir !== 'beats')) +
+    group(`⚔️ ${esc(heading)} le gana a`, '#3d6b17', others.filter(n => n.data.dir === 'beats'));
+}
+function selectCgNode(id) {
+  const n = cyCtr?.getElementById(id);
+  if (!n || n.empty()) return;
+  cyCtr.$(':selected').unselect();
+  n.select();
+  n.emit('tap');
+}
+
+function counterTipHtml(d, heading) {
+  const rel = d.dir === 'beats' ? `${esc(heading)} le gana` : `Counterea a ${esc(heading)}`;
+  const ctx = d.context && d.context !== 'general' ? ` · ${CTX_LABEL[d.context] || esc(d.context)}` : '';
+  const nota = d.nota && d.nota !== '—' ? esc(d.nota) : '<i>Sin explicación curada todavía.</i>';
+  return `<b>${esc(d.full || d.label)}</b><div class="tip-meta">${rel} · ${esc(d.tier || '')}${ctx}</div>${nota}`;
+}
+
+// Contexto de la búsqueda para el chat: edad y civs elegidas.
+const cgSuffix = () => (cgAge ? ` en la ${AGE_LABEL[cgAge]}` : '') + (civFilterName ? ` jugando con ${civFilterName}` : '');
+const cgAskBtn = () => `<button class="cg-ask" onclick="askCodexCounter()">💬 Preguntale al Codex</button>`;
+function askCodexCounter() {
+  if (!cgAskQ) return;
+  switchView('explorer');
+  chatq.value = cgAskQ;
+  chatq.focus();
+}
+
+// ── Link compartible: ?view=counters&unit=…&civs=a,b&age=… ─────────────
+function syncCounterUrl() {
+  if (document.getElementById('view-counters').style.display === 'none') return;
+  const p = new URLSearchParams({ view: 'counters' });
+  const unit = document.getElementById('counter-input').value.trim();
+  if (unit) p.set('unit', unit);
+  if (selectedCivs.length) p.set('civs', selectedCivs.map(c => c.slug).join(','));
+  if (cgAge) p.set('age', cgAge);
+  history.replaceState(null, '', '?' + p.toString());
+}
+async function restoreCounterFromUrl() {
+  const p = new URLSearchParams(location.search);
+  if (p.get('view') !== 'counters') return;
+  switchView('counters');
+  const age = p.get('age');
+  if (age in AGE_IDX) { cgAge = age; document.getElementById('cg-age').value = age; }
+  for (const slug of (p.get('civs') || '').split(',').filter(Boolean)) await addCiv(slug);
+  const unit = p.get('unit');
+  if (!unit) return;
+  document.getElementById('counter-input').value = unit;
+  document.querySelector(`.cg-qbtn[data-uid="${CSS.escape(unit)}"]`)?.classList.add('active');
+  searchCounterGraph();
+}
+const kindLabel = { generic:'genérica', regional:'regional', unique:'única' };
+
+// ── Datos del árbol tecnológico (fuente de verdad para disponibilidad por civ) ──
+// El grafo Neo4j tiene HAS_UNIQUE_UNIT incompleto; el árbol vendorizado es completo.
+let TT_LOCALE = null;
+async function loadLocale() {
+  if (TT_LOCALE) return TT_LOCALE;
+  try {
+    const t = await fetch('/tree/src/locales/en.js').then(r => r.text());
+    TT_LOCALE = Function(t + '\n;return LOCALE_EN;')();
+  } catch (e) { console.warn('locale load', e); TT_LOCALE = { civs:{}, nodes:{} }; }
+  return TT_LOCALE;
+}
+const civDataCache = {};
+async function loadCivData(slug) {
+  if (slug in civDataCache) return civDataCache[slug];
+  let obj = null;
+  try {
+    const t = await fetch(`/tree/src/data/civ/${slug.toLowerCase()}.js`).then(r => r.text());
+    const m = t.match(/const\s+(\w+)\s*=/);
+    const body = t.replace(/export\s+default\s+\w+\s*;?/g, '').replace(/\bexport\s+/g, '');
+    obj = m ? Function(body + `\n;return ${m[1]};`)() : null;
+  } catch (e) { console.warn('civ data', slug, e); }
+  civDataCache[slug] = obj;
+  return obj;
+}
+
+// Únicas y regionales solo se muestran si alguna civ elegida las construye
+// (sin civ elegida, solo las genéricas). Ids fuera del catálogo: se muestran.
+const kindOfUnit = id => (QUICK_UNITS.find(u => u.id === id) || {}).kind;
+function isShown(id) {
+  const kind = kindOfUnit(id);
+  return !kind || kind === 'generic' || !!civUnitFilter?.has(id);
+}
+
+function qbtnHtml(u, imap) {
+  const src = imap?.[u.imgKey] ? '/tree/' + imap[u.imgKey] : '';
+  const icon = src ? `<img src="${src}" alt="${u.label}">` : `<span class="cg-qbtn-ph">⚔️</span>`;
+  const off = civUnitFilter && !civUnitFilter.has(u.id);
+  const title = off ? `${civFilterName} no tiene ${u.label}` : `${u.label} (${kindLabel[u.kind] || ''})`;
+  return `<button class="cg-qbtn k-${u.kind}" data-uid="${u.id}" ${off ? 'disabled' : ''}
+    onclick="quickSearch('${u.id}')" title="${title}">${icon}<span>${u.label}</span></button>`;
+}
+
+function renderQuickBar() {
+  const bar = document.getElementById('cg-quickbar');
+  if (!bar) return;
+  const imap = (typeof IMG_MAP !== 'undefined' && IMG_MAP) || window.IMG_MAP;
+  let html = '';
+  for (const [bkey, bname] of QB_BUILDINGS) {
+    const units = QUICK_UNITS.filter(u => u.building === bkey && isShown(u.id));
+    const dynUU = bkey === 'castle' ? civUniqueUnits : [];
+    if (!units.length && !dynUU.length) continue;
+    let btns = units.map(u => qbtnHtml(u, imap)).join('');
+    // Botones de UU de castillo de la civ que NO son nodos del grafo (Woad Raider…)
+    btns += dynUU.map((u, i) => {
+      const icon = u.imgUrl ? `<img src="${u.imgUrl}" alt="${esc(u.title)}">` : `<span class="cg-qbtn-ph">⭐</span>`;
+      const short = u.title.length > 12 ? u.title.slice(0, 11) + '…' : u.title;
+      return `<button class="cg-qbtn k-unique" data-uu="${i}" onclick="quickSearchUU(${i})"
+        title="${esc(u.title)} — única de ${esc(u.civ || civFilterName)}">${icon}<span>${esc(short)}</span></button>`;
+    }).join('');
+    html += `<div class="cg-qgroup"><div class="cg-qgroup-h">${bname}</div><div class="cg-qrow">${btns}</div></div>`;
+  }
+  bar.innerHTML = html;
+}
+
+function quickSearchUU(i) {
+  const u = civUniqueUnits[i];
+  if (!u) return;
+  document.querySelectorAll('.cg-qbtn').forEach(b => b.classList.remove('active'));
+  document.querySelector(`.cg-qbtn[data-uu="${i}"]`)?.classList.add('active');
+  document.getElementById('counter-input').value = u.title;
+  uuCenterImg = u.imgUrl || '';
+  searchCounterGraph();
+}
+
+// Disponibilidad + UUs de UNA civ. Las líneas construibles vienen de
+// /api/civ-units (el civ/*.js del árbol ya no trae `available` desde el
+// Update 185872); las UUs, del árbol. Devuelve {availIds, uus}.
+function civUnitsOf(slug, loc, civ, lines) {
+  const imap = (typeof IMG_MAP !== 'undefined' && IMG_MAP) || window.IMG_MAP || {};
+  const picOf = (p) => { const m = p && p.match(/\/(\d+)\.png/); return m ? +m[1] : null; };
+  const avail = new Set(lines || []);
+  const uuPics = new Set();
+  (civ.uniqueUnits || []).forEach(u => {
+    if (u.imgPic != null) uuPics.add(u.imgPic);
+    if (u.eliteImgPic != null) uuPics.add(u.eliteImgPic);
+  });
+  const availIds = QUICK_UNITS
+    .filter(u => avail.has(u.id) || (u.pic && uuPics.has(u.pic)))
+    .map(u => u.id);
+  // UUs de castillo. Placeholder "Unique Unit" (DLC) → se resuelve por imgPic en IMG_MAP.
+  // Se excluyen las que ya son nodos estáticos del grafo (por nombre o imgPic).
+  const staticPics = new Set(QUICK_UNITS.filter(u => u.kind === 'unique')
+    .map(u => picOf(imap[u.imgKey])).filter(x => x != null));
+  const picToKey = {};
+  for (const [k, v] of Object.entries(imap)) { const pi = picOf(v); if (pi != null && !(pi in picToKey)) picToKey[pi] = k; }
+  const pretty = (k) => k.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+  const civName = loc.civs?.[slug.toLowerCase()]?.name || slug;
+  const uus = (loc.civs?.[slug.toLowerCase()]?.uniqueUnits || []).map((lu, idx) => {
+    const pic = (civ.uniqueUnits || [])[idx]?.imgPic;
+    let title = lu.name;
+    if ((!title || title === 'Unique Unit') && pic != null && picToKey[pic]) title = pretty(picToKey[pic]);
+    let imgUrl = pic != null ? `/tree/img/Unit/${pic}.png` : '';
+    if (!imgUrl && title) {
+      const nk = title.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/_+$/, '');
+      const cand = imap[nk] || imap[nk.split('_')[0]];
+      if (cand) imgUrl = '/tree/' + cand;
+    }
+    return { title, pic, imgUrl, civ: civName };
+  }).filter(u => u.title && u.title !== 'Unique Unit'
+              && !STATIC_UU_NAMES.has(u.title.toLowerCase())
+              && !(u.pic != null && staticPics.has(u.pic)));
+  return { availIds, uus };
+}
+
+// Recalcula el filtro como UNIÓN de las civs seleccionadas.
+function recomputeCivFilter() {
+  if (!selectedCivs.length) { civUnitFilter = null; civFilterName = ''; civUniqueUnits = []; return; }
+  const ids = new Set();
+  const uus = []; const seen = new Set();
+  for (const c of selectedCivs) {
+    const { availIds, uus: cu } = civUnitsOf(c.slug, c.loc, c.civ, c.lines);
+    availIds.forEach(id => ids.add(id));
+    for (const u of cu) { const k = u.title.toLowerCase(); if (!seen.has(k)) { seen.add(k); uus.push(u); } }
+  }
+  civUnitFilter = ids;
+  civUniqueUnits = uus;
+  civFilterName = selectedCivs.map(c => c.name).join(' · ');
+}
+
+function renderCivChips() {
+  const box = document.getElementById('cg-civ-chips');
+  if (!box) return;
+  syncCounterUrl();
+  if (!selectedCivs.length) { box.innerHTML = '<span class="cg-civ-count">Sin civ — se muestran todas las unidades</span>'; return; }
+  box.innerHTML = selectedCivs.map((c, i) =>
+    `<span class="cg-civ-chip${i === 0 ? ' player' : ''}" title="${i === 0 ? 'Tu civ' : 'Civ adicional'}">
+      ${i === 0 ? '★ ' : ''}${esc(c.name)}
+      <button onclick="removeCiv('${c.slug}')" title="Quitar">×</button></span>`
+  ).join('') + `<span class="cg-civ-count">${selectedCivs.length}/${MAX_CIVS}</span>`;
+}
+
+async function addCiv(slug) {
+  if (!slug || selectedCivs.length >= MAX_CIVS || selectedCivs.some(c => c.slug === slug)) return;
+  const [loc, civ, cu] = await Promise.all([loadLocale(), loadCivData(slug),
+    api(`/api/civ-units?civ=${encodeURIComponent(slug)}`).catch(() => null)]);
+  if (!civ) return;
+  const name = loc.civs?.[slug.toLowerCase()]?.name || slug;
+  selectedCivs.push({ slug, name, civ, loc, lines: cu?.units || [] });
+  recomputeCivFilter();
+  renderCivChips(); renderQuickBar();
+  if (document.getElementById('counter-input').value.trim()) searchCounterGraph();
+}
+
+function removeCiv(slug) {
+  selectedCivs = selectedCivs.filter(c => c.slug !== slug);
+  recomputeCivFilter();
+  renderCivChips(); renderQuickBar();
+  if (document.getElementById('counter-input').value.trim()) searchCounterGraph();
+}
+
+document.getElementById('cg-age').onchange = function () {
+  cgAge = this.value;
+  syncCounterUrl();
+  if (document.getElementById('counter-input').value.trim()) searchCounterGraph();
+};
+
+document.getElementById('cg-civ').onchange = function () {
+  const slug = this.value;
+  this.value = '';                // reset para poder elegir otra
+  if (slug) addCiv(slug);
+};
+
+function quickSearch(unitId) {
+  document.querySelectorAll('.cg-qbtn').forEach(b => b.classList.remove('active'));
+  const btn = document.querySelector(`.cg-qbtn[data-uid="${unitId}"]`);
+  if (btn) btn.classList.add('active');
+  document.getElementById('counter-input').value = unitId;
+  uuCenterImg = '';
+  searchCounterGraph();
+}
+
+let cyCtr = null;
+
+function graphLabel(name) {
+  const m = name.match(/\(([^)]+)\)/);
+  if (m) {
+    const first = m[1].split(',')[0].trim();
+    return first.length > 18 ? first.slice(0,16)+'…' : first;
+  }
+  const n = name.replace(/\s*line\s*/gi,' ').replace(/\s+/g,' ').trim();
+  return n.length > 20 ? n.slice(0,18)+'…' : n;
+}
+
+async function searchCounterGraph() {
+  const unit = document.getElementById("counter-input").value.trim();
+  if (!unit) return;
+  const panel  = document.getElementById("cg-detail");
+  const notesEl= document.getElementById("cg-notes");
+  panel.innerHTML  = '<p class="cg-ph">cargando…</p>';
+  notesEl.innerHTML= '';
+  document.getElementById('cg-tip').style.display = 'none';
+  renderCgSide(null);
+  syncCounterUrl();
+  if (cyCtr) { cyCtr.destroy(); cyCtr = null; }
+  try {
+    let data = await fetch(`/api/counter-graph?unit=${encodeURIComponent(unit)}`).then(r=>r.json());
+    if (data.error) {
+      // Sin tabla de counters todavía (p. ej. regionales del Update 185872 antes de re-ingestar).
+      panel.innerHTML = /no encontrada/i.test(data.error)
+        ? `<p class="cg-ph"><i>Todavía no hay counters documentados para <b>${esc(unit)}</b>. Van a aparecer cuando se actualice el grafo.</i></p>`
+        : `<p class="cg-ph">⚠️ ${esc(data.error)}</p>`;
+      return;
+    }
+    // Con civs elegidas, solo se busca lo construible por alguna de ellas
+    if (civUnitFilter && data.unitId && !civUnitFilter.has(data.unitId)) {
+      panel.innerHTML = `<p class="cg-ph">🚫 Ninguna de tus civs (<b>${esc(civFilterName)}</b>)
+        puede construir <b>${esc(data.heading)}</b>. Elegí otra unidad o agregá la civ.</p>`;
+      return;
+    }
+    // Unidad única de otra civ (solo si el grafo Neo4j conoce sus civs)
+    if (data.uuCivs?.length &&
+        !data.uuCivs.some(c => selectedCivs.some(s => s.name === c))) {
+      panel.innerHTML = `<p class="cg-ph">🚫 <b>${esc(data.heading)}</b> es unidad única de
+        <b>${esc(data.uuCivs.join(', '))}</b>${selectedCivs.length ? ', ninguna de tus civs' : ''}.
+        Agregá esa civ para ver sus counters.</p>`;
+      return;
+    }
+    // Única o regional del catálogo sin civ elegida que la construya
+    if (data.unitId && !isShown(data.unitId)) {
+      panel.innerHTML = `<p class="cg-ph">🚫 <b>${esc(data.heading)}</b> es una unidad
+        ${kindLabel[kindOfUnit(data.unitId)]}: agregá una civ que la construya para ver sus counters.</p>`;
+      return;
+    }
+    // El grafo solo muestra únicas y regionales que alguna civ elegida construye.
+    data.nodes = data.nodes.filter(n => n.data.type === 'center' || isShown(n.data.uid));
+    const keepIds = new Set(data.nodes.map(n => n.data.id));
+    data.edges = data.edges.filter(e => keepIds.has(e.data.source) && keepIds.has(e.data.target));
+    if (cgAge) {
+      const c = data.nodes.find(n => n.data.type === 'center')?.data;
+      if (c?.age && AGE_IDX[c.age] > AGE_IDX[cgAge]) {
+        panel.innerHTML = `<p class="cg-ph">⏳ <b>${esc(data.heading)}</b> llega en la ${AGE_LABEL[c.age]}:
+          en la ${AGE_LABEL[cgAge]} todavía no existe.</p>`;
+        renderCgLegend(null);
+        return;
+      }
+      data = filterByAge(data, cgAge);
+    }
+    renderCgLegend(data.nodes);
+    if (data.notes?.length) {
+      notesEl.innerHTML = data.notes.map(n=>`<blockquote>${esc(n)}</blockquote>`).join('');
+    }
+    if (!window.cytoscape) { panel.innerHTML='<p class="cg-ph">Cytoscape no cargó.</p>'; return; }
+
+    // Agregar íconos de unidad a los nodos
+    // Si el nodo trae imgKey del API estructurado, usarlo directamente
+    const elements = data.nodes.map(n => {
+      const d = { ...n.data, label: graphLabel(n.data.label || '') };
+      const imap = (typeof IMG_MAP !== 'undefined' && IMG_MAP) || window.IMG_MAP;
+      let src = (d.imgKey && imap?.[d.imgKey])
+        ? '/tree/' + imap[d.imgKey]
+        : unitImg(d.full || d.label);
+      if (!src && d.imgPath) src = '/tree/' + d.imgPath;                  // UU: ícono por nombre
+      if (!src && d.type === 'center' && uuCenterImg) src = uuCenterImg;   // ícono de UU
+      if (src) d.imgSrc = src;
+      return { data: d };
+    }).concat(data.edges);
+
+    // Posiciones: counters (te counterean) en el semicírculo izquierdo;
+    // beats (a quién vencés) en el derecho. Radio por fuerza.
+    const baseType = t => (t || '').replace('beats-', '');
+    const rMap = { hard: 150, soft: 240, situational: 330 };
+    const order = { hard: 0, soft: 1, situational: 2 };
+    const sortFn = (a, b) => order[baseType(a.data.type)] - order[baseType(b.data.type)];
+    // Nodos sin `dir` (branch de UU por descripción / fallback) cuentan como counters.
+    const counters = data.nodes.filter(n => n.data.type !== 'center' && n.data.dir !== 'beats').sort(sortFn);
+    const beats    = data.nodes.filter(n => n.data.dir === 'beats').sort(sortFn);
+    const pos = { center: { x: 0, y: 0 } };
+    // Elipse: en pantallas anchas los nodos se abren a lo ancho en vez de
+    // quedar en un círculo con los costados vacíos.
+    const box = document.getElementById('cy-counters');
+    const kx = Math.min(2.2, Math.max(1, box.clientWidth / Math.max(1, box.clientHeight)));
+    const place = (list, from, to) => {
+      const n = list.length;
+      list.forEach((node, i) => {
+        const r = rMap[baseType(node.data.type)] || 300;
+        const a = n === 1 ? (from + to) / 2 : from + (to - from) * i / (n - 1);
+        pos[node.data.id] = { x: kx * r * Math.cos(a), y: r * Math.sin(a) };
+      });
+    };
+    place(counters, Math.PI / 2 + 0.25, 3 * Math.PI / 2 - 0.25);  // izquierda
+    place(beats,   -Math.PI / 2 + 0.25, Math.PI / 2 - 0.25);       // derecha
+
+    cyCtr = cytoscape({
+      container: document.getElementById('cy-counters'),
+      elements,
+      style: [
+        { selector: 'node', style: {
+          'label': 'data(label)', 'text-valign':'bottom', 'text-halign':'center',
+          'font-size':'10px', 'color':'#22150b', 'font-family':'Crimson Pro, Georgia, serif', 'font-weight':600,
+          'text-outline-color':'#ecdcb6', 'text-outline-width':'1.5px',
+          'border-width':2, 'border-color':'#4b331c',
+          'background-image':'data(imgSrc)', 'background-fit':'cover',
+          'background-clip':'node',   // el ícono no asoma por fuera del círculo
+        }},
+        { selector: 'node[type="center"]', style: {
+          'background-color':'#ecdcb6', 'border-color':'#c69b45', 'border-width':3,
+          'width':80, 'height':80, 'font-size':'12px', 'font-weight':'bold',
+        }},
+        { selector: 'node[type="hard"]', style: {
+          'background-color':'#e7c9b8', 'border-color':'#9b2b1a', 'width':60, 'height':60,
+        }},
+        { selector: 'node[type="soft"]', style: {
+          'background-color':'#e6d2ae', 'border-color':'#83551d', 'width':52, 'height':52,
+        }},
+        { selector: 'node[type="situational"]', style: {
+          'background-color':'#e4d6ba', 'border-color':'#6f5234', 'width':44, 'height':44,
+        }},
+        // Dirección "vence a" (verde): fuerte / levemente fuerte
+        { selector: 'node[type="beats-hard"]', style: {
+          'background-color':'#d6dcb4', 'border-color':'#3d6b17', 'width':60, 'height':60,
+        }},
+        { selector: 'node[type="beats-soft"]', style: {
+          'background-color':'#dbdcb8', 'border-color':'#53682a', 'width':52, 'height':52,
+        }},
+        { selector: 'node[type="beats-situational"]', style: {
+          'background-color':'#d9d9c0', 'border-color':'#2a5d86', 'width':44, 'height':44,
+        }},
+        { selector: 'node:selected', style: { 'border-color':'#8a1812', 'border-width':3 }},
+        { selector: 'edge', style: {
+          'curve-style':'bezier', 'target-arrow-shape':'triangle',
+          'line-color':'#4b331c', 'target-arrow-color':'#4b331c',
+          'width':'mapData(weight, 0.5, 0.9, 1.5, 4.5)', 'opacity':0.8,
+        }},
+        { selector: 'edge[strength="hard"]',  style: { 'line-color':'#9b2b1a', 'target-arrow-color':'#9b2b1a' }},
+        { selector: 'edge[strength="soft"]',  style: { 'line-color':'#83551d', 'target-arrow-color':'#83551d' }},
+        { selector: 'edge[strength="beats-hard"]', style: { 'line-color':'#3d6b17', 'target-arrow-color':'#3d6b17' }},
+        { selector: 'edge[strength="beats-soft"]', style: { 'line-color':'#53682a', 'target-arrow-color':'#53682a' }},
+        { selector: 'edge[strength="beats-situational"]', style: { 'line-color':'#2a5d86', 'target-arrow-color':'#2a5d86' }},
+      ],
+      layout: {
+        name: 'preset',
+        positions: n => pos[n.id()] || { x: 0, y: 0 },
+        animate: true, animationDuration: 500,
+        fit: true, padding: 50,
+      },
+      wheelSensitivity: 0.3, minZoom: 0.3, maxZoom: 4,
+    });
+
+    renderCgSide(elements.slice(0, data.nodes.length), data.heading);   // nodos (con ícono) van primero
+    const tip = document.getElementById('cg-tip');
+    cyCtr.on('mouseover', 'node', evt => {
+      const d = evt.target.data();
+      if (d.type === 'center') return;
+      tip.innerHTML = counterTipHtml(d, data.heading);
+      tip.style.display = 'block';
+    });
+    cyCtr.on('mousemove', 'node', evt => {
+      const e = evt.originalEvent;
+      if (!e) return;
+      tip.style.left = Math.min(e.clientX + 14, innerWidth - 274) + 'px';
+      tip.style.top = Math.min(e.clientY + 14, innerHeight - tip.offsetHeight - 8) + 'px';
+    });
+    cyCtr.on('mouseout', 'node', () => { tip.style.display = 'none'; });
+
+    cyCtr.on('tap', 'node', evt => {
+      const n = evt.target;
+      const type = n.data('type');
+      if (type === 'center') {
+        cgAskQ = `¿Qué counterea a ${n.data('full')}${cgSuffix()} y cómo lo respondo?`;
+        panel.innerHTML = `<div class="cg-unit-name">${esc(n.data('full'))}</div>
+          <p class="cg-ph" style="margin-top:4px">Nodo central — la unidad buscada.</p>${cgAskBtn()}`;
+        return;
+      }
+      const isBeats = n.data('dir') === 'beats';
+      const colors = isBeats
+        ? { hard:'#3d6b17', soft:'#53682a', situational:'#2a5d86' }
+        : { hard:'#9b2b1a', soft:'#83551d', situational:'#6f5234' };
+      const strengthOf = w => w >= 0.9 ? 'hard' : w >= 0.65 ? 'soft' : 'situational';
+      const rel = isBeats
+        ? `<div class="cg-weight" style="color:#3d6b17">⚔️ <b>${esc(data.heading)}</b> es fuerte contra esta unidad</div>`
+        : `<div class="cg-weight" style="color:#9b2b1a">🛡️ contrarresta a <b>${esc(data.heading)}</b></div>`;
+      const ctxs = n.data('contexts') || [{
+        context: n.data('context') || 'general', tier: n.data('tier'),
+        weight: n.data('weight'), nota: n.data('nota'),
+      }];
+      const blocks = ctxs.map(x => {
+        const c = colors[strengthOf(x.weight)] || '#6f5234';
+        return `
+          <span class="cg-tier-badge" style="color:${c};border-color:${c};background:${c}18">
+            ${esc(x.tier)}${x.context && x.context !== 'general' ? ` · ${esc(CTX_LABEL[x.context] || x.context)}` : ''}
+          </span>
+          ${x.nota && x.nota!=='—' ? `<div class="cg-nota-text">${esc(x.nota)}</div>` : ''}
+          <div class="cg-weight">Peso: <b style="color:${c}">${x.weight}</b></div>`;
+      }).join('');
+      cgAskQ = isBeats
+        ? `¿Por qué ${data.heading} le gana a ${n.data('full')}${cgSuffix()}?`
+        : `¿Por qué ${n.data('full')} counterea a ${data.heading}${cgSuffix()}? ¿Cuántos necesito y con qué upgrades?`;
+      panel.innerHTML = `
+        <div class="cg-unit-name">${esc(n.data('full'))}</div>
+        ${rel}${blocks}${cgAskBtn()}`;
+    });
+    cyCtr.on('tap', evt => {
+      if (evt.target === cyCtr)
+        panel.innerHTML = '<p class="cg-ph">Hacé click en un nodo para ver el detalle.</p>';
+    });
+    panel.innerHTML = '<p class="cg-ph">Hacé click en un nodo para ver el detalle.</p>';
+  } catch(e) {
+    panel.innerHTML = `<p class="cg-ph">⚠️ ${esc(String(e))}</p>`;
+  }
+}
+
+function toggleReasoning(id, btn) {
+  const p = document.getElementById(id);
+  p.classList.toggle('open');
+  btn.textContent = p.classList.contains('open') ? '🔍 Ocultar razonamiento' : '🔍 Ver razonamiento';
+}
+
+// ── COUNTER LOOKUP (text cards — fallback / API) ───────────────────────────
+const UNIT_KEYS = {
+  'skirmisher':'skirmisher','skirm':'skirmisher','elite skirm':'eliteskirm',
+  'knight':'knight','knights':'knight','cavalier':'cavalier','paladin':'paladin',
+  'archer':'archer','crossbow':'crossbow','arbalester':'arbalester',
+  'hand cannoneer':'handcannon','hand cannon':'handcannon','hc':'handcannon',
+  'halberdier':'halberdier','pikeman':'pikeman','spearman':'spearman',
+  'champion':'champion','two-handed swordsman':'twohanded',
+  'mangonel':'mangonel','onager':'onager','siege onager':'siegeonager',
+  'scorpion':'scorpion','heavy scorpion':'heavyscorpion',
+  'battering ram':'batteringram','siege ram':'siegeram','capped ram':'cappedram',
+  'bombard cannon':'bombcannon','bombard':'bombcannon',
+  'monk':'monk','monks':'monk',
+  'cavalry archer':'cavarcher','cavalry archers':'cavarcher',
+  'heavy cavalry archer':'hcavarcher',
+  'light cavalry':'lightcav','light cav':'lightcav','hussar':'hussar',
+  'camel':'camel','heavy camel':'heavycamel','camel line':'camel',
+  'scout':'scout','trebuchet':'trebuchet',
+  'elephant':'battleeleph','battle elephant':'battleeleph',
+};
+
+function unitImg(name) {
+  const imap = (typeof IMG_MAP !== 'undefined' && IMG_MAP) || window.IMG_MAP;
+  if (!imap) return null;
+  const key = name.toLowerCase()
+    .replace(/\s*line\b/gi, '').replace(/\(.*?\)/g, '').trim();
+  const mapped = UNIT_KEYS[key] || key.replace(/\s+/g, '');
+  const path = imap[mapped];
+  return path ? '/tree/' + path : null;
+}
+
+function parseCounterRows(text) {
+  const lines = text.split('\n')
+    .filter(l => l.trim().startsWith('|') && !/^\|[\s\-:|]+\|/.test(l.trim()));
+  if (lines.length < 2) return [];
+  const headers = lines[0].split('|').slice(1,-1).map(h => h.trim().toLowerCase());
+  const tierIdx  = headers.findIndex(h => h.includes('tier'));
+  const contraIdx = headers.findIndex(h => h.includes('contra'));
+  const notaIdx  = headers.findIndex(h => h.includes('nota'));
+  return lines.slice(1).map(line => {
+    const cells = line.split('|').slice(1,-1).map(c => c.trim().replace(/\*\*/g, ''));
+    return {
+      tier:  cells[tierIdx]  || '',
+      contra: cells[contraIdx] || '',
+      nota:  notaIdx >= 0 ? (cells[notaIdx] || '') : '',
+    };
+  }).filter(r => r.contra);
+}
+
+function tierColor(tier) {
+  const t = tier.toLowerCase();
+  if (t.includes('primario'))  return 'var(--green)';
+  if (t.includes('sólido') || t.includes('solido') ||
+      t.includes('secundario') || t.includes('muy sólido')) return 'var(--gold)';
+  if (t.includes('evitar'))   return '#9b2b1a';
+  return 'var(--dim)';
+}
+
+function renderCounterCard(row) {
+  const img = unitImg(row.heading);
+  const imgHtml = img
+    ? `<img src="${img}" class="cx-unit-icon" onerror="this.style.display='none'"/>`
+    : '';
+  const rows = parseCounterRows(row.text);
+  const chips = rows.map(r => {
+    const ci   = unitImg(r.contra);
+    const cimg = ci
+      ? `<img src="${ci}" class="cx-unit-icon-sm" onerror="this.style.display='none'"/>`
+      : '';
+    const color = tierColor(r.tier);
+    const nota  = r.nota && r.nota !== '—'
+      ? `<span class="cx-nota">${esc(r.nota)}</span>` : '';
+    return `<div class="cx-chip" style="border-color:${color}">
+      <span class="cx-tier" style="color:${color}">${esc(r.tier)}</span>
+      ${cimg}<span>${esc(r.contra)}</span>${nota}
+    </div>`;
+  }).join('');
+  const notes = (row.text.match(/^>\s*(.+)$/gm) || [])
+    .map(n => `<blockquote>${esc(n.replace(/^>\s*/, ''))}</blockquote>`).join('');
+  return `<div class="cx-card">
+    <div class="cx-card-head">${imgHtml}<b>${esc(row.heading)}</b></div>
+    <div class="cx-chips">${chips ||
+      '<span style="color:var(--dim);font-size:13px">Sin tabla de counters en este chunk.</span>'
+    }</div>
+    ${notes}
+  </div>`;
+}
+
+async function searchCounters() {
+  const unit = document.getElementById("counter-input").value.trim();
+  if (!unit) return;
+  const res = document.getElementById("counter-result");
+  res.innerHTML = '<div class="cx-empty">buscando…</div>';
+  try {
+    const rows = await api(`/api/counters?unit=${encodeURIComponent(unit)}`);
+    if (!rows.length) {
+      res.innerHTML = `<div class="cx-empty">No se encontraron datos para
+        "<b>${esc(unit)}</b>" en los counters del vault.</div>`;
+      return;
+    }
+    res.innerHTML = rows.map(renderCounterCard).join('');
+  } catch(e) {
+    res.innerHTML = `<div class="cx-empty">⚠️ ${esc(String(e))}</div>`;
+  }
+}
+document.getElementById("counter-btn").onclick = searchCounterGraph;
+document.getElementById("counter-input").onkeydown =
+  e => { if (e.key === "Enter") searchCounterGraph(); };
+document.getElementById("counter-input").oninput =
+  () => document.querySelectorAll('.cg-qbtn').forEach(b => b.classList.remove('active'));
+
+// ── GRAPH VIEW ────────────────────────────────────────────────────────
+const NODE_COLORS = {
+  civs:'#8a1812', units:'#2a5d86', strategies:'#5d2a63',
+  technologies:'#2e6a45', buildings:'#7b3a22', maps:'#53682a',
+  counters:'#83551d', players:'#792243',
+};
+function nodeColor(type) { return NODE_COLORS[type] || '#6f5234'; }
+
+let cy = null;
+const GRAPH_HOME = 'meta/preguntas-frecuentes.md'; // nodo de apertura del grafo
+const graphStack = []; // historial de paths para "Atrás"
+let selectedPath = null;
+
+function initCy() {
+  if (cy) return;
+  cy = cytoscape({
+    container: document.getElementById('cy'),
+    style: [
+      { selector: 'node', style: {
+        'label': 'data(label)', 'background-color': 'data(color)',
+        'color': '#22150b', 'font-size': '11px', 'font-family': 'Crimson Pro, Georgia, serif', 'font-weight': 600,
+        'text-valign': 'bottom', 'text-margin-y': '5px',
+        'text-outline-color': '#ecdcb6', 'text-outline-width': '1px',
+        'width': 'data(sz)', 'height': 'data(sz)',
+        'border-width': 1, 'border-color': '#4b331c',
+      }},
+      // Entidad del juego (civ/unidad/tech/edificio): su ícono sobre pergamino,
+      // con el color del tipo en el borde para que la leyenda siga valiendo.
+      // Recortado al círculo: el PNG cuadrado no asoma por fuera del nodo.
+      { selector: 'node[icon]', style: {
+        'background-image': 'data(icon)', 'background-fit': 'cover',
+        'background-clip': 'node', 'background-color': '#ecdcb6',
+        'border-width': 2, 'border-color': 'data(color)',
+      }},
+      { selector: 'node.focal', style: {
+        'border-width': 3, 'border-color': '#c69b45',
+        'font-size': '13px', 'font-weight': 'bold',
+      }},
+      { selector: 'node:selected', style: {
+        'border-width': 3, 'border-color': '#8a1812',
+      }},
+      { selector: 'edge', style: {
+        'line-color': '#4b331c', 'target-arrow-color': '#4b331c',
+        'target-arrow-shape': 'triangle', 'curve-style': 'bezier',
+        'width': 1.2, 'opacity': 0.7,
+        'label': 'data(label)', 'font-size': '9px', 'color': '#6f5234',
+        'text-rotation': 'autorotate', 'text-outline-color': '#ecdcb6',
+        'text-outline-width': '1px',
+      }},
+    ],
+    wheelSensitivity: 0.3,
+    minZoom: 0.2, maxZoom: 4,
+  });
+
+  cy.on('tap', 'node', (evt) => {
+    const n = evt.target;
+    selectedPath = n.id();
+    showGraphSide(n);
+  });
+  cy.on('tap', (evt) => {
+    if (evt.target === cy) hideGraphSide();
+  });
+
+  document.getElementById('graph-fit').onclick = () => cy.fit(undefined, 30);
+  document.getElementById('gs-explore').onclick = () => {
+    if (selectedPath) loadGraph(selectedPath);
+  };
+  document.getElementById('gs-detail').onclick = () => {
+    if (!selectedPath) return;
+    switchView('explorer');
+    if (selectedPath.startsWith('civs/'))
+      showCiv(selectedPath.replace('civs/','').replace('.md',''));
+    else
+      showNote(selectedPath);
+  };
+}
+
+function showGraphSide(n) {
+  const side = document.getElementById('graph-side');
+  document.getElementById('gs-title').textContent = n.data('fullLabel') || n.data('label');
+  document.getElementById('gs-type').textContent = n.data('type') || '';
+  // vecinos directos como chips
+  const nbrs = n.neighborhood('node').map(nb => {
+    const lbl = nb.data('fullLabel') || nb.data('label');
+    return `<span class="gs-link" data-p="${nb.id()}">${esc(lbl)}</span>`;
+  }).join('');
+  document.getElementById('gs-links').innerHTML =
+    nbrs ? `<b style="color:var(--dim);font-size:11px">CONECTADO CON</b><br>${nbrs}` : '';
+  side.querySelectorAll('.gs-link').forEach(el =>
+    el.onclick = () => { selectedPath = el.dataset.p; loadGraph(el.dataset.p); });
+  side.style.display = 'block';
+}
+function hideGraphSide() {
+  document.getElementById('graph-side').style.display = 'none';
+  selectedPath = null;
+}
+
+async function loadGraph(path) {
+  switchView('graph');   // antes de initCy: con la vista oculta Cytoscape mide 0×0
+  initCy();
+  document.getElementById('graph-title').textContent = '⏳ cargando…';
+  hideGraphSide();
+
+  const data = await api(`/api/graph?path=${encodeURIComponent(path)}`).catch(() => null);
+  if (!data || data.error || !data.nodes?.length) {
+    document.getElementById('graph-title').textContent = 'Sin conexiones en el grafo para este nodo.';
+    return;
+  }
+
+  const elements = [
+    ...data.nodes.map(n => ({
+      data: {
+        id: n.id,
+        label: n.label.length > 18 ? n.label.slice(0,16) + '…' : n.label,
+        fullLabel: n.label,
+        color: nodeColor(n.type),
+        type: n.type || '',
+        ...(n.icon ? { icon: '/tree/' + n.icon } : {}),
+        sz: n.id === path ? 52 : n.icon ? 40 : 32,
+      },
+      classes: n.id === path ? 'focal' : '',
+    })),
+    ...data.edges.map((e, i) => ({
+      data: {
+        id: `e${i}`,
+        source: e.from,
+        target: e.to,
+        label: e.rel !== 'LINKS_TO' ? e.rel.replace(/_/g,' ').toLowerCase() : '',
+      },
+    })),
+  ];
+
+  cy.elements().remove();
+  cy.add(elements);
+  cy.layout({
+    name: 'cose', animate: true, animationDuration: 500,
+    nodeRepulsion: 10000, gravity: 0.4, numIter: 1000,
+    fit: true, padding: 50,
+  }).run();
+
+  // historial
+  const focal = data.nodes.find(n => n.id === path);
+  document.getElementById('graph-title').textContent = focal?.label || path;
+  graphStack.push(path);
+  document.getElementById('graph-back').style.display =
+    graphStack.length > 1 ? '' : 'none';
+}
+
+document.getElementById('graph-back').onclick = () => {
+  graphStack.pop(); // quita el actual
+  const prev = graphStack.pop(); // retrocede
+  if (prev) loadGraph(prev);
+};
+
+function openInGraph(path) { loadGraph(path); }
+
+// ── CALCULADORA DE PRODUCCIÓN ───────────────────────────────────────────
+const RES_ORDER = ['food', 'wood', 'gold', 'stone'];
+const RES_ES = { food: 'Comida', wood: 'Madera', gold: 'Oro', stone: 'Piedra' };
+const CAT_ES = {
+  barracks: 'Cuartel', archery: 'Arquería', stable: 'Establo', siege: 'Asedio',
+  dock: 'Muelle', monastery: 'Monasterio', castle: 'Castillo', market: 'Mercado',
+  tc: 'Town Center', economy: 'Edificios · economía', military: 'Edificios · militar',
+  defense: 'Edificios · defensa', special: 'Edificios · especial',
+};
+const CAT_ORDER = ['barracks','archery','stable','siege','dock','monastery','castle','market',
+                   'tc','economy','military','defense','special'];
+// Iconos (servidos same-origin desde el árbol vendorizado y /img/civs).
+// Ícono de reemplazo embebido (el árbol ya no trae img/missing.png desde el
+// Update 185872). El onerror se anula tras el primer intento: si el reemplazo
+// también fallara, no entra en bucle de pedidos.
+const MISSING_IMG = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect x='1.5' y='1.5' width='21' height='21' fill='%23ecdcb6' stroke='%234b331c'/%3E%3Cpath d='M12 6.5L15.5 12L12 17.5L8.5 12Z' fill='none' stroke='%236f5234' stroke-width='1.2'/%3E%3C/svg%3E";
+const UIMG = p => p ? `/tree/${p}` : MISSING_IMG;
+const RIMG = r => `/tree/img/${r}.png`;
+const EMB  = slug => `/img/civs/${encodeURIComponent(slug)}.png`;
+const resIco = r => `<img class="ric" src="${RIMG(r)}" alt="${RES_ES[r]}" title="${RES_ES[r]}">`;
+
+let CALC = null;               // catálogo de /api/eco-catalog
+let calcInited = false;
+const calcState = {
+  civ: '', age: 'feudal', items: {},           // items: { id: lines }
+  supply: { bySource: {}, techs: [], contributors: [], passive: { relics: 0, tradeCarts: 0, feitorias: 0 } },
+};
+
+async function initCalc() {
+  if (calcInited) return;
+  calcInited = true;
+  CALC = await api('/api/eco-catalog');
+  CALC._byId = Object.fromEntries(CALC.items.map(i => [i.id, i]));
+
+  // Selector de civ.
+  const civSel = document.getElementById('calc-civ');
+  CALC.civs.forEach(c => {
+    const o = document.createElement('option');
+    o.value = c; o.textContent = c.charAt(0).toUpperCase() + c.slice(1);
+    civSel.appendChild(o);
+  });
+
+  buildSupplyPanel();
+
+  civSel.onchange = () => {
+    calcState.civ = civSel.value;
+    const emb = document.getElementById('calc-civ-emblem');
+    if (civSel.value) { emb.src = EMB(civSel.value); emb.style.display = ''; }
+    else emb.style.display = 'none';
+    renderPicker(); recalc();
+  };
+  document.getElementById('calc-age').onchange = e => { calcState.age = e.target.value; refreshSupplyDefaults(); recalc(); };
+  document.getElementById('calc-reset').onclick = () => { calcState.items = {}; renderSelected(); renderPicker(); recalc(); };
+  ['sup-relics','sup-trade','sup-feitoria'].forEach(id => { document.getElementById(id).oninput = readPassive; });
+  document.getElementById('contrib-add').onclick = addContributor;
+
+  renderPicker();
+  renderSelected();
+  refreshSupplyDefaults();
+}
+
+// Grilla de iconos, agrupada por categoría, filtrada por lo construible de la civ.
+function renderPicker() {
+  const box = document.getElementById('calc-picker');
+  const buildable = calcState.civ ? new Set(CALC.buildable[calcState.civ] || []) : null;
+  const visible = CALC.items.filter(it => {
+    if (buildable) return buildable.has(it.id);
+    return it.variant !== 'unique';           // sin civ: ocultar UUs (evita las 50+ únicas)
+  });
+  const groups = {};
+  visible.forEach(it => { (groups[it.category] ||= []).push(it); });
+  box.innerHTML = CAT_ORDER.filter(c => groups[c]).map(cat => {
+    const btns = groups[cat].sort((a,b) => a.name.localeCompare(b.name)).map(it => {
+      const n = calcState.items[it.id] || 0;
+      return `<button class="pick-b ${it.variant} ${n ? 'on' : ''}" data-add="${it.id}" title="${esc(it.name)}">
+        <span class="badge"><img class="ic" src="${UIMG(it.imgPath)}" alt="" onerror="this.onerror=null;this.src=MISSING_IMG">${n ? `<span class="cnt">${n}</span>` : ''}</span>
+        <span class="lb">${esc(it.name)}</span>
+      </button>`;
+    }).join('');
+    return `<div class="pick-cat">${CAT_ES[cat] || cat}</div><div class="pick-grid">${btns}</div>`;
+  }).join('') || '<div class="calc-empty">Esta civilización no tiene items construibles cargados.</div>';
+  box.querySelectorAll('[data-add]').forEach(b => b.onclick = () => {
+    const id = b.dataset.add;
+    calcState.items[id] = (calcState.items[id] || 0) + 1;
+    renderSelected(); renderPicker(); recalc();
+  });
+}
+
+function buildSupplyPanel() {
+  // Fuente de relleno por recurso.
+  const wrap = document.getElementById('calc-sup-sources');
+  wrap.innerHTML = '';
+  RES_ORDER.forEach(res => {
+    const opts = Object.entries(CALC.sources).filter(([, s]) => s.resource === res);
+    if (!opts.length) return;
+    const div = document.createElement('div');
+    div.className = 'sup-res';
+    div.innerHTML = `<label>${resIco(res)} ${RES_ES[res]}</label>`;
+    const sel = document.createElement('select');
+    sel.dataset.res = res;
+    sel.innerHTML = `<option value="">(estándar de la edad)</option>` +
+      opts.map(([id, s]) => `<option value="${id}">${esc(s.label)}</option>`).join('');
+    sel.onchange = () => {
+      if (sel.value) calcState.supply.bySource[res] = sel.value;
+      else delete calcState.supply.bySource[res];
+      recalc();
+    };
+    div.appendChild(sel);
+    wrap.appendChild(div);
+  });
+
+  // Techs de recolección (toggles).
+  const tw = document.getElementById('calc-sup-techs');
+  tw.innerHTML = '<div style="font-size:12px;color:var(--dim);margin-bottom:8px">Tecnologías de recolección</div>';
+  const TECH_ORDER = ['doublebitaxe_m','bowsaw_m','twomansaw_m','goldmining_m','goldshaft_m',
+    'stonemining_m','stoneshaft_m','wheelbarrow','handcart','fishing_lines','gillnets'];
+  TECH_ORDER.filter(id => CALC.supplyTechs[id]).forEach(id => {
+    const lab = document.createElement('label');
+    lab.innerHTML = `<input type="checkbox" value="${id}"> ${esc(CALC.supplyTechs[id].name)}`;
+    lab.querySelector('input').onchange = e => {
+      const t = calcState.supply.techs;
+      if (e.target.checked) t.push(id); else t.splice(t.indexOf(id), 1);
+      recalc();
+    };
+    tw.appendChild(lab);
+  });
+
+  renderContributors();
+}
+
+// Recolectores fijos (multi-fuente): filas [fuente][nº aldeanos][x].
+function renderContributors() {
+  const list = document.getElementById('contrib-list');
+  const srcOpts = Object.entries(CALC.sources)
+    .map(([id, s]) => `<option value="${id}">${esc(s.label)}</option>`).join('');
+  list.innerHTML = calcState.supply.contributors.map((c, i) => `
+    <div class="contrib-row">
+      <select data-ci="${i}">${srcOpts.replace(`value="${c.source}"`, `value="${c.source}" selected`)}</select>
+      <input type="number" min="0" data-cn="${i}" value="${c.count}">
+      <span class="calc-x" data-cx="${i}">✕</span>
+    </div>`).join('');
+  list.querySelectorAll('[data-ci]').forEach(s => s.onchange = () => { calcState.supply.contributors[s.dataset.ci].source = s.value; recalc(); });
+  list.querySelectorAll('[data-cn]').forEach(n => n.oninput = () => { calcState.supply.contributors[n.dataset.cn].count = Math.max(0, parseInt(n.value||'0',10)||0); recalc(); });
+  list.querySelectorAll('[data-cx]').forEach(x => x.onclick = () => { calcState.supply.contributors.splice(+x.dataset.cx, 1); renderContributors(); recalc(); });
+}
+function addContributor() {
+  const first = Object.keys(CALC.sources)[0];
+  calcState.supply.contributors.push({ source: first, count: 3 });
+  renderContributors(); recalc();
+}
+
+function refreshSupplyDefaults() {
+  const def = CALC.defaults[calcState.age];
+  const note = document.querySelector('#calc-supply summary');
+  if (def && note) {
+    note.textContent = `⚙️ Economía — por defecto: ${(def.techs || []).map(t => CALC.supplyTechs[t]?.name || t).join(', ') || 'sin techs'} (${calcState.age})`;
+  }
+}
+
+function readPassive() {
+  const n = id => Math.max(0, parseInt(document.getElementById(id).value || '0', 10) || 0);
+  calcState.supply.passive = { relics: n('sup-relics'), tradeCarts: n('sup-trade'), feitorias: n('sup-feitoria') };
+  recalc();
+}
+
+function renderSelected() {
+  const box = document.getElementById('calc-selected');
+  const ids = Object.keys(calcState.items);
+  if (!ids.length) {
+    box.innerHTML = '<div class="calc-empty">Elegí unidades/edificios abajo. Cada línea = un edificio produciendo sin parar.</div>';
+    return;
+  }
+  box.innerHTML = ids.map(id => {
+    const it = CALC._byId[id]; if (!it) return '';
+    const cost = RES_ORDER.filter(r => it.cost[r]).map(r => `${it.cost[r]}${resIco(r)}`).join(' ');
+    return `<div class="calc-row">
+      <img class="ic" src="${UIMG(it.imgPath)}" alt="" onerror="this.onerror=null;this.src=MISSING_IMG">
+      <div class="nm">${esc(it.name)} <small>${cost} · ${it.time}s · ${it.kind === 'unit' ? 'unidad' : 'edificio'}</small></div>
+      <div class="calc-step">
+        <button data-dec="${id}">−</button>
+        <span class="n">${calcState.items[id]}</span>
+        <button data-inc="${id}">+</button>
+      </div>
+      <span class="calc-x" data-del="${id}">✕</span>
+    </div>`;
+  }).join('');
+  const upd = () => { renderSelected(); renderPicker(); recalc(); };
+  box.querySelectorAll('[data-inc]').forEach(b => b.onclick = () => { calcState.items[b.dataset.inc]++; upd(); });
+  box.querySelectorAll('[data-dec]').forEach(b => b.onclick = () => {
+    const id = b.dataset.dec;
+    if (--calcState.items[id] <= 0) delete calcState.items[id];
+    upd();
+  });
+  box.querySelectorAll('[data-del]').forEach(b => b.onclick = () => { delete calcState.items[b.dataset.del]; upd(); });
+}
+
+let calcTimer = null;
+function recalc() {
+  clearTimeout(calcTimer);
+  calcTimer = setTimeout(doRecalc, 120);   // debounce
+}
+async function doRecalc() {
+  const items = Object.entries(calcState.items).map(([id, lines]) => ({ id, lines }));
+  const out = document.getElementById('calc-result');
+  if (!items.length) { out.innerHTML = '<div class="calc-empty">Elegí qué producir para calcular.</div>'; return; }
+  const body = { items, age: calcState.age, civ: calcState.civ || null, techs: [], supply: calcState.supply };
+  let r;
+  try {
+    r = await fetch('/api/production', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body),
+    }).then(x => x.json());
+  } catch (e) { out.innerHTML = `<div class="calc-empty">Error: ${esc(String(e))}</div>`; return; }
+  if (r.error) { out.innerHTML = `<div class="calc-empty">${esc(r.error)}</div>`; return; }
+  renderResult(r);
+}
+
+function renderResult(r) {
+  const vOf = res => r.perResource[res].fillVillagers;
+  const maxV = Math.max(1, ...RES_ORDER.map(res => vOf(res) || 0));
+  const rows = RES_ORDER.map(res => {
+    const d = r.perResource[res];
+    if (!d.demandPerMin && !vOf(res)) return '';
+    const v = vOf(res) == null ? '∞' : vOf(res);
+    const pct = vOf(res) ? Math.round((vOf(res) / maxV) * 100) : 0;
+    const srcLabel = CALC.sources[d.fillSource] ? CALC.sources[d.fillSource].label : d.fillSource;
+    const extra = (res === 'wood' && d.reseedPerMin) ? ` · incl. ${d.reseedPerMin} reseed` : '';
+    const fixed = d.fixedIncomePerMin ? ` · −${d.fixedIncomePerMin} fijo` : '';
+    return `<div class="res-row ${res} ${r.bottleneck === res ? 'bottleneck' : ''}">
+      <div class="lbl">${resIco(res)} ${RES_ES[res]}<small>${esc(srcLabel)} · ${d.ratePerMin}/min</small></div>
+      <div class="res-bar"><span style="width:${pct}%"></span></div>
+      <div class="res-v" title="${d.demandPerMin}/min${extra}${fixed}">${v}</div>
+    </div>`;
+  }).join('');
+
+  const contrib = (r.contributors || []).length
+    ? `<div>Fijos: ${r.contributors.map(c => `${c.count}× ${esc(c.label)}`).join(', ')} (${r.contributorVillagers} aldeanos)</div>` : '';
+  const reseedNote = r.reseedWood && r.reseedWood.totalPerMin
+    ? `<div>🌲 Reseed de granjas/trampas: ~${r.reseedWood.totalPerMin} madera/min (por eso suma madera).</div>` : '';
+  const notes = (r.heuristics || []).map(h => `<div>• ${esc(h)}</div>`).join('');
+  const ai = ({dark:0,feudal:1,castle:2,imperial:3})[calcState.age];
+  const civNote = r.appliedCivMods ? `<div>Bonos aplicados: ${r.appliedCivMods.filter(m=>m.type!=='gen'||true).map(m =>
+    m.type === 'cost' ? `${m.scope} ${m.resource} ×${m.valueByAge[ai]}`
+    : m.type === 'gen' ? `${m.scope}→${m.stat}` : `desbloquea ${m.scope}`).join(', ')}</div>` : '';
+
+  const split = r.contributorVillagers
+    ? `<span style="color:var(--dim);font-size:12px"> (${r.contributorVillagers} fijos + ${r.fillVillagers} relleno)</span>` : '';
+  document.getElementById('calc-result').innerHTML = `
+    <div class="calc-total">Total: <b>${r.total}</b> aldeanos${split}
+      <span style="color:var(--dim);font-size:12px">· cuello de botella: ${RES_ES[r.bottleneck]}</span></div>
+    ${rows}
+    <div class="calc-notes">${contrib}${reseedNote}${notes}${civNote}</div>`;
+}
+
+// ── INIT ───────────────────────────────────────────────────────────────
+init();
+</script>
+</body>
+</html>

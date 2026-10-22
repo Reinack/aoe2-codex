@@ -1,0 +1,33 @@
+{
+  "_doc": "Modelo de OFERTA de la calculadora de producción. Curado a mano. Tasas en RECURSOS/MIN por aldeano (o por unidad pasiva). Semilla citando SotL [[strategies/resource-values-sotl]], herdables [[resources/herdables]] y eco-upgrades [[strategies/eco-upgrades]] + constantes estándar de la comunidad. Los números se afinan después; la ESTRUCTURA es lo estable. `techs` referencia ids de eco-techs.json.supply que el usuario puede togglear (multiplican la base por (1+pct/100)). `civGen` liga un stat_modifier de generación (civ-mods.gen) a esta fuente.",
+
+  "resources": ["food", "wood", "gold", "stone"],
+
+  "sources": {
+    "sheep":       { "label": "Ovejas / herdables", "resource": "food", "ratePerAge": { "dark": 20, "feudal": 20, "castle": 20, "imperial": 20 }, "techs": ["wheelbarrow", "handcart"], "civGenStat": "food_duration" },
+    "hunt":        { "label": "Caza (jabalí/ciervo)", "resource": "food", "ratePerAge": { "dark": 24, "feudal": 24, "castle": 24, "imperial": 24 }, "techs": ["wheelbarrow", "handcart"] },
+    "berries":     { "label": "Bayas (forraje)", "resource": "food", "ratePerAge": { "dark": 19, "feudal": 19, "castle": 20, "imperial": 20 }, "techs": ["wheelbarrow", "handcart"], "civGen": true },
+    "farm":        { "label": "Granja", "resource": "food", "ratePerAge": { "dark": 0, "feudal": 15, "castle": 18, "imperial": 22 }, "techs": ["wheelbarrow", "handcart"], "reseed": { "wood": 60, "foodCapacityPerAge": { "dark": 175, "feudal": 175, "castle": 250, "imperial": 375 } } },
+    "shore_fish":  { "label": "Pesca costera (aldeano)", "resource": "food", "ratePerAge": { "dark": 0, "feudal": 26, "castle": 28, "imperial": 30 }, "techs": ["wheelbarrow", "handcart"] },
+    "fishing_ship":{ "label": "Barco pesquero", "resource": "food", "ratePerAge": { "dark": 0, "feudal": 26, "castle": 28, "imperial": 30 }, "perUnit": "fishingship", "techs": ["fishing_lines", "gillnets"] },
+    "fish_trap":   { "label": "Trampa de peces (barco)", "resource": "food", "ratePerAge": { "dark": 0, "feudal": 22, "castle": 24, "imperial": 26 }, "perUnit": "fishingship", "techs": ["fishing_lines", "gillnets"], "reseed": { "wood": 100, "foodCapacityPerAge": { "dark": 2000, "feudal": 2000, "castle": 2200, "imperial": 2400 } } },
+    "oyster_ship": { "label": "Ostras (barco)", "resource": "food", "ratePerAge": { "dark": 0, "feudal": 12, "castle": 12, "imperial": 12 }, "perUnit": "fishingship", "techs": ["fishing_lines", "gillnets"] },
+    "lumberjack":  { "label": "Leñador", "resource": "wood", "ratePerAge": { "dark": 20, "feudal": 22, "castle": 27, "imperial": 30 }, "techs": ["doublebitaxe_m", "bowsaw_m", "twomansaw_m", "wheelbarrow", "handcart"], "civGenStat": "wood_generation" },
+    "gold_miner":  { "label": "Minero de oro", "resource": "gold", "ratePerAge": { "dark": 0, "feudal": 20, "castle": 26, "imperial": 30 }, "techs": ["goldmining_m", "goldshaft_m", "wheelbarrow", "handcart"] },
+    "stone_miner": { "label": "Minero de piedra", "resource": "stone", "ratePerAge": { "dark": 0, "feudal": 20, "castle": 26, "imperial": 30 }, "techs": ["stonemining_m", "stoneshaft_m", "wheelbarrow", "handcart"], "civGenStat": "gold_generation" }
+  },
+
+  "passive": {
+    "relic":      { "label": "Reliquia (garrison en monasterio)", "resource": "gold", "ratePerMin": 30 },
+    "trade_cart": { "label": "Trade cart", "resource": "gold", "ratePerMin": 40, "note": "depende de la distancia de la ruta; valor por defecto de ruta media" },
+    "feitoria":   { "label": "Feitoria (Portugueses)", "resource": "mixed", "ratePerMin": { "food": 10, "wood": 7, "gold": 8, "stone": 3 } }
+  },
+
+  "defaults": {
+    "_doc": "Economía estándar por edad cuando el usuario no configura la oferta. Fuente canónica por recurso + techs de recolección típicas de esa edad. El motor la usa para dar una respuesta de un número a la pregunta simple.",
+    "dark":     { "food": "sheep",       "wood": "lumberjack", "gold": "gold_miner", "stone": "stone_miner", "techs": [] },
+    "feudal":   { "food": "farm",        "wood": "lumberjack", "gold": "gold_miner", "stone": "stone_miner", "techs": ["doublebitaxe_m"] },
+    "castle":   { "food": "farm",        "wood": "lumberjack", "gold": "gold_miner", "stone": "stone_miner", "techs": ["doublebitaxe_m", "bowsaw_m", "goldmining_m", "wheelbarrow"] },
+    "imperial": { "food": "farm",        "wood": "lumberjack", "gold": "gold_miner", "stone": "stone_miner", "techs": ["doublebitaxe_m", "bowsaw_m", "twomansaw_m", "goldmining_m", "goldshaft_m", "wheelbarrow", "handcart"] }
+  }
+}

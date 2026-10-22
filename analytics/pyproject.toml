@@ -1,0 +1,21 @@
+[project]
+name = "aoe2-codex-analytics"
+version = "0.1.0"
+description = "Analítica de red del grafo de conocimiento AoE2 (NetworkX + Streamlit)"
+requires-python = ">=3.11"
+dependencies = [
+    "neo4j>=5.20",
+    "networkx>=3.2",
+    "scipy>=1.11",          # backend de pagerank/centralidad en NetworkX
+    "pandas>=2.0",
+    "streamlit>=1.30",
+    "pyvis>=0.3",
+    "aoe2-codex-ingest",   # reutiliza codex.config (mismo repo, instalado editable)
+]
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["codex_analytics*"]
