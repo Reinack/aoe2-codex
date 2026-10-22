@@ -1934,6 +1934,7 @@ async function searchCounterGraph() {
       let src = (d.imgKey && imap?.[d.imgKey])
         ? '/tree/' + imap[d.imgKey]
         : unitImg(d.full || d.label);
+      if (!src && d.imgPath) src = '/tree/' + d.imgPath;                  // UU: ícono por nombre
       if (!src && d.type === 'center' && uuCenterImg) src = uuCenterImg;   // ícono de UU
       if (src) d.imgSrc = src;
       return { data: d };

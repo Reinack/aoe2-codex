@@ -632,7 +632,11 @@ app.get("/api/civ-units", wrap(async (req, res) => {
     `MATCH (:Civ {path:$path})-[:HAS_UNIQUE_UNIT]->(u)
      WHERE NOT u.title STARTS WITH 'Elite'
      RETURN u.title AS title, u.tree_id AS treeId ORDER BY u.title`, { path });
-  res.json({ civ: civ.title, slug, units, uniqueUnits: uuRows });
+  // Ícono del árbol por nombre (mismo índice que el grafo), relativo a /tree/.
+  const uniqueUnits = uuRows.map((u) => ({
+    ...u, imgPath: ICON_FOR({ title: u.title, type: "units", treeId: u.treeId }) || "",
+  }));
+  res.json({ civ: civ.title, slug, units, uniqueUnits });
 }));
 
 // --- detalle de una civ (kit único + tiers + vecinos) ----------------------
@@ -1332,7 +1336,8 @@ app.get("/api/counter-graph", wrap(async (req, res) => {
 
     const strengthOf = (w) => w >= 0.9 ? 'hard' : w >= 0.65 ? 'soft' : 'situational';
     const nodes = [{ data: { id: 'center', label: uu.title, full: uu.title, type: 'center',
-                             imgKey: '', age: profile.age || '' } }];
+                             imgKey: '', age: profile.age || '',
+                             imgPath: ICON_FOR({ path: uu.path, title: uu.title, type: 'units' }) || '' } }];
     const edges = [];
     const emitInferred = (list, dir, prefix) => list.forEach((x, i) => {
       const row = byId.get(x.id);
@@ -1379,7 +1384,8 @@ app.get("/api/counter-graph", wrap(async (req, res) => {
       : [];
 
     const nodes = [
-      { data: { id: 'center', label: uu.title, full: uu.title, type: 'center', imgKey: '' } },
+      { data: { id: 'center', label: uu.title, full: uu.title, type: 'center', imgKey: '',
+                imgPath: ICON_FOR({ path: uu.path, title: uu.title, type: 'units' }) || '' } },
       ...counters.map((c, i) => ({
         data: { id: `c${i}`, label: c.label, full: c.label, type: 'soft',
                 tier: 'SÓLIDO', nota: 'Según descripción in-game', weight: 0.7,
