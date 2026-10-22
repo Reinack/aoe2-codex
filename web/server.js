@@ -1210,7 +1210,7 @@ app.get("/api/counter-graph", wrap(async (req, res) => {
     const counterRows = await run(
       `MATCH (counter:Unit)-[r:COUNTERS]->(t:Unit {id: $id})
        RETURN counter.id AS cid, counter.label AS clabel,
-              counter.img_key AS cimg,
+              counter.img_key AS cimg, counter.age AS cage,
               r.weight AS weight, r.strength AS strength,
               r.context AS context, r.notes AS notes
        ORDER BY r.weight DESC`,
@@ -1221,6 +1221,7 @@ app.get("/api/counter-graph", wrap(async (req, res) => {
     const beatsRows = await run(
       `MATCH (t:Unit {id: $id})-[r:COUNTERS]->(victim:Unit)
        RETURN victim.id AS cid, victim.label AS clabel, victim.img_key AS cimg,
+              victim.age AS cage,
               r.weight AS weight, r.strength AS strength,
               r.context AS context, r.notes AS notes
        ORDER BY r.weight DESC`,
@@ -1231,7 +1232,7 @@ app.get("/api/counter-graph", wrap(async (req, res) => {
 
     const nodes = [
       { data: { id: 'center', label: target.label, full: target.label,
-                type: 'center', imgKey: target.img_key || '' } },
+                type: 'center', imgKey: target.img_key || '', age: target.age || '' } },
     ];
     const edges = [];
 
@@ -1258,7 +1259,7 @@ app.get("/api/counter-graph", wrap(async (req, res) => {
             context: r.context || 'general', tier: r.strength,
             weight: Number(r.weight), nota: r.notes || '',
           })),
-          imgKey: best.cimg || '',
+          imgKey: best.cimg || '', age: best.cage || '',
         } });
         grp.forEach((r, j) => {
           const rw = Number(r.weight);
