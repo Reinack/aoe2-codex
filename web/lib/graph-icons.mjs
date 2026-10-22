@@ -51,10 +51,15 @@ export async function buildIconIndex(treeDir) {
   for (const [id, n] of Object.entries(UP_NODES)) if (exists(n.pic) && !byId.has(id)) byId.set(id, n.pic);
 
   // nombre (slug) → ícono. El primero gana: genéricos antes que variantes.
+  // byUnitName guarda solo íconos de unidad: una nota de unidad no debe tomar el
+  // de una tech homónima (la tech "Samurai" de los Japanese tapaba a la unidad).
   const byName = new Map();
+  const byUnitName = new Map();
   const add = (name, img) => {
     const k = name && slugify(name);
-    if (k && exists(img) && !byName.has(k)) byName.set(k, img);
+    if (!k || !exists(img)) return;
+    if (!byName.has(k)) byName.set(k, img);
+    if (img.startsWith("img/Unit/") && !byUnitName.has(k)) byUnitName.set(k, img);
   };
   for (const [id, img] of byId) {
     add(id.replace(/_/g, " "), img);
@@ -90,7 +95,16 @@ export async function buildIconIndex(treeDir) {
       return civIcons.has(slug) ? `img/Civs/${slug}.png` : null;
     }
     if (!ENTITY_TYPES.has(type)) return null;
-    if (treeId && byId.has(treeId)) return byId.get(treeId);
+    // Un tree_id de unidad que apunta a una tech (el Samurai quedó ligado a
+    // japanese_uniquetech2 en el ingest) se ignora y se resuelve por nombre.
+    const byTree = treeId && byId.get(treeId);
+    if (byTree && (type !== "units" || byTree.startsWith("img/Unit/"))) return byTree;
+    if (type === "units") {
+      for (const name of [file, title]) {
+        const k = name && slugify(name);
+        if (k && byUnitName.has(k)) return byUnitName.get(k);
+      }
+    }
     for (const name of [file, title]) {
       const k = name && slugify(name);
       if (k && byName.has(k)) return byName.get(k);

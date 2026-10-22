@@ -8,6 +8,7 @@ import { run, driver } from "./db.js";
 import { solve as ecoSolve, catalog as ecoCatalog } from "./lib/eco.mjs";
 import { availableIds } from "./techtree/load.mjs";
 import { buildIconIndex } from "./lib/graph-icons.mjs";
+import { LINE_NOTE, inferUniqueCounters, typeLine, unitProfile } from "./lib/uu-counters.mjs";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const app = express();
@@ -61,6 +62,15 @@ try {
   DOCUMENTED_MATCHUPS = JSON.parse(readFileSync(join(__dirname, "data", "documented-matchups.json"), "utf8"));
 } catch (e) {
   console.error("[documented-matchups] no se pudo cargar data/documented-matchups.json:", e.message);
+}
+
+// Clases de armadura, bonus de ataque y "fuerte/débil contra" de cada unidad
+// (scripts/build-unit-classes.mjs): base de los counters inferidos de las únicas.
+let UNIT_CLASSES = {};
+try {
+  UNIT_CLASSES = JSON.parse(readFileSync(join(__dirname, "data", "unit-classes.json"), "utf8"));
+} catch (e) {
+  console.error("[unit-classes] no se pudo cargar data/unit-classes.json:", e.message);
 }
 
 // Entradas de la civ `ownSlug` que documentan un cruce contra `oppSlug`.
@@ -622,7 +632,11 @@ app.get("/api/civ-units", wrap(async (req, res) => {
     `MATCH (:Civ {path:$path})-[:HAS_UNIQUE_UNIT]->(u)
      WHERE NOT u.title STARTS WITH 'Elite'
      RETURN u.title AS title, u.tree_id AS treeId ORDER BY u.title`, { path });
-  res.json({ civ: civ.title, slug, units, uniqueUnits: uuRows });
+  // Ícono del árbol por nombre (mismo índice que el grafo), relativo a /tree/.
+  const uniqueUnits = uuRows.map((u) => ({
+    ...u, imgPath: ICON_FOR({ title: u.title, type: "units", treeId: u.treeId }) || "",
+  }));
+  res.json({ civ: civ.title, slug, units, uniqueUnits });
 }));
 
 // --- detalle de una civ (kit único + tiers + vecinos) ----------------------
@@ -1210,7 +1224,7 @@ app.get("/api/counter-graph", wrap(async (req, res) => {
     const counterRows = await run(
       `MATCH (counter:Unit)-[r:COUNTERS]->(t:Unit {id: $id})
        RETURN counter.id AS cid, counter.label AS clabel,
-              counter.img_key AS cimg,
+              counter.img_key AS cimg, counter.age AS cage,
               r.weight AS weight, r.strength AS strength,
               r.context AS context, r.notes AS notes
        ORDER BY r.weight DESC`,
@@ -1221,6 +1235,7 @@ app.get("/api/counter-graph", wrap(async (req, res) => {
     const beatsRows = await run(
       `MATCH (t:Unit {id: $id})-[r:COUNTERS]->(victim:Unit)
        RETURN victim.id AS cid, victim.label AS clabel, victim.img_key AS cimg,
+              victim.age AS cage,
               r.weight AS weight, r.strength AS strength,
               r.context AS context, r.notes AS notes
        ORDER BY r.weight DESC`,
@@ -1231,7 +1246,7 @@ app.get("/api/counter-graph", wrap(async (req, res) => {
 
     const nodes = [
       { data: { id: 'center', label: target.label, full: target.label,
-                type: 'center', imgKey: target.img_key || '' } },
+                type: 'center', imgKey: target.img_key || '', age: target.age || '' } },
     ];
     const edges = [];
 
@@ -1258,7 +1273,7 @@ app.get("/api/counter-graph", wrap(async (req, res) => {
             context: r.context || 'general', tier: r.strength,
             weight: Number(r.weight), nota: r.notes || '',
           })),
-          imgKey: best.cimg || '',
+          imgKey: best.cimg || '', age: best.cage || '',
         } });
         grp.forEach((r, j) => {
           const rw = Number(r.weight);
@@ -1279,22 +1294,84 @@ app.get("/api/counter-graph", wrap(async (req, res) => {
     return res.json({ heading: target.label, unitId: target.id, nodes, edges, notes: [], source: 'graph' });
   }
 
-  // Unidades únicas: no hay COUNTERS curados (scope del YAML = genéricas), pero
-  // la ficha del vault trae la descripción in-game ("Strong vs. X. Weak vs. Y.")
-  // en el chunk intro → se derivan counters suaves mapeando las clases a líneas.
+  // Unidades únicas: no hay COUNTERS curados (scope del YAML = genéricas). Se
+  // infieren de la ficha: descripción + clase de armadura × bonus de ataque + tipo
+  // (la línea genérica a la que se parece y sus counters curados).
   const [uu] = await run(
     `MATCH (n:Note)
      WHERE n.path STARTS WITH 'units/unique/'
        AND toLower(n.title) CONTAINS toLower($u)
-     MATCH (c:Chunk {note: n.path, heading: 'intro'})
+     OPTIONAL MATCH (c:Chunk {note: n.path, heading: 'intro'})
      OPTIONAL MATCH (civ:Civ)-[:HAS_UNIQUE_UNIT]->(n)
-     RETURN n.title AS title, n.path AS path, c.text AS text,
-            collect(civ.title) AS civs
+     RETURN n.title AS title, n.path AS path, head(collect(c.text)) AS text,
+            collect(DISTINCT civ.title) AS civs
      ORDER BY size(n.title) LIMIT 1`,
     { u: unit },
   );
 
-  if (uu) {
+  const profile = uu && unitProfile(UNIT_CLASSES, uu.title);
+  if (uu && profile) {
+    const lineIds = Object.keys(LINE_NOTE);
+    const parent = typeLine(profile);
+    const [lineRows, curatedRows] = await Promise.all([
+      run(`MATCH (u:Unit) WHERE u.id IN $ids
+           RETURN u.id AS id, u.label AS label, u.img_key AS img, u.age AS age`, { ids: lineIds }),
+      parent
+        ? run(`MATCH (a:Unit)-[r:COUNTERS]->(b:Unit) WHERE a.id = $p OR b.id = $p
+               RETURN a.id AS src, b.id AS dst, r.weight AS w`, { p: parent })
+        : [],
+    ]);
+    const byId = new Map(lineRows.map((r) => [r.id, r]));
+    const incoming = {}, outgoing = {};
+    for (const r of curatedRows) {
+      const w = Number(r.w);
+      if (r.dst === parent) incoming[r.src] = Math.max(incoming[r.src] || 0, w);
+      if (r.src === parent) outgoing[r.dst] = Math.max(outgoing[r.dst] || 0, w);
+    }
+    const lines = lineIds.filter((id) => byId.has(id))
+      .map((id) => ({ id, profile: UNIT_CLASSES[LINE_NOTE[id]] }));
+    const { counters, beats } = inferUniqueCounters(profile, lines, {
+      parent, parentLabel: byId.get(parent)?.label || parent, incoming, outgoing,
+    });
+
+    const strengthOf = (w) => w >= 0.9 ? 'hard' : w >= 0.65 ? 'soft' : 'situational';
+    const nodes = [{ data: { id: 'center', label: uu.title, full: uu.title, type: 'center',
+                             imgKey: '', age: profile.age || '',
+                             imgPath: ICON_FOR({ path: uu.path, title: uu.title, type: 'units' }) || '' } }];
+    const edges = [];
+    const emitInferred = (list, dir, prefix) => list.forEach((x, i) => {
+      const row = byId.get(x.id);
+      const base = strengthOf(x.weight);
+      const nota = x.reasons.join(' · ');
+      const nodeId = `${prefix}${i}`;
+      nodes.push({ data: {
+        id: nodeId, uid: x.id, label: row.label, full: row.label,
+        type: dir === 'beats' ? `beats-${base}` : base, dir, tier: x.tier, nota,
+        weight: x.weight, context: 'general',
+        contexts: [{ context: 'general', tier: x.tier, weight: x.weight, nota }],
+        imgKey: row.img || '', age: row.age || '',
+      } });
+      edges.push({ data: {
+        id: `${prefix}e${i}`,
+        source: dir === 'beats' ? 'center' : nodeId,
+        target: dir === 'beats' ? nodeId : 'center',
+        weight: x.weight, strength: dir === 'beats' ? `beats-${base}` : base, dir, context: 'general',
+      } });
+    });
+    emitInferred(counters, 'counter', 'c');
+    emitInferred(beats, 'beats', 'b');
+
+    const notes = [];
+    if (profile.strong) notes.push(`Fuerte contra: ${profile.strong}`);
+    if (profile.weak) notes.push(`Débil contra: ${profile.weak}`);
+    notes.push(`Counters inferidos de la ficha: descripción, clases de armadura × bonus de ataque${
+      parent ? ` y tipo (se comporta como ${byId.get(parent)?.label || parent})` : ''}. No son análisis curado.`);
+    return res.json({ heading: uu.title, nodes, edges, notes,
+                      uuCivs: uu.civs || [], source: 'unique-inferred' });
+  }
+
+  // Sin ficha en unit-classes.json: se cae a la descripción del chunk intro.
+  if (uu?.text) {
     const weakM   = uu.text.match(/(?:weak vs\.?|d[eé]bil contra)\s+([^.\n]+)/i);
     const strongM = uu.text.match(/(?:strong vs\.?|fuerte contra)\s+([^.\n]+)/i);
     const lineIds = weakM ? mapClassesToLines(weakM[1]) : [];
@@ -1307,7 +1384,8 @@ app.get("/api/counter-graph", wrap(async (req, res) => {
       : [];
 
     const nodes = [
-      { data: { id: 'center', label: uu.title, full: uu.title, type: 'center', imgKey: '' } },
+      { data: { id: 'center', label: uu.title, full: uu.title, type: 'center', imgKey: '',
+                imgPath: ICON_FOR({ path: uu.path, title: uu.title, type: 'units' }) || '' } },
       ...counters.map((c, i) => ({
         data: { id: `c${i}`, label: c.label, full: c.label, type: 'soft',
                 tier: 'SÓLIDO', nota: 'Según descripción in-game', weight: 0.7,

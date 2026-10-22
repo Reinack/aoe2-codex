@@ -59,6 +59,10 @@
     /* Papiro de los controles (desplegables), como los del juego */
     --papyrus: linear-gradient(180deg, rgba(240, 222, 184, 0.55), rgba(214, 184, 136, 0.55)), var(--paper);
     --papyrus-text: #3a1c0e;
+    /* Papiro claro: tarjetas sobre un panel de papiro (p. ej. el resumen de counters) */
+    /* Papiro casi blanco: campos donde se escribe (se distinguen de los desplegables) */
+    --papyrus-input: linear-gradient(180deg, rgba(255, 253, 246, 0.9), rgba(252, 247, 232, 0.9)), var(--paper);
+    --papyrus-light: linear-gradient(180deg, rgba(255, 248, 228, 0.66), rgba(248, 234, 204, 0.66)), var(--paper);
     /* Barra de desplazamiento: botones de acero con flecha y ornamento en el pulgar */
     --sb-up: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' width='16' height='16'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='0' y2='1'%3E%3Cstop offset='0' stop-color='%235a524a'/%3E%3Cstop offset='1' stop-color='%232a231d'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect x='.5' y='.5' width='15' height='15' fill='url(%23g)' stroke='%23050302'/%3E%3Crect x='1.5' y='1.5' width='13' height='13' fill='none' stroke='%23fffaf0' stroke-opacity='.16'/%3E%3Cpath d='M8 4.2L12.3 11H3.7Z' fill='%23d6cfc4' stroke='%231a130e' stroke-width='.8' stroke-linejoin='round'/%3E%3C/svg%3E");
     --sb-down: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' width='16' height='16'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='0' y2='1'%3E%3Cstop offset='0' stop-color='%235a524a'/%3E%3Cstop offset='1' stop-color='%232a231d'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect x='.5' y='.5' width='15' height='15' fill='url(%23g)' stroke='%23050302'/%3E%3Crect x='1.5' y='1.5' width='13' height='13' fill='none' stroke='%23fffaf0' stroke-opacity='.16'/%3E%3Cpath d='M8 11.8L12.3 5H3.7Z' fill='%23d6cfc4' stroke='%231a130e' stroke-width='.8' stroke-linejoin='round'/%3E%3C/svg%3E");
@@ -236,6 +240,19 @@
   #cg-panel { width:272px; flex-shrink:0; padding:12px; overflow-y:auto;
     border-right:1px solid var(--line); display:flex; flex-direction:column; gap:10px; }
   #cy-counters { flex:1; background:var(--bg); }
+  /* Resumen a la derecha: solo en pantallas anchas, donde sobra espacio */
+  #cg-side { display:none; width:340px; flex-shrink:0; overflow-y:auto; padding:12px;
+    border-left:1px solid var(--line); font-size:13px; }
+  @media (min-width:1500px) { #cg-side { display:block; } }
+  @media (min-width:1900px) { #cg-side { width:400px; } }
+  .cs-h { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.4px; margin:10px 0 4px; }
+  .cs-h:first-child { margin-top:0; }
+  .cs-row { display:flex; gap:8px; padding:6px 4px; border-bottom:1px solid var(--line); cursor:pointer; }
+  .cs-row:hover { background:var(--chip); }
+  .cs-row img { width:30px; height:30px; object-fit:contain; flex-shrink:0; border:2px solid; border-radius:50%; }
+  .cs-name { font-weight:700; color:var(--ink); line-height:1.2; }
+  .cs-meta { font-size:11px; color:var(--dim); }
+  .cs-nota { font-size:12px; color:var(--dim); margin-top:2px; line-height:1.35; }
   #cg-legend { display:flex; flex-direction:column; gap:5px; }
   .cg-leg { display:flex; align-items:center; gap:8px; font-size:12px; color:var(--dim); }
   .cg-dot { width:10px; height:10px; border-radius:50%; flex-shrink:0; }
@@ -249,6 +266,17 @@
   #cg-notes blockquote { margin:4px 0; padding:4px 8px;
     border-left:2px solid var(--gold); font-style:italic; }
   .cg-ph { color:var(--dim); font-size:13px; padding:4px 0; margin:0; }
+  #cg-age { background:var(--panel); border:1px solid var(--line); color:var(--ink);
+    border-radius:8px; padding:0 10px; font-size:14px; cursor:pointer; }
+  /* Globo al pasar el mouse por un nodo: el porqué sin tener que clickear */
+  #cg-tip { position:fixed; z-index:50; pointer-events:none; max-width:260px; display:none;
+    background:#060402ee; color:#e4d4b0; border:1px solid var(--gold); border-radius:6px;
+    padding:7px 10px; font-size:12px; line-height:1.35; }
+  #cg-tip b { color:#ecd08a; }
+  #cg-tip .tip-meta { color:#bfae8a; font-size:11px; margin:2px 0 4px; }
+  .cg-ask { margin-top:10px; background:var(--chip); border:1px solid var(--gold); color:var(--ink);
+    border-radius:8px; padding:6px 10px; font-size:12px; cursor:pointer; width:100%; }
+  .cg-ask:hover { background:var(--sel-bg); }
   /* ── REASONING PANEL (chat) ──────────────────────────────────────── */
   .reasoning-toggle { background:none; border:none; color:var(--dim); font-size:12px;
     cursor:pointer; padding:4px 0 0; display:flex; align-items:center; gap:4px; }
@@ -504,7 +532,7 @@
      (que usan --ink, --dim, --line, --gold…) pasan a tinta sobre papel.
      Sobre papiro el oro no se lee: la selección/acento va en rojo. */
   /* html body: gana sobre los <style> propios de cada vista (p.ej. la calculadora). */
-  html body :is(.card, #detail, .cx-card, .mu-panel, .mu-section, .calc-panel, #calc-supply, #cg-panel, .msg.bot) {
+  html body :is(.card, #detail, .cx-card, .mu-panel, .mu-section, .calc-panel, #calc-supply, #cg-panel, #cg-side, .msg.bot) {
     --ink:var(--ink-900); --dim:var(--ink-500); --line:var(--rule);
     --panel:rgba(255,248,228,.3); --bg:rgba(255,248,228,.45);
     --chip:rgba(255,248,228,.42); --sunk:rgba(75,51,28,.07); --sel-bg:rgba(138,24,18,.1);
@@ -519,16 +547,28 @@
   .msg { font-size:15px; }
   .msg.user { background:var(--dialog-black); border:1px solid var(--gold); color:var(--on-dark); }
   #cg-panel { box-shadow:inset -1px 0 0 var(--gold-line); border:0; }
+  /* Resumen derecho: papiro medio de fondo, cada unidad en papiro claro */
+  html body #cg-side { background:var(--papyrus); color:var(--papyrus-text); border:0;
+    box-shadow:inset 1px 0 0 var(--gold-line), var(--burnt-edge); }
+  #cg-side .cs-row { background:var(--papyrus-light); border:1px solid rgba(75,51,28,.22);
+    border-radius:4px; margin-bottom:5px; }
+  #cg-side .cs-row:hover { border-color:var(--red-500); box-shadow:inset 3px 0 0 var(--red-500); }
   .mu-exploit, .mu-combo-canonical, .mup-card, .mu-source, .mu-composition { background:var(--sunk); }
 
   /* Controles: papiro */
-  html body :is(#search, #chatq, #counter-input, #cg-civ, .mu-field select, .mu-field input, #view-calc select, .sup-pass input, .contrib-row input) {
+  html body :is(#search, #chatq, #counter-input, #cg-civ, #cg-age, .mu-field select, .mu-field input, #view-calc select, .sup-pass input, .contrib-row input) {
     background:var(--papyrus); color:var(--papyrus-text); border:1px solid rgba(58,28,14,.55);
     font-family:var(--font-body); font-weight:600; font-size:15px;
     box-shadow:inset 0 0 0 1px rgba(255,246,222,.35), 0 1px 0 rgba(0,0,0,.15); }
+  /* Campos donde se escribe: papiro casi blanco (los desplegables siguen en papiro).
+     :is() toma la especificidad de su argumento más fuerte: #view-calc input
+     iguala a #view-calc select de la regla de arriba, y gana por ir después. */
+  html body :is(#search, #chatq, #counter-input, #view-calc input, textarea,
+    input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="button"]):not([type="submit"])) {
+    background:var(--papyrus-input); color:var(--papyrus-text); }
   #search::placeholder, #chatq::placeholder, #counter-input::placeholder, .mu-field input::placeholder {
     color:rgba(58,28,14,.6); font-style:italic; font-weight:400; }
-  #cg-civ:focus, #search:focus-visible, #chatq:focus-visible, #counter-input:focus-visible,
+  #cg-civ:focus, #cg-age:focus, #search:focus-visible, #chatq:focus-visible, #counter-input:focus-visible,
   .mu-field select:focus-visible, .mu-field input:focus-visible { outline:2px solid var(--red-500); outline-offset:1px; }
   #results { background:var(--papyrus); color:var(--papyrus-text); border:1px solid rgba(58,28,14,.6);
     box-shadow:0 0 0 1px #0b0603, 0 10px 24px rgba(0,0,0,.5); }
@@ -734,6 +774,12 @@ import('/tree/src/data/index.js').then(() => {
         <select id="cg-civ" title="Agregá civilizaciones (hasta 8)">
           <option value="">➕ Agregar civ…</option>
         </select>
+        <select id="cg-age" title="Edad: oculta lo que todavía no existe y usa el contexto early/late que vale en esa edad">
+          <option value="">Todas las edades</option>
+          <option value="feudal">Feudal</option>
+          <option value="castle">Castillos</option>
+          <option value="imperial">Imperial</option>
+        </select>
         <input id="counter-input"
           placeholder="Buscar unidad: Paladin, Archer, Skirmisher, Mangonel, Monk…"
           autocomplete="off" />
@@ -747,7 +793,6 @@ import('/tree/src/data/index.js').then(() => {
           <div class="cg-leg" style="font-weight:600;color:var(--ink)">🛡️ La counterean (izq.)</div>
           <div class="cg-leg"><span class="cg-dot" style="background:#9b2b1a"></span>Hard (Primario)</div>
           <div class="cg-leg"><span class="cg-dot" style="background:#83551d"></span>Sólido</div>
-          <div class="cg-leg"><span class="cg-dot" style="background:#6f5234"></span>Situacional</div>
           <div class="cg-leg" style="font-weight:600;color:var(--ink);margin-top:4px">⚔️ Es fuerte contra (der.)</div>
           <div class="cg-leg"><span class="cg-dot" style="background:#3d6b17"></span>Fuerte (Primario)</div>
           <div class="cg-leg"><span class="cg-dot" style="background:#53682a"></span>Levemente fuerte</div>
@@ -757,7 +802,9 @@ import('/tree/src/data/index.js').then(() => {
         <div id="cg-notes"></div>
       </div>
       <div id="cy-counters"></div>
+      <aside id="cg-side"></aside>
     </div>
+    <div id="cg-tip"></div>
   </div>
 
   <!-- VIEW: CALCULADORA DE PRODUCCIÓN ─────────────────────────────────── -->
@@ -908,6 +955,9 @@ function switchView(name) {
     if (f.src === 'about:blank') f.src = '/tree/';
   }
   if (name === 'calc') initCalc();
+  if (name === 'counters') syncCounterUrl();
+  else if (new URLSearchParams(location.search).get('view') === 'counters')
+    history.replaceState(null, '', location.pathname);
 }
 
 function openCivInTree(slug) {
@@ -955,6 +1005,7 @@ async function init() {
     }
   }
   populateMatchupSelects(civs);
+  await restoreCounterFromUrl();
 }
 
 function populateMatchupSelects(civs) {
@@ -1498,6 +1549,136 @@ let civUnitFilter = null;       // null = todas; Set de QUICK_UNIT ids disponibl
 let civFilterName = '';
 let civUniqueUnits = [];        // [{title, imgUrl, civ}] UUs de las civs (botones dinámicos)
 let uuCenterImg = '';           // ícono para el nodo central al buscar una UU
+let cgAge = '';                 // '' = todas | feudal | castle | imperial
+let cgAskQ = '';                // pregunta armada para el chat desde el nodo elegido
+
+// ── Edad y contexto ────────────────────────────────────────────────────
+// Cada línea trae su edad mínima (YAML del vault) y cada relación un contexto:
+// early vale hasta Castillos, late desde Castillos, general/en-masa siempre.
+const AGE_IDX = { dark:0, feudal:1, castle:2, imperial:3 };
+const AGE_LABEL = { dark:'Alta Edad Media', feudal:'Edad Feudal', castle:'Edad de los Castillos', imperial:'Edad Imperial' };
+const CTX_LABEL = { early:'early game', late:'late game', 'en-masa':'en masa', general:'general' };
+const ctxValidAt = (ctx, age) =>
+  !age || (ctx === 'early' ? age !== 'imperial' : ctx === 'late' ? AGE_IDX[age] >= AGE_IDX.castle : true);
+
+// Saca las líneas que todavía no existen en la edad y recalcula la fuerza de
+// cada nodo con el contexto que vale en esa edad.
+function filterByAge(data, age) {
+  if (!age) return data;
+  const strengthOf = w => w >= 0.9 ? 'hard' : w >= 0.65 ? 'soft' : 'situational';
+  const tooLate = d => d.age && AGE_IDX[d.age] > AGE_IDX[age];
+  const nodes = [];
+  for (const n of data.nodes) {
+    const d = n.data;
+    if (d.type !== 'center' && tooLate(d)) continue;
+    if (d.type === 'center' || !d.contexts) { nodes.push(n); continue; }
+    const ctxs = d.contexts.filter(x => ctxValidAt(x.context, age));
+    if (!ctxs.length) continue;
+    const best = ctxs.reduce((a, b) => b.weight > a.weight ? b : a);
+    const base = strengthOf(best.weight);
+    nodes.push({ data: { ...d, contexts: ctxs, tier: best.tier, nota: best.nota, weight: best.weight,
+      context: best.context, type: d.dir === 'beats' ? `beats-${base}` : base } });
+  }
+  const keep = new Set(nodes.map(n => n.data.id));
+  const edges = data.edges.filter(e =>
+    keep.has(e.data.source) && keep.has(e.data.target) && ctxValidAt(e.data.context, age));
+  return { ...data, nodes, edges };
+}
+
+// Leyenda armada con lo que hay en el grafo actual (sin categorías vacías).
+const CG_LEGEND = [
+  ['hard', '#9b2b1a', 'Hard (Primario)', 'counter'], ['soft', '#83551d', 'Sólido', 'counter'],
+  ['situational', '#6f5234', 'Situacional', 'counter'],
+  ['beats-hard', '#3d6b17', 'Fuerte (Primario)', 'beats'], ['beats-soft', '#53682a', 'Levemente fuerte', 'beats'],
+  ['beats-situational', '#2a5d86', 'Situacional', 'beats'],
+];
+function renderCgLegend(nodes) {
+  const counts = {};
+  (nodes || []).forEach(n => { counts[n.data.type] = (counts[n.data.type] || 0) + 1; });
+  const head = (txt, mt) => `<div class="cg-leg" style="font-weight:600;color:var(--ink)${mt ? ';margin-top:4px' : ''}">${txt}</div>`;
+  const rows = dir => {
+    const ls = CG_LEGEND.filter(l => l[3] === dir && (nodes ? counts[l[0]] : !l[0].includes('situational')));
+    if (!ls.length) return '<div class="cg-leg">— ninguna documentada</div>';
+    return ls.map(([t, c, label]) =>
+      `<div class="cg-leg"><span class="cg-dot" style="background:${c}"></span>${label}${nodes ? ` · ${counts[t]}` : ''}</div>`).join('');
+  };
+  document.getElementById('cg-legend').innerHTML =
+    head('🛡️ La counterean (izq.)') + rows('counter') + head('⚔️ Es fuerte contra (der.)', true) + rows('beats');
+}
+
+// Resumen lateral: todas las relaciones con su porqué, para leer sin clickear
+// nodo por nodo. Click en una fila = seleccionar ese nodo en el grafo.
+const CS_COLOR = { hard:'#9b2b1a', soft:'#83551d', situational:'#6f5234',
+  'beats-hard':'#3d6b17', 'beats-soft':'#53682a', 'beats-situational':'#2a5d86' };
+function renderCgSide(nodes, heading) {
+  const side = document.getElementById('cg-side');
+  if (!nodes) { side.innerHTML = ''; return; }
+  const order = { hard:0, soft:1, situational:2 };
+  const base = t => (t || '').replace('beats-', '');
+  const group = (title, color, list) => !list.length ? '' :
+    `<div class="cs-h" style="color:${color}">${title} (${list.length})</div>` +
+    list.sort((a, b) => order[base(a.data.type)] - order[base(b.data.type)]).map(n => {
+      const d = n.data, c = CS_COLOR[d.type] || '#6f5234';
+      const ctx = d.context && d.context !== 'general' ? ` · ${CTX_LABEL[d.context] || esc(d.context)}` : '';
+      const nota = d.nota && d.nota !== '—' ? `<div class="cs-nota">${esc(d.nota)}</div>` : '';
+      const img = d.imgSrc ? `<img src="${d.imgSrc}" alt="" style="border-color:${c}">` : '';
+      return `<div class="cs-row" onclick="selectCgNode('${d.id}')">${img}<div>
+        <div class="cs-name">${esc(d.full || d.label)}</div>
+        <div class="cs-meta" style="color:${c}">${esc(d.tier || '')}${ctx}</div>${nota}</div></div>`;
+    }).join('');
+  const others = nodes.filter(n => n.data.type !== 'center');
+  side.innerHTML =
+    group(`🛡️ Counterean a ${esc(heading)}`, '#9b2b1a', others.filter(n => n.data.dir !== 'beats')) +
+    group(`⚔️ ${esc(heading)} le gana a`, '#3d6b17', others.filter(n => n.data.dir === 'beats'));
+}
+function selectCgNode(id) {
+  const n = cyCtr?.getElementById(id);
+  if (!n || n.empty()) return;
+  cyCtr.$(':selected').unselect();
+  n.select();
+  n.emit('tap');
+}
+
+function counterTipHtml(d, heading) {
+  const rel = d.dir === 'beats' ? `${esc(heading)} le gana` : `Counterea a ${esc(heading)}`;
+  const ctx = d.context && d.context !== 'general' ? ` · ${CTX_LABEL[d.context] || esc(d.context)}` : '';
+  const nota = d.nota && d.nota !== '—' ? esc(d.nota) : '<i>Sin explicación curada todavía.</i>';
+  return `<b>${esc(d.full || d.label)}</b><div class="tip-meta">${rel} · ${esc(d.tier || '')}${ctx}</div>${nota}`;
+}
+
+// Contexto de la búsqueda para el chat: edad y civs elegidas.
+const cgSuffix = () => (cgAge ? ` en la ${AGE_LABEL[cgAge]}` : '') + (civFilterName ? ` jugando con ${civFilterName}` : '');
+const cgAskBtn = () => `<button class="cg-ask" onclick="askCodexCounter()">💬 Preguntale al Codex</button>`;
+function askCodexCounter() {
+  if (!cgAskQ) return;
+  switchView('explorer');
+  chatq.value = cgAskQ;
+  chatq.focus();
+}
+
+// ── Link compartible: ?view=counters&unit=…&civs=a,b&age=… ─────────────
+function syncCounterUrl() {
+  if (document.getElementById('view-counters').style.display === 'none') return;
+  const p = new URLSearchParams({ view: 'counters' });
+  const unit = document.getElementById('counter-input').value.trim();
+  if (unit) p.set('unit', unit);
+  if (selectedCivs.length) p.set('civs', selectedCivs.map(c => c.slug).join(','));
+  if (cgAge) p.set('age', cgAge);
+  history.replaceState(null, '', '?' + p.toString());
+}
+async function restoreCounterFromUrl() {
+  const p = new URLSearchParams(location.search);
+  if (p.get('view') !== 'counters') return;
+  switchView('counters');
+  const age = p.get('age');
+  if (age in AGE_IDX) { cgAge = age; document.getElementById('cg-age').value = age; }
+  for (const slug of (p.get('civs') || '').split(',').filter(Boolean)) await addCiv(slug);
+  const unit = p.get('unit');
+  if (!unit) return;
+  document.getElementById('counter-input').value = unit;
+  document.querySelector(`.cg-qbtn[data-uid="${CSS.escape(unit)}"]`)?.classList.add('active');
+  searchCounterGraph();
+}
 const kindLabel = { generic:'genérica', regional:'regional', unique:'única' };
 
 // ── Datos del árbol tecnológico (fuente de verdad para disponibilidad por civ) ──
@@ -1525,6 +1706,14 @@ async function loadCivData(slug) {
   return obj;
 }
 
+// Únicas y regionales solo se muestran si alguna civ elegida las construye
+// (sin civ elegida, solo las genéricas). Ids fuera del catálogo: se muestran.
+const kindOfUnit = id => (QUICK_UNITS.find(u => u.id === id) || {}).kind;
+function isShown(id) {
+  const kind = kindOfUnit(id);
+  return !kind || kind === 'generic' || !!civUnitFilter?.has(id);
+}
+
 function qbtnHtml(u, imap) {
   const src = imap?.[u.imgKey] ? '/tree/' + imap[u.imgKey] : '';
   const icon = src ? `<img src="${src}" alt="${u.label}">` : `<span class="cg-qbtn-ph">⚔️</span>`;
@@ -1540,7 +1729,7 @@ function renderQuickBar() {
   const imap = (typeof IMG_MAP !== 'undefined' && IMG_MAP) || window.IMG_MAP;
   let html = '';
   for (const [bkey, bname] of QB_BUILDINGS) {
-    const units = QUICK_UNITS.filter(u => u.building === bkey);
+    const units = QUICK_UNITS.filter(u => u.building === bkey && isShown(u.id));
     const dynUU = bkey === 'castle' ? civUniqueUnits : [];
     if (!units.length && !dynUU.length) continue;
     let btns = units.map(u => qbtnHtml(u, imap)).join('');
@@ -1566,18 +1755,20 @@ function quickSearchUU(i) {
   searchCounterGraph();
 }
 
-// Disponibilidad + UUs de UNA civ (datos del árbol). Devuelve {availIds, uus}.
-function civUnitsOf(slug, loc, civ) {
+// Disponibilidad + UUs de UNA civ. Las líneas construibles vienen de
+// /api/civ-units (el civ/*.js del árbol ya no trae `available` desde el
+// Update 185872); las UUs, del árbol. Devuelve {availIds, uus}.
+function civUnitsOf(slug, loc, civ, lines) {
   const imap = (typeof IMG_MAP !== 'undefined' && IMG_MAP) || window.IMG_MAP || {};
   const picOf = (p) => { const m = p && p.match(/\/(\d+)\.png/); return m ? +m[1] : null; };
-  const avail = new Set(civ.available || []);
+  const avail = new Set(lines || []);
   const uuPics = new Set();
   (civ.uniqueUnits || []).forEach(u => {
     if (u.imgPic != null) uuPics.add(u.imgPic);
     if (u.eliteImgPic != null) uuPics.add(u.eliteImgPic);
   });
   const availIds = QUICK_UNITS
-    .filter(u => u.keys.some(k => avail.has(k)) || (u.pic && uuPics.has(u.pic)))
+    .filter(u => avail.has(u.id) || (u.pic && uuPics.has(u.pic)))
     .map(u => u.id);
   // UUs de castillo. Placeholder "Unique Unit" (DLC) → se resuelve por imgPic en IMG_MAP.
   // Se excluyen las que ya son nodos estáticos del grafo (por nombre o imgPic).
@@ -1610,7 +1801,7 @@ function recomputeCivFilter() {
   const ids = new Set();
   const uus = []; const seen = new Set();
   for (const c of selectedCivs) {
-    const { availIds, uus: cu } = civUnitsOf(c.slug, c.loc, c.civ);
+    const { availIds, uus: cu } = civUnitsOf(c.slug, c.loc, c.civ, c.lines);
     availIds.forEach(id => ids.add(id));
     for (const u of cu) { const k = u.title.toLowerCase(); if (!seen.has(k)) { seen.add(k); uus.push(u); } }
   }
@@ -1622,6 +1813,7 @@ function recomputeCivFilter() {
 function renderCivChips() {
   const box = document.getElementById('cg-civ-chips');
   if (!box) return;
+  syncCounterUrl();
   if (!selectedCivs.length) { box.innerHTML = '<span class="cg-civ-count">Sin civ — se muestran todas las unidades</span>'; return; }
   box.innerHTML = selectedCivs.map((c, i) =>
     `<span class="cg-civ-chip${i === 0 ? ' player' : ''}" title="${i === 0 ? 'Tu civ' : 'Civ adicional'}">
@@ -1632,10 +1824,11 @@ function renderCivChips() {
 
 async function addCiv(slug) {
   if (!slug || selectedCivs.length >= MAX_CIVS || selectedCivs.some(c => c.slug === slug)) return;
-  const [loc, civ] = await Promise.all([loadLocale(), loadCivData(slug)]);
+  const [loc, civ, cu] = await Promise.all([loadLocale(), loadCivData(slug),
+    api(`/api/civ-units?civ=${encodeURIComponent(slug)}`).catch(() => null)]);
   if (!civ) return;
   const name = loc.civs?.[slug.toLowerCase()]?.name || slug;
-  selectedCivs.push({ slug, name, civ, loc });
+  selectedCivs.push({ slug, name, civ, loc, lines: cu?.units || [] });
   recomputeCivFilter();
   renderCivChips(); renderQuickBar();
   if (document.getElementById('counter-input').value.trim()) searchCounterGraph();
@@ -1647,6 +1840,12 @@ function removeCiv(slug) {
   renderCivChips(); renderQuickBar();
   if (document.getElementById('counter-input').value.trim()) searchCounterGraph();
 }
+
+document.getElementById('cg-age').onchange = function () {
+  cgAge = this.value;
+  syncCounterUrl();
+  if (document.getElementById('counter-input').value.trim()) searchCounterGraph();
+};
 
 document.getElementById('cg-civ').onchange = function () {
   const slug = this.value;
@@ -1682,9 +1881,12 @@ async function searchCounterGraph() {
   const notesEl= document.getElementById("cg-notes");
   panel.innerHTML  = '<p class="cg-ph">cargando…</p>';
   notesEl.innerHTML= '';
+  document.getElementById('cg-tip').style.display = 'none';
+  renderCgSide(null);
+  syncCounterUrl();
   if (cyCtr) { cyCtr.destroy(); cyCtr = null; }
   try {
-    const data = await fetch(`/api/counter-graph?unit=${encodeURIComponent(unit)}`).then(r=>r.json());
+    let data = await fetch(`/api/counter-graph?unit=${encodeURIComponent(unit)}`).then(r=>r.json());
     if (data.error) {
       // Sin tabla de counters todavía (p. ej. regionales del Update 185872 antes de re-ingestar).
       panel.innerHTML = /no encontrada/i.test(data.error)
@@ -1699,23 +1901,34 @@ async function searchCounterGraph() {
       return;
     }
     // Unidad única de otra civ (solo si el grafo Neo4j conoce sus civs)
-    if (selectedCivs.length && data.uuCivs?.length &&
+    if (data.uuCivs?.length &&
         !data.uuCivs.some(c => selectedCivs.some(s => s.name === c))) {
       panel.innerHTML = `<p class="cg-ph">🚫 <b>${esc(data.heading)}</b> es unidad única de
-        <b>${esc(data.uuCivs.join(', '))}</b>, ninguna de tus civs.</p>`;
+        <b>${esc(data.uuCivs.join(', '))}</b>${selectedCivs.length ? ', ninguna de tus civs' : ''}.
+        Agregá esa civ para ver sus counters.</p>`;
       return;
     }
-    // Con civs elegidas, el grafo solo muestra unidades posibles para alguna de
-    // ellas: las ÚNICAS no construibles se ocultan (las genéricas/regionales no).
-    if (civUnitFilter) {
-      const kindOf = id => (QUICK_UNITS.find(u => u.id === id) || {}).kind;
-      data.nodes = data.nodes.filter(n =>
-        n.data.type === 'center' ||
-        kindOf(n.data.uid) !== 'unique' ||
-        civUnitFilter.has(n.data.uid));
-      const keep = new Set(data.nodes.map(n => n.data.id));
-      data.edges = data.edges.filter(e => keep.has(e.data.source) && keep.has(e.data.target));
+    // Única o regional del catálogo sin civ elegida que la construya
+    if (data.unitId && !isShown(data.unitId)) {
+      panel.innerHTML = `<p class="cg-ph">🚫 <b>${esc(data.heading)}</b> es una unidad
+        ${kindLabel[kindOfUnit(data.unitId)]}: agregá una civ que la construya para ver sus counters.</p>`;
+      return;
     }
+    // El grafo solo muestra únicas y regionales que alguna civ elegida construye.
+    data.nodes = data.nodes.filter(n => n.data.type === 'center' || isShown(n.data.uid));
+    const keepIds = new Set(data.nodes.map(n => n.data.id));
+    data.edges = data.edges.filter(e => keepIds.has(e.data.source) && keepIds.has(e.data.target));
+    if (cgAge) {
+      const c = data.nodes.find(n => n.data.type === 'center')?.data;
+      if (c?.age && AGE_IDX[c.age] > AGE_IDX[cgAge]) {
+        panel.innerHTML = `<p class="cg-ph">⏳ <b>${esc(data.heading)}</b> llega en la ${AGE_LABEL[c.age]}:
+          en la ${AGE_LABEL[cgAge]} todavía no existe.</p>`;
+        renderCgLegend(null);
+        return;
+      }
+      data = filterByAge(data, cgAge);
+    }
+    renderCgLegend(data.nodes);
     if (data.notes?.length) {
       notesEl.innerHTML = data.notes.map(n=>`<blockquote>${esc(n)}</blockquote>`).join('');
     }
@@ -1729,6 +1942,7 @@ async function searchCounterGraph() {
       let src = (d.imgKey && imap?.[d.imgKey])
         ? '/tree/' + imap[d.imgKey]
         : unitImg(d.full || d.label);
+      if (!src && d.imgPath) src = '/tree/' + d.imgPath;                  // UU: ícono por nombre
       if (!src && d.type === 'center' && uuCenterImg) src = uuCenterImg;   // ícono de UU
       if (src) d.imgSrc = src;
       return { data: d };
@@ -1744,12 +1958,16 @@ async function searchCounterGraph() {
     const counters = data.nodes.filter(n => n.data.type !== 'center' && n.data.dir !== 'beats').sort(sortFn);
     const beats    = data.nodes.filter(n => n.data.dir === 'beats').sort(sortFn);
     const pos = { center: { x: 0, y: 0 } };
+    // Elipse: en pantallas anchas los nodos se abren a lo ancho en vez de
+    // quedar en un círculo con los costados vacíos.
+    const box = document.getElementById('cy-counters');
+    const kx = Math.min(2.2, Math.max(1, box.clientWidth / Math.max(1, box.clientHeight)));
     const place = (list, from, to) => {
       const n = list.length;
       list.forEach((node, i) => {
         const r = rMap[baseType(node.data.type)] || 300;
         const a = n === 1 ? (from + to) / 2 : from + (to - from) * i / (n - 1);
-        pos[node.data.id] = { x: r * Math.cos(a), y: r * Math.sin(a) };
+        pos[node.data.id] = { x: kx * r * Math.cos(a), y: r * Math.sin(a) };
       });
     };
     place(counters, Math.PI / 2 + 0.25, 3 * Math.PI / 2 - 0.25);  // izquierda
@@ -1811,12 +2029,29 @@ async function searchCounterGraph() {
       wheelSensitivity: 0.3, minZoom: 0.3, maxZoom: 4,
     });
 
+    renderCgSide(elements.slice(0, data.nodes.length), data.heading);   // nodos (con ícono) van primero
+    const tip = document.getElementById('cg-tip');
+    cyCtr.on('mouseover', 'node', evt => {
+      const d = evt.target.data();
+      if (d.type === 'center') return;
+      tip.innerHTML = counterTipHtml(d, data.heading);
+      tip.style.display = 'block';
+    });
+    cyCtr.on('mousemove', 'node', evt => {
+      const e = evt.originalEvent;
+      if (!e) return;
+      tip.style.left = Math.min(e.clientX + 14, innerWidth - 274) + 'px';
+      tip.style.top = Math.min(e.clientY + 14, innerHeight - tip.offsetHeight - 8) + 'px';
+    });
+    cyCtr.on('mouseout', 'node', () => { tip.style.display = 'none'; });
+
     cyCtr.on('tap', 'node', evt => {
       const n = evt.target;
       const type = n.data('type');
       if (type === 'center') {
+        cgAskQ = `¿Qué counterea a ${n.data('full')}${cgSuffix()} y cómo lo respondo?`;
         panel.innerHTML = `<div class="cg-unit-name">${esc(n.data('full'))}</div>
-          <p class="cg-ph" style="margin-top:4px">Nodo central — la unidad buscada.</p>`;
+          <p class="cg-ph" style="margin-top:4px">Nodo central — la unidad buscada.</p>${cgAskBtn()}`;
         return;
       }
       const isBeats = n.data('dir') === 'beats';
@@ -1835,14 +2070,17 @@ async function searchCounterGraph() {
         const c = colors[strengthOf(x.weight)] || '#6f5234';
         return `
           <span class="cg-tier-badge" style="color:${c};border-color:${c};background:${c}18">
-            ${esc(x.tier)}${ctxs.length > 1 ? ` · ${esc(x.context)}` : ''}
+            ${esc(x.tier)}${x.context && x.context !== 'general' ? ` · ${esc(CTX_LABEL[x.context] || x.context)}` : ''}
           </span>
           ${x.nota && x.nota!=='—' ? `<div class="cg-nota-text">${esc(x.nota)}</div>` : ''}
           <div class="cg-weight">Peso: <b style="color:${c}">${x.weight}</b></div>`;
       }).join('');
+      cgAskQ = isBeats
+        ? `¿Por qué ${data.heading} le gana a ${n.data('full')}${cgSuffix()}?`
+        : `¿Por qué ${n.data('full')} counterea a ${data.heading}${cgSuffix()}? ¿Cuántos necesito y con qué upgrades?`;
       panel.innerHTML = `
         <div class="cg-unit-name">${esc(n.data('full'))}</div>
-        ${rel}${blocks}`;
+        ${rel}${blocks}${cgAskBtn()}`;
     });
     cyCtr.on('tap', evt => {
       if (evt.target === cyCtr)
