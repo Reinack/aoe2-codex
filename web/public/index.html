@@ -917,7 +917,11 @@ function openCivInTree(slug) {
   if (f.src !== target) f.src = target;
 }
 document.querySelectorAll('[data-view]').forEach(el =>
-  el.onclick = () => switchView(el.dataset.view));
+  el.onclick = () => {
+    // El grafo abre siempre en las Preguntas frecuentes si todavía no se exploró nada.
+    if (el.dataset.view === 'graph' && !graphStack.length) loadGraph(GRAPH_HOME);
+    else switchView(el.dataset.view);
+  });
 
 // ── INIT ──────────────────────────────────────────────────────────────
 async function init() {
@@ -1760,8 +1764,8 @@ async function searchCounterGraph() {
           'font-size':'10px', 'color':'#22150b', 'font-family':'Crimson Pro, Georgia, serif', 'font-weight':600,
           'text-outline-color':'#ecdcb6', 'text-outline-width':'1.5px',
           'border-width':2, 'border-color':'#4b331c',
-          'background-image':'data(imgSrc)', 'background-fit':'contain',
-          'background-clip':'none',
+          'background-image':'data(imgSrc)', 'background-fit':'cover',
+          'background-clip':'node',   // el ícono no asoma por fuera del círculo
         }},
         { selector: 'node[type="center"]', style: {
           'background-color':'#ecdcb6', 'border-color':'#c69b45', 'border-width':3,
@@ -1976,6 +1980,7 @@ const NODE_COLORS = {
 function nodeColor(type) { return NODE_COLORS[type] || '#6f5234'; }
 
 let cy = null;
+const GRAPH_HOME = 'meta/preguntas-frecuentes.md'; // nodo de apertura del grafo
 const graphStack = []; // historial de paths para "Atrás"
 let selectedPath = null;
 
@@ -1991,6 +1996,14 @@ function initCy() {
         'text-outline-color': '#ecdcb6', 'text-outline-width': '1px',
         'width': 'data(sz)', 'height': 'data(sz)',
         'border-width': 1, 'border-color': '#4b331c',
+      }},
+      // Entidad del juego (civ/unidad/tech/edificio): su ícono sobre pergamino,
+      // con el color del tipo en el borde para que la leyenda siga valiendo.
+      // Recortado al círculo: el PNG cuadrado no asoma por fuera del nodo.
+      { selector: 'node[icon]', style: {
+        'background-image': 'data(icon)', 'background-fit': 'cover',
+        'background-clip': 'node', 'background-color': '#ecdcb6',
+        'border-width': 2, 'border-color': 'data(color)',
       }},
       { selector: 'node.focal', style: {
         'border-width': 3, 'border-color': '#c69b45',
@@ -2056,8 +2069,8 @@ function hideGraphSide() {
 }
 
 async function loadGraph(path) {
+  switchView('graph');   // antes de initCy: con la vista oculta Cytoscape mide 0×0
   initCy();
-  switchView('graph');
   document.getElementById('graph-title').textContent = '⏳ cargando…';
   hideGraphSide();
 
@@ -2075,7 +2088,8 @@ async function loadGraph(path) {
         fullLabel: n.label,
         color: nodeColor(n.type),
         type: n.type || '',
-        sz: n.id === path ? 44 : 32,
+        ...(n.icon ? { icon: '/tree/' + n.icon } : {}),
+        sz: n.id === path ? 52 : n.icon ? 40 : 32,
       },
       classes: n.id === path ? 'focal' : '',
     })),

@@ -7,6 +7,7 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 import { run, driver } from "./db.js";
 import { solve as ecoSolve, catalog as ecoCatalog } from "./lib/eco.mjs";
 import { availableIds } from "./techtree/load.mjs";
+import { buildIconIndex } from "./lib/graph-icons.mjs";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const app = express();
@@ -1033,6 +1034,13 @@ app.get("/api/note", wrap(async (req, res) => {
 }));
 
 // --- subgrafo para visualización -------------------------------------------
+// Ícono por nodo (civ, unidad, tech, edificio), relativo a /tree/. Si el árbol
+// no carga, el grafo sale igual, sin íconos.
+const ICON_FOR = await buildIconIndex(join(__dirname, "public", "tree")).catch((e) => {
+  console.error("[graph-icons] no se pudo armar el índice:", e.message);
+  return () => null;
+});
+
 app.get("/api/graph", wrap(async (req, res) => {
   const path = (req.query.path || "").trim();
   if (!path) return res.status(400).json({ error: "falta ?path=" });
@@ -1046,14 +1054,16 @@ app.get("/api/graph", wrap(async (req, res) => {
      WITH c, m, x LIMIT 80
      // src/dst respetan el sentido real de la arista
      WITH CASE WHEN x.out THEN c ELSE m END AS a, CASE WHEN x.out THEN m ELSE c END AS b, x
-     RETURN a.path AS src, a.title AS srcTitle, a.type AS srcType,
-            b.path AS dst, b.title AS dstTitle, b.type AS dstType,
+     RETURN a.path AS src, a.title AS srcTitle, a.type AS srcType, a.tree_id AS srcTree,
+            b.path AS dst, b.title AS dstTitle, b.type AS dstType, b.tree_id AS dstTree,
             x.rel AS rel`, { path });
   const nodes = new Map();
   const edges = [];
+  const node = (id, label, type, treeId) =>
+    ({ id, label, type, icon: ICON_FOR({ path: id, title: label, type, treeId }) });
   for (const e of rows) {
-    nodes.set(e.src, { id: e.src, label: e.srcTitle, type: e.srcType });
-    nodes.set(e.dst, { id: e.dst, label: e.dstTitle, type: e.dstType });
+    nodes.set(e.src, node(e.src, e.srcTitle, e.srcType, e.srcTree));
+    nodes.set(e.dst, node(e.dst, e.dstTitle, e.dstType, e.dstTree));
     edges.push({ from: e.src, to: e.dst, rel: e.rel });
   }
   res.json({ nodes: [...nodes.values()], edges });
