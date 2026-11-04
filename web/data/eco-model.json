@@ -18,8 +18,26 @@
   },
 
   "passive": {
-    "relic":      { "label": "Reliquia (garrison en monasterio)", "resource": "gold", "ratePerMin": 30 },
-    "trade_cart": { "label": "Trade cart", "resource": "gold", "ratePerMin": 40, "note": "depende de la distancia de la ruta; valor por defecto de ruta media" },
+    "relic":      { "label": "Reliquia (garrison en monasterio)", "resource": "gold", "ratePerMin": 30,
+                    "_source": "meta/preguntas-frecuentes (30 de oro/min por reliquia; 5 en 1v1 = 150/min)",
+                    "mods": {
+                      "aztec_team":       { "label": "Bonus de equipo Aztecs (+33% oro)", "gold": 10, "_source": "civs/Aztecs.md: unos +10 de oro/min cada una" },
+                      "grand_trunk_road": { "label": "Grand Trunk Road (Hindustanis, +10%)", "gold": 3, "_source": "technologies/unique/grand-trunk-road.md: +3 sobre los 30 base" },
+                      "burgundian_team":  { "label": "Bonus de equipo Burgundians (+comida)", "food": 20, "_source": "civs/Burgundians.md: 20 de comida/min" }
+                    } },
+    "trade_cart": { "label": "Trade cart", "resource": "gold", "ratePerMin": 40, "note": "valor plano de ruta media; se reemplaza por la fórmula si se indica la distancia entre Markets" },
+    "trade":      { "label": "Comercio por distancia",
+                    "_source": "buildings/economy/market.md (oro por viaje) y units/market/trade-cart.md (velocidad 1,25; Caravan +50%)",
+                    "formula": { "k": 0.46, "offset": 0.3, "buildingTiles": 5 },
+                    "cartSpeedTilesPerSec": 1.25,
+                    "caravanSpeedPct": 50,
+                    "mapSizes": { "tiny": 120, "small": 144, "medium": 168, "normal": 200, "large": 220, "giant": 240, "ludicrous": 480 },
+                    "_mapSizesNote": "tamaños estándar del juego en casillas (el vault solo cita Ludicrous como máximo teórico de 517 de oro por viaje)",
+                    "mods": {
+                      "spanish_team":     { "label": "Bonus de equipo Spanish (+25% oro)", "goldPct": 25, "_source": "units/market/trade-cart.md" },
+                      "grand_trunk_road": { "label": "Grand Trunk Road (+10% oro por viaje)", "goldPct": 10, "_source": "technologies/unique/grand-trunk-road.md" },
+                      "bengali_team":     { "label": "Bonus de equipo Bengalis (+10% comida)", "foodPctOfGold": 10, "_source": "units/market/trade-cart.md" }
+                    } },
     "feitoria":   { "label": "Feitoria (Portugueses)", "resource": "mixed", "ratePerMin": { "food": 10, "wood": 7, "gold": 8, "stone": 3 } }
   },
 

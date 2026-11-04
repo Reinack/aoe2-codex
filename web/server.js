@@ -5,7 +5,7 @@ import { readFileSync, readdirSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { run, driver } from "./db.js";
-import { solve as ecoSolve, catalog as ecoCatalog } from "./lib/eco.mjs";
+import { solve as ecoSolve, catalog as ecoCatalog, passiveSummary } from "./lib/eco.mjs";
 import { availableIds } from "./techtree/load.mjs";
 import { buildIconIndex } from "./lib/graph-icons.mjs";
 import { LINE_NOTE, inferUniqueCounters, typeLine, unitProfile } from "./lib/uu-counters.mjs";
@@ -216,6 +216,13 @@ app.get("/api/civ-radar/:slug", (req, res) => {
 // Datos y matemática viven en ./lib/eco.mjs (sobre web/data/*.json). Sin Neo4j.
 app.get("/api/eco-catalog", (_req, res) => {
   try { res.json(ecoCatalog()); }
+  catch (e) { console.error(e); res.status(500).json({ error: String(e.message || e) }); }
+});
+
+// Ingreso pasivo (reliquias, comercio por distancia, feitorias) sin plan de producción.
+// POST { passive: { relics, relicMods, tradeCarts, trade:{map,distance,caravan,mods}, feitorias } }
+app.post("/api/passive", (req, res) => {
+  try { res.json(passiveSummary(req.body?.passive)); }
   catch (e) { console.error(e); res.status(500).json({ error: String(e.message || e) }); }
 });
 

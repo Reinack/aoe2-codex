@@ -284,7 +284,36 @@ function draft(body) {
       <label>Bans por lado<select id="dr-bans"><option>0</option><option selected>1</option><option>2</option><option>3</option></select></label>
       <label class="lab-small" style="flex-basis:100%"><span>Civs ya usadas por mí (no repiten en la serie)</span><div id="dr-mine"></div></label>
       <label class="lab-small" style="flex-basis:100%"><span>Civs ya usadas / baneadas por el rival</span><div id="dr-opp"></div></label>
-    </div></div><div id="dr-out"></div>`;
+    </div></div>
+    <div class="lab-panel calc-panel"><h3>🎯 Contra un rival conocido</h3>
+      <p class="lab-small">Cargá las civs que el rival ya pickeó o suele jugar: el helper puntúa tus candidatas contra cada una con el radar del vault (categorías débiles que podés explotar), el mapa y las partidas documentadas.</p>
+      <div class="lab-row"><label style="flex:1">Civs del rival (hasta 5)<div id="dv-vs"></div></label>
+        <label>Mapa<select id="dv-map">${MAPS.map(([k, l]) => `<option value="${k}">${l}</option>`).join("")}</select></label>
+        <label>Posición<select id="dv-slot"><option value="flex">cualquiera</option><option value="flank">flanco</option><option value="pocket">pocket</option></select></label>
+        <label>Bans<select id="dv-bans"><option>0</option><option selected>1</option><option>2</option><option>3</option></select></label></div>
+      <div id="dv-out"></div></div>
+    <div id="dr-out"></div>`;
+  const dvRun = async () => {
+    const vs = dvp.get(), out = $("#dv-out");
+    if (!vs.length) { out.innerHTML = `<p class="lab-small">Elegí al menos una civ del rival.</p>`; return; }
+    store.set("dv-map", $("#dv-map").value);
+    const used = [...store.get("dr-mine", [])];
+    const d = await api(`/api/draft-vs?vs=${vs.join(",")}&map=${$("#dv-map").value}&slot=${$("#dv-slot").value}&bans=${$("#dv-bans").value}&exclude=${used.join(",")}`);
+    if (d.error) { out.innerHTML = `<p class="lab-small">${esc(d.error)}</p>`; return; }
+    const max = Math.max(1, ...d.candidates.map((c) => Math.abs(c.score)));
+    out.innerHTML = `${d.phosphorAlert.length ? `<p>🔥 <b>Alerta Phosphor Rush:</b> ${d.phosphorAlert.map((p) => `${esc(p.name)} (tier ${esc(p.tier)}${p.uu ? ", " + esc(p.uu) : ""})`).join(" · ")} — puede ir Fast Castle all-in en mapa abierto; mirá el scouting.</p>` : ""}
+      <div class="lab-grid two"><div><h4>🟢 Mejores picks</h4><ol class="dr-list">${d.candidates.map((c) => `<li style="display:block"><b>${esc(c.name)}</b> <span class="lab-tag ${c.position}">${c.position}</span>
+        <span class="lab-small">puntaje ${c.score}</span><span class="dr-bar" style="width:${Math.round(Math.max(0, c.score) / max * 90)}px"></span>
+        <div class="lab-small">${c.reasons.map(esc).join(" · ")}</div>
+        ${d.rivals.length > 1 ? `<div class="lab-small">${c.per.map((p) => `${esc(p.name)} ${p.total}`).join(" · ")}</div>` : ""}</li>`).join("")}</ol></div>
+        <div><h4>🔴 Bans sugeridos</h4>${d.bans.length ? `<ol class="dr-list">${d.bans.map((b) => `<li><b>${esc(b.name)}</b> <span class="lab-small">amenaza a tus mejores picks: ${b.threat}</span></li>`).join("")}</ol>
+          <p class="lab-small">Las civs del pool rival que más pelean contra tus 3 mejores picks.</p>` : `<p class="lab-small">Sin bans.</p>`}</div></div>
+      <p class="lab-src">${esc(d.note)}</p>`;
+  };
+  const dvp = civPicker($("#dv-vs"), { max: 5, key: "dv-vs", onChange: dvRun, placeholder: "Agregar civ rival…" });
+  $("#dv-map").value = store.get("dv-map", "open");
+  ["dv-map", "dv-slot", "dv-bans"].forEach((id) => $("#" + id).onchange = dvRun);
+  dvRun();
   get("/api/draft-data").then((D) => {
     const run = () => {
       const fmt = +$("#dr-fmt").value, nbo = +$("#dr-bo").value, nb = +$("#dr-bans").value;

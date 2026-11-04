@@ -5,6 +5,7 @@ import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { simCatalog, simCivs, simulate, simMatrix } from "./sim.mjs";
+import { draftVs } from "./draftvs.mjs";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const DATA = join(__dirname, "..", "data");
@@ -175,6 +176,17 @@ export function registerLab(app, { CIV_AVAILABLE }) {
       };
     }).sort((a, b) => a.name.localeCompare(b.name));
     res.json({ civs, axes: Object.keys(MAP_AXIS) });
+  });
+
+  // Draft contra rivales concretos: ?vs=a,b,c&map=open|closed|water|nomad&slot=flex|flank|pocket&exclude=x,y&bans=1
+  app.get("/api/draft-vs", (req, res) => {
+    const vs = list(req.query.vs, 5);
+    if (!vs.length) return bad(res, "elegí al menos un rival");
+    const map = ["open", "closed", "water", "nomad"].includes(req.query.map) ? req.query.map : "open";
+    const slot = ["flank", "pocket"].includes(req.query.slot) ? req.query.slot : "flex";
+    const out = draftVs({ vs, map, slot, exclude: list(req.query.exclude, 12), bans: Math.max(0, Math.min(3, +req.query.bans || 1)) });
+    if (out.error) return bad(res, out.error);
+    res.json(out);
   });
 
   // ---------- 7. Comparador civ vs civ ----------
