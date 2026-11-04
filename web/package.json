@@ -21,7 +21,8 @@
     "data:unitclasses": "node scripts/build-unit-classes.mjs",
     "data:buildorders": "node scripts/build-build-orders.mjs",
     "data:team": "node scripts/build-team-roles.mjs",
-    "data:lab": "node scripts/build-build-orders.mjs && node scripts/build-team-roles.mjs && node scripts/build-civ-combat.mjs",
+    "data:lab": "node scripts/build-build-orders.mjs && node scripts/build-team-roles.mjs && node scripts/build-civ-combat.mjs && node scripts/build-map-guides.mjs",
+    "data:maps": "node scripts/build-map-guides.mjs",
     "data:civcombat": "node scripts/build-civ-combat.mjs"
   },
   "dependencies": {

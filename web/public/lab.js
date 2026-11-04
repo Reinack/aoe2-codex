@@ -16,7 +16,7 @@ let CIVS = [];                 // [{slug,name,position,...}]
 const civName = (s) => CIVS.find((c) => c.slug === s)?.name || s;
 
 const TABS = [
-  ["builds", "🗒️ Build orders"], ["timings", "⏱️ Timings"], ["scouting", "🔭 Scouting"],
+  ["builds", "🗒️ Build orders"], ["timings", "⏱️ Timings"], ["maps", "🗺️ Mapas"], ["scouting", "🔭 Scouting"],
   ["team", "👥 Team Lab"], ["draft", "⚖️ Draft"], ["sim", "🧪 Simulador"],
   ["compare", "🆚 Comparar civs"], ["study", "🧠 Estudio"],
 ];
@@ -58,7 +58,7 @@ function openTab(k) {
   $$(".lab-tab").forEach((t) => t.classList.toggle("active", t.dataset.tab === k));
   const body = $("#lab-body");
   body.innerHTML = "";
-  ({ builds, timings, scouting, team, draft, sim, compare, study }[k])(body);
+  ({ builds, timings, maps, scouting, team, draft, sim, compare, study }[k])(body);
 }
 
 // ══ 1. BUILD ORDERS ══════════════════════════════════════════════════════
@@ -67,8 +67,8 @@ let boState = { build: null, sec: 0, step: 0, voice: false };
 function builds(body) {
   body.innerHTML = `<p class="lab-intro"><b>Build orders del vault</b>, paso a paso. Clic en una fila (o <b>Espacio</b>) avanza el paso; el timer corre aparte y
     podés marcar el click a Feudal/Castle para compararlo con el benchmark. El <b>overlay</b> queda flotante sobre la página o en una ventana aparte.</p>
-    <div class="lab-panel calc-panel"><div class="lab-row"><label>Build<select id="bo-sel"></select></label>
-    <label class="lab-small" id="bo-meta" style="flex:1"></label></div></div><div id="bo-main"></div>`;
+    <div class="lab-panel calc-panel"><div class="lab-row"><label>Build<select id="bo-sel"></select></label></div>
+    <div class="bo-meta" id="bo-meta"></div></div><div id="bo-main"></div>`;
   get("/api/build-orders").then(({ builds: B }) => {
     const sel = $("#bo-sel");
     sel.innerHTML = B.map((b) => `<option value="${b.id}">${esc(b.title)}</option>`).join("");
@@ -82,7 +82,7 @@ function builds(body) {
 }
 function drawBuild() {
   const b = boState.build; if (!b) return;
-  $("#bo-meta").innerHTML = `<b>Civs:</b> ${esc(b.civs || "—")} · <b>Mapas:</b> ${esc(b.maps || "—")} · <b>Tipo:</b> ${esc(b.type || "—")} · <b>Dificultad:</b> ${esc(b.difficulty || "—")}<br><i>${esc(b.quote)}</i>`;
+  $("#bo-meta").innerHTML = `<div><b>Civs:</b> ${esc(b.civs || "—")}</div><div><b>Mapas:</b> ${esc(b.maps || "—")} &nbsp; <b>Tipo:</b> ${esc(b.type || "—")} &nbsp; <b>Dificultad:</b> ${esc(b.difficulty || "—")}</div><div><i>${esc(b.quote)}</i></div>`;
   const sec = b.sections[boState.sec];
   $("#bo-main").innerHTML = `<div class="lab-grid two">
     <div class="lab-panel calc-panel">
@@ -192,15 +192,14 @@ async function timings(body) {
     if (b.feudal) m += `<span class="tl-m f" style="left:${pc(b.feudal.t)}" title="Feudal ${mmss(b.feudal.t)}"></span>`;
     if (b.castle) {
       if (b.castle.t2) m += `<span class="tl-bar" style="left:${pc(b.castle.t)};width:calc(${pc(b.castle.t2)} - ${pc(b.castle.t)})"></span>`;
-      if (b.castle.max) m += `<span class="tl-bar" style="left:0;width:${pc(b.castle.max)};background:rgba(138,24,18,.18)"></span><span class="tl-m c" style="left:${pc(b.castle.max)}" title="Castle antes de ${mmss(b.castle.max)}"></span>`;
+      if (b.castle.max) m += `<span class="tl-bar max" style="left:0;width:${pc(b.castle.max)}"></span><span class="tl-m c" style="left:${pc(b.castle.max)}" title="Castle antes de ${mmss(b.castle.max)}"></span>`;
       else m += `<span class="tl-m c" style="left:${pc(b.castle.t)}" title="Castle ${mmss(b.castle.t)}"></span>`;
     }
     return row(b.label, `${b.villagers !== "—" ? b.villagers + " aldeanos · " : ""}${[b.feudal?.text, b.castle?.text].filter(Boolean).join(" · ")}`, m);
   }).join("") + T.imperial.map((i) => row(i.label, i.text, `<span class="tl-m i" style="left:${pc(i.t)}"></span>`)).join("");
   body.innerHTML = `<p class="lab-intro"><b>Benchmarks de timing</b> citados de la wiki — cada fila trae su nota de origen. ${esc(T.ageCosts.feudal)}</p>
     <div class="lab-panel calc-panel"><h3>Línea de tiempo</h3><div class="tl"><div class="tl-axis">${ticks}</div>${rows}</div>
-      <div class="tl-leg"><span class="tl-m f" style="position:relative;display:inline-block"></span> Feudal &nbsp; <span class="tl-m c" style="position:relative;display:inline-block;left:0;transform:rotate(45deg) scale(.85)"></span> Castle (barra = rango o "antes de") &nbsp;
-      <span class="tl-m i" style="position:relative;display:inline-block;left:0;transform:rotate(45deg) scale(.85)"></span> Imperial</div>
+      <div class="tl-leg"><span class="lab-tag age-1">Feudal</span> <span class="lab-tag age-2">Castle</span> <span class="lab-tag age-3">Imperial</span> la barra de Castle marca un rango o un "antes de".</div>
       <p class="lab-small">${esc(T.eloSignal)}</p></div>
     <div class="lab-grid two">
       <div class="lab-panel calc-panel"><h3>Mi partida vs benchmark</h3>
@@ -302,7 +301,7 @@ function draft(body) {
     if (d.error) { out.innerHTML = `<p class="lab-small">${esc(d.error)}</p>`; return; }
     const max = Math.max(1, ...d.candidates.map((c) => Math.abs(c.score)));
     out.innerHTML = `${d.phosphorAlert.length ? `<p>🔥 <b>Alerta Phosphor Rush:</b> ${d.phosphorAlert.map((p) => `${esc(p.name)} (tier ${esc(p.tier)}${p.uu ? ", " + esc(p.uu) : ""})`).join(" · ")} — puede ir Fast Castle all-in en mapa abierto; mirá el scouting.</p>` : ""}
-      <div class="lab-grid two"><div><h4>🟢 Mejores picks</h4><ol class="dr-list">${d.candidates.map((c) => `<li style="display:block"><b>${esc(c.name)}</b> <span class="lab-tag ${c.position}">${c.position}</span>
+      <div class="lab-grid two"><div><h4>🟢 Mejores picks</h4><ol class="dr-list">${d.candidates.map((c) => `<li><b>${esc(c.name)}</b> <span class="lab-tag ${c.position}">${c.position}</span>
         <span class="lab-small">puntaje ${c.score}</span><span class="dr-bar" style="width:${Math.round(Math.max(0, c.score) / max * 90)}px"></span>
         <div class="lab-small">${c.reasons.map(esc).join(" · ")}</div>
         ${d.rivals.length > 1 ? `<div class="lab-small">${c.per.map((p) => `${esc(p.name)} ${p.total}`).join(" · ")}</div>` : ""}</li>`).join("")}</ol></div>
@@ -422,14 +421,14 @@ function compare(body) {
     if (!a || !b) return;
     const d = await api(`/api/compare?a=${a}&b=${b}`);
     if (d.error) { $("#cp-out").innerHTML = `<div class="lab-panel calc-panel">${esc(d.error)}</div>`; return; }
-    const card = (c) => `<div class="lab-panel calc-panel"><h3>${esc(c.name)} <span class="lab-tag ${c.position}">${c.position}</span>${c.phosphor ? ` <span class="lab-tag ${c.phosphor}">FC ${c.phosphor}</span>` : ""}</h3>
+    const card = (c) => `<div class="lab-panel calc-panel"><h3 class="lab-hero">${esc(c.name)} <span class="lab-tag ${c.position}">${c.position}</span>${c.phosphor ? ` <span class="lab-tag ${c.phosphor}">FC ${c.phosphor}</span>` : ""}</h3>
       <div class="lab-small">${esc(c.specialty)}</div><p>🤝 ${esc(c.teamBonus || "—")}</p>
       <h4>Fortalezas</h4><ul>${c.strengths.map((x) => `<li>${esc(x)}</li>`).join("")}</ul><h4>Debilidades</h4><ul>${c.weaknesses.map((x) => `<li>${esc(x)}</li>`).join("")}</ul></div>`;
     const bars = (la, lb, labels) => la && lb ? labels.map((l, i) => `<span>${l}</span><span class="b"><i style="width:${la[i] * 10}%"></i></span><span class="b r"><i style="width:${lb[i] * 10}%"></i></span>`).join("") : "<span class='lab-small'>sin radar</span>";
     const list = (arr, n) => `<div class="lab-panel calc-panel"><h3>Solo ${esc(n)} <span class="lab-small">(${arr.length})</span></h3><div class="cmp-diff">${arr.map((x) =>
       `<div>${x.imgPath ? `<img src="/tree/${x.imgPath}" alt="">` : ""} ${esc(x.name)} <span class="lab-small">${x.kind === "tech" ? "tech" : x.kind}</span></div>`).join("") || "—"}</div></div>`;
     $("#cp-out").innerHTML = `<div class="lab-grid two">${card(d.a)}${card(d.b)}</div>
-      <div class="lab-panel calc-panel"><h3>Radar <span class="lab-small">· <span style="color:var(--red-500)">■</span> ${esc(d.a.name)} <span style="color:var(--blue)">■</span> ${esc(d.b.name)}</span></h3>
+      <div class="lab-panel calc-panel"><h3>Radar <span class="lab-small">· <span class="cmp-key"></span>${esc(d.a.name)} <span class="cmp-key r"></span>${esc(d.b.name)}</span></h3>
         <div class="lab-grid two"><div class="cmp-bars">${bars(d.a.phase, d.b.phase, AX)}</div><div class="cmp-bars">${bars(d.a.category, d.b.category, CT)}</div></div></div>
       <div class="lab-grid two">${list(d.onlyA, d.a.name)}${list(d.onlyB, d.b.name)}</div><p class="lab-small">${esc(d.note)} Comparten ${d.shared} elementos.</p>`;
   };
@@ -469,6 +468,103 @@ async function study(body) {
     });
   };
   draw();
+}
+
+// ══ 9. GUÍAS POR MAPA ════════════════════════════════════════════════════
+// Markdown mínimo y seguro (se escapa todo antes de dar formato): párrafos, ###, listas, tablas y wikilinks.
+function mdInline(s, ctx) {
+  const t = esc(s.replace(/\\\|/g, "|"));
+  return t
+    .replace(/\[\[([^\]|]+?)(?:\|([^\]]+))?\]\]/g, (_, target, alias) => {
+      const label = alias || target.split("/").pop();
+      const [kind, ...rest] = target.split("/");
+      const id = rest.join("/");
+      if (kind === "maps") { const slug = slugOf(id); if (ctx.maps[slug]) return `<a href="#" data-map="${slug}">${label}</a>`; }
+      if (kind === "strategies" && ctx.builds.has(id)) return `<a href="#" data-build="${id}">${label}</a>`;
+      return label;
+    })
+    .replace(/\*\*(.+?)\*\*/g, "<b>$1</b>").replace(/(^|[^*])\*([^*\n]+)\*/g, "$1<i>$2</i>");
+}
+const slugOf = (s) => String(s).normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
+function mdBlock(md, ctx) {
+  const lines = md.split("\n"), out = [];
+  for (let i = 0; i < lines.length; i++) {
+    const l = lines[i];
+    if (!l.trim()) continue;
+    if (/^### /.test(l)) { out.push(`<h4>${mdInline(l.slice(4), ctx)}</h4>`); continue; }
+    if (/^\|/.test(l)) {
+      const rows = [];
+      while (i < lines.length && /^\|/.test(lines[i])) { rows.push(lines[i]); i++; } i--;
+      const cell = (r) => r.trim().replace(/^\||\|$/g, "").split(/(?<!\\)\|/);
+      const [head, , ...body] = rows;
+      out.push(`<table class="lab-table"><thead><tr>${cell(head).map((c) => `<th>${mdInline(c.trim(), ctx)}</th>`).join("")}</tr></thead><tbody>${body.map((r) =>
+        `<tr>${cell(r).map((c) => `<td>${mdInline(c.trim(), ctx)}</td>`).join("")}</tr>`).join("")}</tbody></table>`);
+      continue;
+    }
+    if (/^\s*([-*]|\d+\.) /.test(l)) {
+      const ordered = /^\s*\d+\. /.test(l), items = [];
+      while (i < lines.length && /^\s*([-*]|\d+\.) /.test(lines[i])) { items.push(lines[i].replace(/^\s*([-*]|\d+\.) /, "")); i++; } i--;
+      out.push(`<${ordered ? "ol" : "ul"}>${items.map((x) => `<li>${mdInline(x, ctx)}</li>`).join("")}</${ordered ? "ol" : "ul"}>`);
+      continue;
+    }
+    const para = [l]; while (i + 1 < lines.length && lines[i + 1].trim() && !/^(###|\||\s*([-*]|\d+\.) )/.test(lines[i + 1])) para.push(lines[++i]);
+    out.push(`<p>${mdInline(para.join(" "), ctx)}</p>`);
+  }
+  return out.join("");
+}
+const AXIS_DRAFT = { open: "open", closed: "closed", water: "water", nomad: "nomad" };
+async function maps(body) {
+  const { maps: M } = await get("/api/maps");
+  const bySlug = Object.fromEntries(M.map((m) => [m.slug, m.name]));
+  let filter = store.get("map-filter", "all"), q = "";
+  const types = [["all", "Todos"], ["abierto", "Abiertos"], ["semiabierto", "Semiabiertos"], ["cerrado", "Cerrados"], ["hibrido", "Híbridos"], ["agua", "Agua"], ["nomada", "Nómadas"], ["caotico", "Caóticos"]];
+  body.innerHTML = `<p class="lab-intro"><b>Guías por mapa:</b> generación y recursos, cómo se juega, civs que destacan (de la wiki) y las civs mejor puntuadas por el radar para ese <b>tipo</b> de mapa.
+    Desde cada guía saltás al draft, al scouting o al build order recomendado.</p>
+    <div id="mp-list"><div class="lab-panel calc-panel"><div class="lab-row"><label>Buscar<input id="mp-q" placeholder="Arabia, Arena, Nomad…" size="18"></label>
+      <div id="mp-types" style="display:flex;flex-wrap:wrap;gap:6px">${types.map(([k, l]) => `<button class="calc-btn" data-t="${k}">${l}</button>`).join("")}</div></div>
+      <div id="mp-grid" class="lab-grid"></div></div></div><div id="mp-detail"></div>`;
+  const drawList = () => {
+    $$("#mp-types .calc-btn").forEach((b) => b.classList.toggle("active", b.dataset.t === filter));
+    const rows = M.filter((m) => (filter === "all" || m.type === filter) && (!q || (m.name + " " + (m.strategies || "")).toLowerCase().includes(q)));
+    $("#mp-grid").innerHTML = rows.map((m) => `<a class="mp-card" data-slug="${m.slug}"><b>${esc(m.name)}</b> <span class="lab-tag mt-${m.type}">${esc(m.typeLabel || "—")}</span>
+      <div class="lab-small">${esc(m.quote.length > 150 ? m.quote.slice(0, 147) + "…" : m.quote)}</div></a>`).join("") || `<p class="lab-small">Sin resultados.</p>`;
+    $$(".mp-card").forEach((c) => c.onclick = () => openMap(c.dataset.slug));
+  };
+  $$("#mp-types .calc-btn").forEach((b) => b.onclick = () => { filter = b.dataset.t; store.set("map-filter", filter); drawList(); });
+  $("#mp-q").oninput = (e) => { q = e.target.value.trim().toLowerCase(); drawList(); };
+  const openMap = async (slug) => {
+    store.set("map", slug);
+    const m = await api(`/api/maps/${slug}`);
+    $("#mp-list").style.display = "none";
+    const ctx = { maps: bySlug, builds: new Set(m.builds.map((b) => b.id)) };
+    const facts = Object.entries(m.data || {}).map(([k, v]) => `<span class="lab-chip"><b>${esc(k)}:</b>&nbsp;${esc(v)}</span>`).join("");
+    const secOpen = (i, t) => i < 2 || /c[oó]mo se juega|estrategias/i.test(t);
+    $("#mp-detail").innerHTML = `<div class="lab-panel calc-panel"><div class="lab-row"><button class="calc-btn" id="mp-back">◀ Todos los mapas</button></div>
+      <h3 class="lab-hero">${esc(m.name)} <span class="lab-tag mt-${m.type}">${esc(m.typeLabel || "")}</span></h3>
+      <p>${esc(m.quote)}</p>${m.strategies ? `<p class="lab-small"><b>Estrategias típicas:</b> ${esc(m.strategies)}</p>` : ""}<div class="mp-facts">${facts}</div>
+      <div class="lab-row" style="margin-top:12px">
+        <button class="calc-btn primary" id="mp-draft" ${m.axis ? "" : "disabled title='sin eje de radar equivalente para este tipo'"}>⚖️ Draft en este mapa</button>
+        <button class="calc-btn" id="mp-scout">🔭 Scouting</button>
+        ${m.builds.map((b) => `<button class="calc-btn" data-build="${b.id}">🗒️ ${esc(b.title)}</button>`).join("")}</div>
+      ${m.relatedMaps.length ? `<div class="lab-small">Relacionados: ${m.relatedMaps.map((r) => `<a href="#" data-map="${r.slug}">${esc(r.name)}</a>`).join(" · ")}</div>` : ""}</div>
+      <div class="lab-grid two"><div>${m.sections.map((s, i) => `<details class="lab-panel calc-panel mp-sec" ${secOpen(i, s.title) ? "open" : ""}><summary><b>${esc(s.title)}</b></summary>${mdBlock(s.md, ctx)}</details>`).join("")}</div>
+        <div>${m.highlights.length ? `<div class="lab-panel calc-panel"><h3>Civs que destacan <span class="lab-small">(wiki)</span></h3>${m.highlights.map((h) =>
+          `<div style="margin:6px 0"><span class="lab-small">${h.negative ? "⚠️ " : ""}${esc(h.profile)}</span><div>${h.civs.map((c, i) => `<span class="lab-chip ${h.negative ? "no" : ""} mp-civ" data-civ="${h.slugs[i] || ""}">${esc(c)}</span>`).join("")}</div></div>`).join("")}</div>` : ""}
+          ${m.radarTop ? `<div class="lab-panel calc-panel"><h3>Según el radar <span class="lab-small">(${esc(m.radarTop.basis)})</span></h3>
+            <div class="lab-small">Mejor puntuadas para este tipo de mapa</div><div>${m.radarTop.top.map((c) => `<span class="lab-chip mp-civ" data-civ="${c.slug}">${esc(c.name)} ${c.score}</span>`).join("")}</div>
+            <div class="lab-small" style="margin-top:6px">Peor puntuadas</div><div>${m.radarTop.bottom.map((c) => `<span class="lab-chip no mp-civ" data-civ="${c.slug}">${esc(c.name)} ${c.score}</span>`).join("")}</div>
+            <p class="lab-src">El radar califica por tipo de mapa, no por este mapa en particular. Clic en una civ para compararla.</p></div>` : `<div class="lab-panel calc-panel lab-small">Este tipo de mapa no tiene un eje equivalente en el radar de civs.</div>`}
+          <p class="lab-src">Fuente: <code>${esc(m.note)}</code></p></div></div>`;
+    $("#mp-back").onclick = () => { $("#mp-detail").innerHTML = ""; $("#mp-list").style.display = ""; store.set("map", ""); };
+    $("#mp-draft").onclick = () => { if (m.axis) { store.set("dv-map", AXIS_DRAFT[m.axis]); openTab("draft"); } };
+    $("#mp-scout").onclick = () => openTab("scouting");
+    $$("#mp-detail [data-build]").forEach((a) => a.onclick = (e) => { e.preventDefault(); store.set("bo", a.dataset.build); openTab("builds"); });
+    $$("#mp-detail [data-map]").forEach((a) => a.onclick = (e) => { e.preventDefault(); openMap(a.dataset.map); window.scrollTo(0, 0); });
+    $$("#mp-detail .mp-civ").forEach((c) => { if (c.dataset.civ) c.onclick = () => { store.set("cp-a", c.dataset.civ); openTab("compare"); }; });
+    window.scrollTo(0, 0);
+  };
+  drawList();
+  const last = store.get("map", ""); if (last && bySlug[last]) openMap(last);
 }
 
 // ── Ventana de overlay aparte (?lab=overlay&bo=<id>) ─────────────────────

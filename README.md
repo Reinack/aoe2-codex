@@ -153,12 +153,12 @@ Vista **🧪 Lab** del frontend Express (`web/public/lab.js`). Todo se sirve des
 
 ```bash
 cd web
-npm run data:lab        # build-orders.json + team-roles.json + civ-combat.json
+npm run data:lab        # build-orders + team-roles + civ-combat + map-guides (.json)
 ```
 
 `timings.json` y `scouting-tree.json` están curados a mano, con la nota de origen de cada
 línea. Rutas: `/api/build-orders`, `/api/timings`, `/api/scouting`, `/api/team`, `/api/draft-data`,
-`/api/compare`, `/api/draft-vs`, `/api/sim`, `/api/sim/matrix`, `/api/quiz`. La Calculadora suma
+`/api/compare`, `/api/maps`, `/api/maps/:slug`, `/api/draft-vs`, `/api/sim`, `/api/sim/matrix`, `/api/quiz`. La Calculadora suma
 `POST /api/passive` (reliquias y comercio por distancia). El simulador (`web/lib/sim.mjs`) es una
 aproximación: sin hit&run ni selección de objetivo; aplica bonos de civ/equipo y costos por edad, pero no techs ni unidades únicas.
 

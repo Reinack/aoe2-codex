@@ -23,6 +23,8 @@ const PHOS = load("phosphor.json", {});
 const TRAITS = load("civ-traits.json", {});
 const COUNTER_PLAY_ = load("counter-play.json", {});
 const ITEMS = Object.fromEntries(load("item-costs.json", []).map((x) => [x.id, x]));
+const MAPS = load("map-guides.json", []);
+const MAP_BY_SLUG = Object.fromEntries(MAPS.map((m) => [m.slug, m]));
 
 const slugOk = (s) => /^[a-z0-9_-]{2,30}$/.test(String(s || "").toLowerCase());
 const list = (v, max = 8) => String(v || "").split(",").map((x) => x.trim().toLowerCase()).filter(slugOk).slice(0, max);
@@ -114,6 +116,33 @@ export function registerLab(app, { CIV_AVAILABLE }) {
         weaknesses: TRAITS[vs]?.weaknesses || [],
         specialty: TEAM[vs]?.specialty || "",
       } : null,
+    });
+  });
+
+  // ---------- 9. Guías por mapa ----------
+  app.get("/api/maps", (_req, res) => res.json({
+    maps: MAPS.map((m) => ({ slug: m.slug, name: m.name, type: m.type, typeLabel: m.typeLabel, quote: m.quote,
+      players: m.data?.["Jugadores"] || null, strategies: m.strategies, civs: m.highlights.length > 0 })),
+  }));
+  app.get("/api/maps/:slug", (req, res) => {
+    const m = MAP_BY_SLUG[String(req.params.slug || "").toLowerCase()];
+    if (!m) return bad(res, "mapa no encontrado", 404);
+    // civs fuertes según el radar del vault para el tipo de mapa (abierto/cerrado/agua/nómada;
+    // semiabierto = promedio abierto+cerrado; el resto no tiene eje equivalente)
+    const axes = m.axis ? [MAP_AXIS[m.axis]] : m.type === "semiabierto" ? [MAP_AXIS.open, MAP_AXIS.closed] : null;
+    let radarTop = null;
+    if (axes) {
+      const rows = Object.entries(RADAR_).map(([slug, r]) => ({ slug, name: TEAM[slug]?.name || slug,
+        score: +(axes.reduce((a, i) => a + (r.phase[i] ?? 0), 0) / axes.length).toFixed(1) })).sort((a, b) => b.score - a.score);
+      radarTop = { top: rows.slice(0, 8), bottom: rows.slice(-4).reverse(), basis: m.axis ? `eje ${m.axis}` : "promedio abierto + cerrado" };
+    }
+    const bySlug = Object.fromEntries(Object.entries(TEAM).map(([slug, t]) => [t.name, slug]));
+    res.json({
+      ...m,
+      highlights: m.highlights.map((h) => ({ ...h, slugs: h.civs.map((c) => bySlug[c]).filter(Boolean) })),
+      radarTop,
+      builds: m.strategyLinks.filter((id) => BUILD_ORDERS.some((b) => b.id === id)).map((id) => ({ id, title: BUILD_ORDERS.find((b) => b.id === id).title })),
+      relatedMaps: m.mapLinks.filter((s) => MAP_BY_SLUG[s]).map((s) => ({ slug: s, name: MAP_BY_SLUG[s].name })),
     });
   });
 

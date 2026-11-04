@@ -19,12 +19,14 @@ Todo vive en la vista **🧪 Lab** del frontend Express (`web/public/lab.js` + `
 | 7 | Comparador civ vs civ | ✅ hecho | pestaña *Comparar civs*; solo lo que difiere en los árboles |
 | 12 | Quiz con repetición espaciada | ✅ hecho | pestaña *Estudio*; 195 tarjetas, cajas de Leitner en `localStorage` |
 | 8 | Stats de ladder | ⏳ pendiente | requiere decidir fuente externa (API pública) y cómo mostrarla sin pisar al vault |
-| 9 | Guías por mapa (nodo `Map`) | ⏳ pendiente | los mapas ya son notas del grafo; falta vista dedicada |
+| 9 | Guías por mapa | ✅ hecho | pestaña *Mapas*; `scripts/build-map-guides.mjs` (58 mapas), ficha, secciones de la wiki renderizadas, civs que destacan, ranking del radar por tipo de mapa y atajos a draft, scouting y build orders (`/api/maps`, `/api/maps/:slug`). Falta el nodo `Map` en Neo4j |
 | 10 | Trade/reliquias en la Calculadora | ✅ hecho | panel en *Oferta* de la Calculadora: oro por viaje según distancia entre Markets y tamaño de mapa (fórmula de `market.md`), Caravan, bonus de equipo Spanish/Bengalis/Aztecs/Burgundians y Grand Trunk Road (`lib/eco.mjs`, `POST /api/passive`). Sigue pendiente afinar las tasas semilla de `eco-model.json` |
 | 11 | Tracker de parches | ⏳ pendiente | necesita dos versiones del árbol para diferenciar |
 | 13–17 | Hotkeys, replays, perfiles/torneos, constructor de civs, API alternativa | ⏳ pendiente | dependen de datos o servicios externos / fuera del núcleo |
 
-Para regenerar los datos del Lab tras cambios en la wiki o en el árbol: `cd web && npm run data:lab` (build orders, roles de equipo y bonos de combate).
+**Estilo:** el Lab y el panel de comercio siguen `docs/GUIA-DE-ESTILO.md` del tech tree: pergamino para contenido, papiro para controles, negro de diálogo para el overlay, botones rojos con filete dorado, oro solo como hilo o letra, pigmentos del árbol para categorías y edades, números en Crimson Pro (no Cinzel) y registros con filetes en lugar de tarjetas. Los tokens de edad (`--age-0…3`) están en `web/public/lab.css`.
+
+Para regenerar los datos del Lab tras cambios en la wiki o en el árbol: `cd web && npm run data:lab` (build orders, roles de equipo, bonos de combate y guías por mapa).
 
 ---
 
