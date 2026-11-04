@@ -146,6 +146,21 @@ MATCH (n:Note)<-[r:LINKS_TO]-() RETURN n.path, count(r) AS inbound
 ORDER BY inbound DESC LIMIT 10;
 ```
 
+## Lab (build orders, timings, scouting, equipos, draft, simulador)
+
+Vista **🧪 Lab** del frontend Express (`web/public/lab.js`). Todo se sirve desde `web/data/*.json`
+(sin Neo4j), generado desde la wiki pública con:
+
+```bash
+cd web
+npm run data:lab        # build-orders.json + team-roles.json
+```
+
+`timings.json` y `scouting-tree.json` están curados a mano, con la nota de origen de cada
+línea. Rutas: `/api/build-orders`, `/api/timings`, `/api/scouting`, `/api/team`, `/api/draft-data`,
+`/api/compare`, `/api/sim`, `/api/sim/matrix`, `/api/quiz`. El simulador (`web/lib/sim.mjs`) es una
+aproximación: sin hit&run, sin selección de objetivo, sin bonos de civ.
+
 ## Tech-tree → grafo (Fase 6 + Fix 5)
 
 El visual del proyecto hermano **Aoe2-Tech-Tree-Advanced** está vendorizado en

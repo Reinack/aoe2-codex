@@ -18,7 +18,10 @@
     "data:ecotechs": "node scripts/build-eco-techs.mjs",
     "data:eco": "node scripts/build-item-costs.mjs && node scripts/build-castle-uus.mjs && node scripts/build-civ-mods.mjs && node scripts/build-eco-techs.mjs",
     "test": "node --test \"lib/*.test.mjs\"",
-    "data:unitclasses": "node scripts/build-unit-classes.mjs"
+    "data:unitclasses": "node scripts/build-unit-classes.mjs",
+    "data:buildorders": "node scripts/build-build-orders.mjs",
+    "data:team": "node scripts/build-team-roles.mjs",
+    "data:lab": "node scripts/build-build-orders.mjs && node scripts/build-team-roles.mjs"
   },
   "dependencies": {
     "express": "^4.19.2",

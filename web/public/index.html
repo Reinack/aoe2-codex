@@ -601,6 +601,7 @@
   #graph-title { color:var(--gold-text); }
   #graph-side h4 { font-family:var(--font-display); color:var(--gold-text); }
 </style>
+<link rel="stylesheet" href="/lab.css">
 </head>
 <body>
 
@@ -649,6 +650,9 @@ import('/tree/src/data/index.js').then(() => {
   <a class="sb-item" data-view="calc">
     <span class="sb-icon">🧮</span><span class="sb-label">Calculadora</span>
   </a>
+  <a class="sb-item" data-view="lab">
+    <span class="sb-icon">🧪</span><span class="sb-label">Lab</span>
+  </a>
 </nav>
 
 <!-- MOBILE NAV -->
@@ -670,6 +674,9 @@ import('/tree/src/data/index.js').then(() => {
   </a>
   <a class="mn-item" data-view="calc">
     <span class="mn-icon">🧮</span>Calc
+  </a>
+  <a class="mn-item" data-view="lab">
+    <span class="mn-icon">🧪</span>Lab
   </a>
 </nav>
 
@@ -808,6 +815,8 @@ import('/tree/src/data/index.js').then(() => {
   </div>
 
   <!-- VIEW: CALCULADORA DE PRODUCCIÓN ─────────────────────────────────── -->
+  <div id="view-lab" class="view" style="display:none"></div>
+
   <div id="view-calc" class="view" style="display:none">
     <style>
       #view-calc { padding:18px 24px; }
@@ -955,6 +964,7 @@ function switchView(name) {
     if (f.src === 'about:blank') f.src = '/tree/';
   }
   if (name === 'calc') initCalc();
+  if (name === 'lab') initLab();
   if (name === 'counters') syncCounterUrl();
   else if (new URLSearchParams(location.search).get('view') === 'counters')
     history.replaceState(null, '', location.pathname);
@@ -2621,5 +2631,6 @@ function renderResult(r) {
 // ── INIT ───────────────────────────────────────────────────────────────
 init();
 </script>
+<script src="/lab.js"></script>
 </body>
 </html>

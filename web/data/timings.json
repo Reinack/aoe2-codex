@@ -1,0 +1,91 @@
+{
+  "_doc": "Referencias de timing citadas de la wiki pública (no inventadas). t en segundos; approx=true si la nota dice 'cerca/alrededor'. Cada entrada lleva la nota de origen. Curado a mano desde strategies/*.md, civs/*.md y meta/preguntas-frecuentes.md.",
+  "ageCosts": {
+    "feudal": "Feudal cuesta 500 de comida, tarda 130 s y pide 2 edificios de Dark Age (meta/preguntas-frecuentes)."
+  },
+  "eloSignal": "Lo que más correlaciona con el ELO real (SotL, partidas de 400 a 1200): APM promedio, TC idle en los primeros 10 minutos y tiempo de pase a Feudal; el tiempo de aldeanos ociosos no correlaciona (meta/preguntas-frecuentes).",
+  "builds": [
+    {
+      "id": "scouts-18",
+      "label": "Scout Rush · 18 aldeanos (Hera)",
+      "villagers": "18",
+      "feudal": { "t": 530, "approx": false, "text": "Feudal hacia el 8:50 con Loom y sin TC idle" },
+      "castle": { "max": 1200, "text": "Castle antes del minuto 20 es bueno" },
+      "source": "strategies/scouts-rush.md · meta/preguntas-frecuentes.md",
+      "buildId": "scouts-rush"
+    },
+    {
+      "id": "fc-boom-24-2",
+      "label": "Fast Castle → Boom · 24+2 (Hera)",
+      "villagers": "24+2",
+      "feudal": { "t": 630, "approx": true, "text": "Feudal cerca del 10:30" },
+      "castle": { "t": 840, "approx": true, "text": "Castle cerca del 14:00, con unos 3 s de TC ocioso" },
+      "source": "strategies/fast-castle-boom.md",
+      "buildId": "fast-castle-boom"
+    },
+    {
+      "id": "fc-knights-25-4",
+      "label": "Fast Castle → Knights · 25+4 (principiante)",
+      "villagers": "25+4",
+      "feudal": { "t": 705, "approx": true, "text": "Feudal alrededor del 11:45" },
+      "castle": { "max": 1200, "text": "All-in con 1 TC: Castle y primeros Knights antes del 20 es muy bueno" },
+      "source": "strategies/fast-castle-knights.md · meta/preguntas-frecuentes.md",
+      "buildId": "fast-castle-knights"
+    },
+    {
+      "id": "fc-closed",
+      "label": "Fast Castle en mapa cerrado (Arena)",
+      "villagers": "—",
+      "feudal": null,
+      "castle": { "t": 840, "approx": true, "text": "Castle alrededor del 14, después boom a Imperial" },
+      "source": "strategies/fast-castle-knights.md (Fast Castle en Arena)",
+      "buildId": "fast-castle-knights"
+    },
+    {
+      "id": "phosphor-23",
+      "label": "Phosphor Rush · castle drop con 23 de población",
+      "villagers": "23",
+      "feudal": null,
+      "castle": { "t": 840, "t2": 870, "approx": true, "text": "Castillo entre el 14:00 y el 14:30 (Khmer: cerca del 13:10)" },
+      "source": "strategies/phosphor-rush.md · strategies/fc-tier-list-redfosforu.md",
+      "buildId": "phosphor-rush"
+    },
+    {
+      "id": "bohemians-fc",
+      "label": "Bohemians · Fast Castle en Arabia",
+      "villagers": "—",
+      "feudal": null,
+      "castle": { "t": 859, "approx": true, "text": "Castle Age alrededor de 14:19; el TC queda idle cerca de un minuto" },
+      "source": "civs/Bohemians.md",
+      "buildId": null
+    },
+    {
+      "id": "counter-phos",
+      "label": "Counter al Phosphor: FC con Market (8 granjas)",
+      "villagers": "—",
+      "feudal": { "t": 570, "approx": true, "text": "Feudal estándar alrededor del 9:30" },
+      "castle": { "t": 915, "t2": 930, "approx": true, "text": "Click a Castle alrededor del 15–15:30, en lugar del 17 habitual" },
+      "source": "strategies/counter-phosphor-rush.md · strategies/eco.md",
+      "buildId": null
+    },
+    {
+      "id": "bengalis-ratha",
+      "label": "Bengalis · FC con Ratha (vs Georgians)",
+      "villagers": "—",
+      "feudal": null,
+      "castle": { "t": 1020, "approx": true, "text": "Castillo a unos 17 minutos" },
+      "source": "civs/Bengalis.md · civs/Georgians.md",
+      "buildId": null
+    }
+  ],
+  "imperial": [
+    { "label": "Malay · Fast Imperial vs Vietnamese", "t": 1620, "text": "unos 27 minutos, con Halberdiers + Monks + Trebuchets", "source": "civs/Malay.md" },
+    { "label": "Malay · Fast Imperial vs Tatars", "t": 1980, "text": "unos 33 minutos", "source": "civs/Malay.md" },
+    { "label": "Incas · Imperial con un solo TC", "t": 1980, "text": "hacia el minuto 33", "source": "civs/Incas.md" }
+  ],
+  "windows": [
+    { "label": "Reacción vs Phosphor Rush", "text": "Reaccionar antes del minuto 9: con Feudal estándar (≈9:30) hay ventana hasta el 13:00, antes de que salga el castillo.", "source": "strategies/counter-phosphor-rush.md" },
+    { "label": "Principiantes · Lithuanians", "text": "Un Feudal honesto; llegar a Castle antes de los 20 minutos es un objetivo razonable.", "source": "civs/Lithuanians.md" },
+    { "label": "Vikings vs Berbers", "text": "Si los Camel Archers no están en producción alrededor del minuto 24–26, el boom vikingo hace imposible la remontada.", "source": "civs/Berbers.md" }
+  ]
+}

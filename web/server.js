@@ -9,6 +9,7 @@ import { solve as ecoSolve, catalog as ecoCatalog } from "./lib/eco.mjs";
 import { availableIds } from "./techtree/load.mjs";
 import { buildIconIndex } from "./lib/graph-icons.mjs";
 import { LINE_NOTE, inferUniqueCounters, typeLine, unitProfile } from "./lib/uu-counters.mjs";
+import { registerLab } from "./lib/lab.mjs";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const app = express();
@@ -328,6 +329,9 @@ const CIV_AVAILABLE = await (async () => {
   }
   return map;
 })();
+
+// Lab: build orders, timings, scouting, equipos, draft, comparador, simulador, estudio.
+registerLab(app, { CIV_AVAILABLE });
 
 // Mapeo scope de bonus (civ JS) → line IDs del counter graph.
 // "barracks"/"stable"/"archery" mapean a las líneas que producen esos edificios.
