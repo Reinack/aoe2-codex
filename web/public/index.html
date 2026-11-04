@@ -734,7 +734,7 @@ import('/tree/src/data/index.js').then(() => {
         <button id="mu-run">Analizar matchup</button>
         <button id="mu-chat" disabled>Convertir en briefing GraphRAG</button>
       </div>
-      <div id="mu-result" class="mu-grid">
+      <div id="mu-result" class="mu-grid" data-gk-auto="all">
         <div class="mu-section wide">
           <div class="mu-empty">Elegí dos civilizaciones para cruzar tech tree, counters y notas del grafo.</div>
         </div>
@@ -1276,6 +1276,7 @@ function renderMatchup(d) {
         </div>`).join("")
         : "<div class='mu-empty'>No encontre chunks que mencionen ambas civs juntas.</div>"}
     </div>`;
+  window.renderMatchupExtra?.(d);   // matchup-extra.js: Phosphor, counter-play, partidas documentadas, radar y árbol
 }
 
 async function runMatchup() {
@@ -2697,6 +2698,7 @@ function renderResult(r) {
 init();
 </script>
 <script src="/gamekit.js"></script>
+<script src="/matchup-extra.js"></script>
 <script src="/lab.js"></script>
 </body>
 </html>

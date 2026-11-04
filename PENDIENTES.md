@@ -6,17 +6,28 @@ recopiló solo lo que **falta**.
 
 ## Estado de implementación (2026-11-04)
 
-Todo vive en la vista **🧪 Lab** del frontend Express (`web/public/lab.js` + `lab.css`; rutas en `web/lib/lab.mjs`).
+Casi todo vive en la vista **🧪 Lab** del frontend Express (`web/public/lab.js` + `lab.css`; rutas en `web/lib/lab.mjs`).
+El cruce **civ vs civ** vive en **Matchups** (`web/public/matchup-extra.js`).
+
+### Dónde vive cada cosa (sin duplicados)
+
+| Pregunta | Vista | Nota |
+|---|---|---|
+| ¿Cómo juego contra esta civ? (counter-play, debilidades, Phosphor, partidas documentadas, radar, diferencias de árbol) | **Matchups** | Absorbió "Comparar civs" y el panel de rival de Scouting; muestra además datos que el servidor ya devolvía y la vista nunca renderizaba |
+| ¿Qué unidad le gana a cuál? | **Counters** (edges curados del vault) | El Simulador es la contraparte numérica; se enlazan |
+| ¿Qué miro del rival y cómo respondo? ¿Quién de mi equipo lo hace? | **Lab → Scouting** | Genérico y por equipo; lo específico de una civ está en Matchups |
+| ¿Qué civ pickeo / baneo? | **Lab → Draft** | Un solo panel: por mapa, y contra las civs del rival si las cargás |
+| Guía de un mapa | **Lab → Mapas** | Atajos a Draft, Scouting, builds y a Matchups con ese mapa |
 
 | # | Ítem | Estado | Dónde |
 |---|---|---|---|
 | 1 | Build orders con timer/overlay | ✅ hecho | pestaña *Build orders*; datos de `scripts/build-build-orders.mjs` (9 builds, 17 secciones). Overlay en página y en ventana aparte (`/?lab=overlay&bo=<id>`), voz por paso, medallas oro/plata/bronce, export JSON |
 | 2 | Benchmarks de timings | ✅ hecho | pestaña *Timings*; `data/timings.json` curado con nota de origen por fila + comparador "mi partida". Sin segmentación por Elo: la wiki no la trae |
-| 3 | Draft / pick-ban | ✅ hecho | pestaña *Draft*; por mapa con el radar del vault + tier Phosphor, formatos 1v1–4v4, Bo1/3/5. Panel **"Contra un rival conocido"** (`lib/draftvs.mjs`): puntúa candidatas contra 1–5 civs rivales (categorías débiles que se pueden explotar, mapa, partidas documentadas), sugiere bans del pool rival y alerta de Phosphor Rush |
+| 3 | Draft / pick-ban | ✅ hecho | pestaña *Draft*, un solo panel: por mapa con el radar del vault + tier Phosphor (formatos 1v1–4v4, Bo1/3/5) y, si cargás las civs del rival, puntúa contra ellas (`lib/draftvs.mjs`: categorías débiles explotables, mapa, partidas documentadas), sugiere bans de su pool y alerta de Phosphor Rush; cada pick enlaza a Matchups |
 | 4 | Team Lab | ✅ hecho | pestaña *Team Lab*; `scripts/build-team-roles.mjs` (56 civs), asignación flanco/pocket, sinergias, cobertura de líneas y huecos |
-| 5 | Árbol de scouting | ✅ hecho | pestaña *Scouting*; `data/scouting-tree.json` (16 señales) + counter-play del rival + quién del equipo ejecuta cada respuesta |
+| 5 | Árbol de scouting | ✅ hecho | pestaña *Scouting*; `data/scouting-tree.json` (16 señales) + quién del equipo ejecuta cada respuesta. El counter-play de una civ concreta se muestra en Matchups |
 | 6 | Simulador + matriz de costo | ✅ hecho (aproximado) | pestaña *Simulador*; `lib/sim.mjs` (35 unidades, con tests). Aplica bonos de civ, bonus de equipo del aliado y descuentos de costo según la edad (`data/civ-combat.json`). Sin hit&run, techs únicas ni unidades únicas |
-| 7 | Comparador civ vs civ | ✅ hecho | pestaña *Comparar civs*; solo lo que difiere en los árboles |
+| 7 | Comparador civ vs civ | ✅ hecho | integrado en **Matchups** (radar y "solo lo que difiere" en los árboles, `/api/compare`); ya no hay pestaña aparte |
 | 12 | Quiz con repetición espaciada | ✅ hecho | pestaña *Estudio*; 195 tarjetas, cajas de Leitner en `localStorage` |
 | 8 | Stats de ladder | ⏳ pendiente | requiere decidir fuente externa (API pública) y cómo mostrarla sin pisar al vault |
 | 9 | Guías por mapa | ✅ hecho | pestaña *Mapas*; `scripts/build-map-guides.mjs` (58 mapas), ficha, secciones de la wiki renderizadas, civs que destacan, ranking del radar por tipo de mapa y atajos a draft, scouting y build orders (`/api/maps`, `/api/maps/:slug`). Falta el nodo `Map` en Neo4j |

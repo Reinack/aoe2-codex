@@ -19,13 +19,13 @@ const civName = (s) => CIVS.find((c) => c.slug === s)?.name || s;
 const { ico, emb, ageIco, statIco, resIc, iconize, civify } = GK;
 // Íconos de las pestañas: edificios, unidades y emblemas de edad del árbol.
 const TAB_ICON = { builds: ["i", "barracks"], timings: ["a", "imperial"], maps: ["i", "outpost"], scouting: ["i", "scout"], team: ["i", "castle"],
-  draft: ["i", "tc"], sim: ["i", "knight"], compare: ["i", "blacksmith"], study: ["i", "university"] };
+  draft: ["i", "tc"], sim: ["i", "knight"], study: ["i", "university"] };
 const tabIcon = (k) => { const [t, id] = TAB_ICON[k] || []; return t === "a" ? ageIco(id) : t === "i" ? ico(id, "ico-s no-gk") : ""; };
 
 const TABS = [
   ["builds", "Build orders"], ["timings", "Timings"], ["maps", "Mapas"], ["scouting", "Scouting"],
   ["team", "Team Lab"], ["draft", "Draft"], ["sim", "Simulador"],
-  ["compare", "Comparar civs"], ["study", "Estudio"],
+  ["study", "Estudio"],
 ];
 let tab = store.get("tab", "builds");
 
@@ -47,10 +47,10 @@ const civSelect = (id, val = "", blank = "—") =>
   `<span class="sel-ico"><span class="emb-slot">${emb(val, "emb-m")}</span><select id="${id}" data-emb="civ"><option value="">${blank}</option>${CIVS.map((c) => `<option value="${c.slug}" ${c.slug === val ? "selected" : ""}>${esc(c.name)}</option>`).join("")}</select></span>`;
 
 // ── Entrada ───────────────────────────────────────────────────────────────
-window.initLab = async function initLab() {
-  const root = $("#view-lab");
-  if (!root.dataset.ready) {
-    root.dataset.ready = "1";
+let initP = null;                                  // una sola inicialización aunque initLab() se llame varias veces a la vez
+window.initLab = function initLab() {
+  initP ||= (async () => {
+    const root = $("#view-lab");
     [, CIVS] = await Promise.all([GK.ready, get("/api/team-civs")]);
     root.innerHTML = `<div class="lab-tabs" id="lab-tabs">${TABS.map(([k, l]) =>
       `<a class="lab-tab" data-tab="${k}">${tabIcon(k)}${l}</a>`).join("")}</div><div id="lab-body"></div>
@@ -62,8 +62,8 @@ window.initLab = async function initLab() {
       const slot = s?.previousElementSibling;
       if (slot?.classList.contains("emb-slot")) slot.innerHTML = emb(s.value, "emb-m");
     });
-  }
-  openTab(tab);
+  })();
+  return initP.then(() => openTab(tab));
 };
 
 function openTab(k) {
@@ -71,7 +71,7 @@ function openTab(k) {
   $$(".lab-tab").forEach((t) => t.classList.toggle("active", t.dataset.tab === k));
   const body = $("#lab-body");
   body.innerHTML = "";
-  ({ builds, timings, maps, scouting, team, draft, sim, compare, study }[k])(body);
+  ({ builds, timings, maps, scouting, team, draft, sim, study }[k] || builds)(body);
 }
 
 // ══ 1. BUILD ORDERS ══════════════════════════════════════════════════════
@@ -235,28 +235,19 @@ async function timings(body) {
 
 // ══ 3. SCOUTING ══════════════════════════════════════════════════════════
 function scouting(body) {
-  body.innerHTML = `<p class="lab-intro"><b>Árbol de scouting:</b> qué viste → qué significa → qué hacer. Elegí al rival para ver su <b>counter-play</b> y,
-    si jugás en equipo (2v2–4v4), tu equipo para saber <b>quién puede ejecutar cada respuesta</b> según su árbol.</p>
-    <div class="lab-panel calc-panel"><div class="lab-row"><label>Civ rival${civSelect("sc-vs", store.get("sc-vs", ""))}</label>
-      <label style="flex:1">Mi equipo (hasta 4)<div id="sc-team"></div></label></div></div><div id="sc-out"></div>`;
+  body.innerHTML = `<p class="lab-intro"><b>Árbol de scouting:</b> qué viste → qué significa → qué hacer. Si jugás en equipo (2v2–4v4), cargá a tus aliados y cada respuesta muestra <b>quién puede ejecutarla</b> según su árbol.
+    Para jugar contra una civ concreta (su counter-play, debilidades y alerta de Phosphor Rush) abrí <a href="#" data-goto="matchups">Matchups</a>.</p>
+    <div class="lab-panel calc-panel"><div class="lab-row"><label style="flex:1">Mi equipo (hasta 4)<div id="sc-team"></div></label></div></div><div id="sc-out"></div>`;
   const run = async () => {
-    const vs = $("#sc-vs").value; store.set("sc-vs", vs);
-    const d = await api(`/api/scouting?vs=${vs}&team=${tp.get().join(",")}`);
-    $("#sc-out").innerHTML = `<div class="lab-grid split"><div>${d.stages.map((st) => `<div class="lab-panel calc-panel"><h3>${esc(st.title)} <span class="lab-small">· ${esc(st.when)}</span></h3>
+    const d = await api(`/api/scouting?team=${tp.get().join(",")}`);
+    $("#sc-out").innerHTML = `<div class="lab-grid auto">${d.stages.map((st) => `<div class="lab-panel calc-panel"><h3>${esc(st.title)} <span class="lab-small">· ${esc(st.when)}</span></h3>
       <p class="lab-small">${esc(st.tip)}</p>${st.signals.map((s) => `<div class="sc-sig"><div class="s">👁 ${iconize(esc(s.signal))}</div><div class="m">→ ${iconize(esc(s.means))}</div>
         <div class="r"><b>Reacción:</b> ${iconize(esc(s.reaction))}</div>
         ${s.who.some((w) => w.can !== null) ? `<div>${s.who.map((w) => `<span class="lab-chip ${w.can ? "ok" : "no"}">${w.can ? "✔" : "✖"} ${emb(w.civ)}${esc(civName(w.civ))}${w.unit ? " · " + ico(w.unitId, "ico-s") + esc(w.unit) : ""}</span>`).join("")}</div>` : ""}
-        <div class="lab-src">${esc(s.source)}</div></div>`).join("")}</div>`).join("")}</div>
-      <div class="lab-aside">${d.vs ? vsPanel(d.vs) : `<div class="lab-panel calc-panel lab-small">Elegí una civ rival para ver cómo jugarle.</div>`}</div></div>`;
+        <div class="lab-src">${esc(s.source)}</div></div>`).join("")}</div>`).join("")}</div>`;
   };
   const tp = civPicker($("#sc-team"), { max: 4, key: "sc-teamciv", onChange: run });
-  $("#sc-vs").onchange = run; run();
-}
-function vsPanel(v) {
-  return `<div class="lab-panel calc-panel"><h3>Contra ${emb(v.civ, "emb-m")}${esc(v.name)}</h3><div class="lab-small">${esc(v.specialty)}</div>
-    ${v.phosphor ? `<p>🔥 Phosphor Rush (FC all-in Arabia): <span class="lab-tag ${v.phosphor.tier}">${esc(v.phosphor.tier)}</span> ${esc(v.phosphor.uu || "")} <span class="lab-small">(${esc(v.phosphor.strength || "")})</span></p>` : ""}
-    ${v.counterPlay.length ? `<h4>Cómo jugarle</h4><ul>${v.counterPlay.map((x) => `<li>${iconize(md(typeof x === "string" ? x : x.text || JSON.stringify(x)))}</li>`).join("")}</ul>` : ""}
-    ${v.weaknesses.length ? `<h4>Debilidades</h4><ul>${v.weaknesses.map((x) => `<li>${iconize(esc(x))}</li>`).join("")}</ul>` : ""}</div>`;
+  run();
 }
 
 // ══ 4. TEAM LAB ══════════════════════════════════════════════════════════
@@ -287,73 +278,60 @@ function team(body) {
 // ══ 5. DRAFT ═════════════════════════════════════════════════════════════
 const MAPS = [["open", "Abierto (Arabia…)"], ["closed", "Cerrado (Arena, Black Forest…)"], ["water", "Agua"], ["nomad", "Nómada"]];
 const PHB = { S: 2, A: 1.4, B: 0.7, C: 0.2, D: 0 };
+const POS_ES = { flex: "1v1", flank: "Flanco", pocket: "Pocket" };
 function draft(body) {
-  body.innerHTML = `<p class="lab-intro"><b>Helper de draft:</b> puntúa cada civ por mapa con el <b>radar del vault</b> (0–10 en Abierto/Cerrado/Agua/Nómada) y, en mapa abierto, suma la tier de Phosphor Rush (FC all-in en Arabia).
-    Descontá las civs ya usadas en la serie y los bans; el helper sugiere <b>picks</b> y <b>bans</b> (las civs más fuertes del rival en ese mapa). En equipos filtra por <b>posición</b>.</p>
+  body.innerHTML = `<p class="lab-intro"><b>Draft:</b> sugiere <b>picks</b> y <b>bans</b> por mapa con el radar del vault (y la tier de Phosphor Rush en mapa abierto).
+    Si cargás las <b>civs del rival</b> (las que ya pickeó o suele jugar), puntúa a cada candidata <b>contra ellas</b> —categorías débiles que podés explotar y partidas documentadas— y sugiere bans de su pool.
+    En equipos filtra por <b>posición</b>.</p>
     <div class="lab-panel calc-panel"><div class="lab-row">
       <label>Formato<select id="dr-fmt"><option value="1">1v1</option><option value="2">2v2</option><option value="3">3v3</option><option value="4">4v4</option></select></label>
       <label>Serie<select id="dr-bo"><option value="1">Bo1</option><option value="3">Bo3</option><option value="5">Bo5</option></select></label>
-      <label>Bans por lado<select id="dr-bans"><option>0</option><option selected>1</option><option>2</option><option>3</option></select></label>
-      <label class="lab-small" style="flex-basis:100%"><span>Civs ya usadas por mí (no repiten en la serie)</span><div id="dr-mine"></div></label>
-      <label class="lab-small" style="flex-basis:100%"><span>Civs ya usadas / baneadas por el rival</span><div id="dr-opp"></div></label>
-    </div></div>
-    <div class="lab-panel calc-panel"><h3>🎯 Contra un rival conocido</h3>
-      <p class="lab-small">Cargá las civs que el rival ya pickeó o suele jugar: el helper puntúa tus candidatas contra cada una con el radar del vault (categorías débiles que podés explotar), el mapa y las partidas documentadas.</p>
-      <div class="lab-row"><label style="flex:1">Civs del rival (hasta 5)<div id="dv-vs"></div></label>
-        <label>Mapa<select id="dv-map">${MAPS.map(([k, l]) => `<option value="${k}">${l}</option>`).join("")}</select></label>
-        <label>Posición<select id="dv-slot"><option value="flex">cualquiera</option><option value="flank">flanco</option><option value="pocket">pocket</option></select></label>
-        <label>Bans<select id="dv-bans"><option>0</option><option selected>1</option><option>2</option><option>3</option></select></label></div>
-      <div id="dv-out"></div></div>
+      <label>Bans por lado<select id="dr-bans"><option>0</option><option selected>1</option><option>2</option><option>3</option></select></label></div>
+      <div class="lab-row"><label style="flex:1 1 280px">Mis civs ya usadas (no repiten en la serie)<div id="dr-mine"></div></label>
+        <label style="flex:1 1 280px">Civs del rival, hasta 5 (opcional)<div id="dr-opp"></div></label></div></div>
     <div id="dr-out"></div>`;
-  const dvRun = async () => {
-    const vs = dvp.get(), out = $("#dv-out");
-    if (!vs.length) { out.innerHTML = `<p class="lab-small">Elegí al menos una civ del rival.</p>`; return; }
-    store.set("dv-map", $("#dv-map").value);
-    const used = [...store.get("dr-mine", [])];
-    const d = await api(`/api/draft-vs?vs=${vs.join(",")}&map=${$("#dv-map").value}&slot=${$("#dv-slot").value}&bans=${$("#dv-bans").value}&exclude=${used.join(",")}`);
-    if (d.error) { out.innerHTML = `<p class="lab-small">${esc(d.error)}</p>`; return; }
-    const max = Math.max(1, ...d.candidates.map((c) => Math.abs(c.score)));
-    out.innerHTML = `${d.phosphorAlert.length ? `<p>🔥 <b>Alerta Phosphor Rush:</b> ${d.phosphorAlert.map((p) => `${emb(p.civ)}${esc(p.name)} (tier ${esc(p.tier)}${p.uu ? ", " + esc(p.uu) : ""})`).join(" · ")} — puede ir Fast Castle all-in en mapa abierto; mirá el scouting.</p>` : ""}
-      <div class="lab-grid two"><div><h4>🟢 Mejores picks</h4><ol class="dr-list">${d.candidates.map((c) => `<li>${emb(c.civ, "emb-m")}<b>${esc(c.name)}</b> <span class="lab-tag ${c.position}">${c.position}</span>
-        <span class="lab-small">puntaje ${c.score}</span><span class="dr-bar" style="width:${Math.round(Math.max(0, c.score) / max * 90)}px"></span>
-        <div class="lab-small">${c.reasons.map(esc).join(" · ")}</div>
-        ${d.rivals.length > 1 ? `<div class="lab-small">${c.per.map((p) => `${emb(p.vs, "emb-s")}${esc(p.name)} ${p.total}`).join(" · ")}</div>` : ""}</li>`).join("")}</ol></div>
-        <div><h4>🔴 Bans sugeridos</h4>${d.bans.length ? `<ol class="dr-list">${d.bans.map((b) => `<li>${emb(b.civ, "emb-m")}<b>${esc(b.name)}</b> <span class="lab-small">amenaza a tus mejores picks: ${b.threat}</span></li>`).join("")}</ol>
-          <p class="lab-small">Las civs del pool rival que más pelean contra tus 3 mejores picks.</p>` : `<p class="lab-small">Sin bans.</p>`}</div></div>
-      <p class="lab-src">${esc(d.note)}</p>`;
-  };
-  const dvp = civPicker($("#dv-vs"), { max: 5, key: "dv-vs", onChange: dvRun, placeholder: "Agregar civ rival…" });
-  $("#dv-map").value = store.get("dv-map", "open");
-  ["dv-map", "dv-slot", "dv-bans"].forEach((id) => $("#" + id).onchange = dvRun);
-  dvRun();
-  get("/api/draft-data").then((D) => {
-    const run = () => {
-      const fmt = +$("#dr-fmt").value, nbo = +$("#dr-bo").value, nb = +$("#dr-bans").value;
-      const used = new Set([...mine.get(), ...opp.get()]);
-      const slots = fmt === 1 ? ["flex"] : { 2: ["flank", "pocket"], 3: ["flank", "pocket", "flank"], 4: ["flank", "pocket", "pocket", "flank"] }[fmt];
-      const score = (c, m) => (c.axes?.[m] ?? 0) + (m === "open" ? (PHB[c.phosphor] ?? 0) : 0);
-      const games = [];
-      for (let g = 0; g < nbo; g++) {
-        const map = $(`#dr-map${g}`)?.value || "open";
-        const myTop = new Set(slots.flatMap((sl) => D.civs.filter((c) => !mine.get().includes(c.slug) && (sl === "flex" || c.position === sl || c.position === "flex"))
-          .sort((a, b) => score(b, map) - score(a, map)).slice(0, 4).map((c) => c.slug)));
-        games.push(`<div class="lab-panel calc-panel"><h3>Partida ${g + 1}</h3><div class="lab-row"><label>Mapa<select id="dr-map${g}">${MAPS.map(([k, l]) =>
-          `<option value="${k}" ${k === map ? "selected" : ""}>${l}</option>`).join("")}</select></label></div>
-          <div class="lab-grid two"><div><h4>🟢 Picks sugeridos</h4>${slots.map((sl) => {
-            const pool = D.civs.filter((c) => !mine.get().includes(c.slug) && (sl === "flex" || c.position === sl || c.position === "flex"));
-            const top = pool.sort((a, b) => score(b, map) - score(a, map)).slice(0, 4);
-            return `<div class="lab-small"><b>${sl === "flex" ? "1v1" : sl === "flank" ? "Flanco" : "Pocket"}</b></div><ol class="dr-list">${top.map((c) => li(c, map, score)).join("")}</ol>`;
-          }).join("")}</div>
-          <div><h4>🔴 Bans sugeridos (${nb})</h4>${nb ? `<ol class="dr-list">${D.civs.filter((c) => !used.has(c.slug) && !myTop.has(c.slug)).sort((a, b) => score(b, map) - score(a, map)).slice(0, nb + 1).map((c) => li(c, map, score)).join("")}</ol>
-            <p class="lab-small">Las civs más fuertes del mapa que no están entre tus picks sugeridos ni ya usadas: lo que el rival querría pickear.</p>` : `<p class="lab-small">Sin bans en este formato.</p>`}</div></div></div>`);
+  const slotsFor = (fmt) => (fmt === 1 ? ["flex"] : { 2: ["flank", "pocket"], 3: ["flank", "pocket", "flank"], 4: ["flank", "pocket", "pocket", "flank"] }[fmt]);
+  const run = async () => {
+    const D = await get("/api/draft-data");
+    const fmt = +$("#dr-fmt").value, nbo = +$("#dr-bo").value, nb = +$("#dr-bans").value;
+    const rivals = opp.get(), mineSel = mine.get();
+    const slots = slotsFor(fmt), uniq = [...new Set(slots)];
+    const score = (c, m) => (c.axes?.[m] ?? 0) + (m === "open" ? (PHB[c.phosphor] ?? 0) : 0);
+    const fits = (c, sl) => sl === "flex" || c.position === sl || c.position === "flex";
+    const maps = Array.from({ length: nbo }, (_, g) => $(`#dr-map${g}`)?.value || store.get("dv-map", "open"));
+    const mu = (c) => (rivals.length ? `<div><a href="#" data-mu="${c}|${rivals[0]}">Ver matchup contra ${esc(civName(rivals[0]))}</a></div>` : "");
+    const li = (c, extra, bar) => `<li>${emb(c.slug, "emb-m")}<b>${esc(c.name)}</b> <span class="lab-tag ${c.position}">${c.position}</span>${extra}<span class="dr-bar" style="width:${Math.max(0, Math.round(bar))}px"></span>${c.more || ""}</li>`;
+    const panels = await Promise.all(maps.map(async (map, g) => {
+      let lists, bans, alert = "";
+      if (rivals.length) {                                          // contra rivales concretos: lo calcula el servidor
+        const res = await Promise.all(uniq.map((sl) => api(`/api/draft-vs?vs=${rivals.join(",")}&map=${map}&slot=${sl}&bans=${nb}&exclude=${mineSel.join(",")}`)));
+        const top = Math.max(1, ...res.flatMap((r) => (r.candidates || []).map((c) => Math.abs(c.score))));
+        lists = uniq.map((sl, i) => [sl, (res[i].candidates || []).slice(0, 4).map((c) => li({ slug: c.civ, name: c.name, position: c.position,
+          more: `<div class="lab-small">${c.reasons.map(esc).join(" · ")}</div>${rivals.length > 1 ? `<div class="lab-small">${c.per.map((p) => `${emb(p.vs, "emb-s")}${esc(p.name)} ${p.total}`).join(" · ")}</div>` : ""}${mu(c.civ)}` },
+          ` <span class="lab-small">puntaje ${c.score}</span>`, (Math.max(0, c.score) / top) * 90))]);
+        bans = (res[0].bans || []).map((b) => li({ slug: b.civ, name: b.name, position: "flex" }, ` <span class="lab-small">amenaza a tus mejores picks: ${b.threat}</span>`, 0));
+        if (res[0].phosphorAlert?.length) alert = `<p>🔥 <b>Alerta Phosphor Rush:</b> ${res[0].phosphorAlert.map((p) => `${emb(p.civ)}${esc(p.name)} (tier ${esc(p.tier)}${p.uu ? ", " + esc(p.uu) : ""})`).join(" · ")} — puede ir Fast Castle all-in en mapa abierto; mirá el <a href="#" data-lab="scouting">scouting</a>.</p>`;
+      } else {                                                       // sin rival: ranking por mapa
+        const rank = (sl) => D.civs.filter((c) => !mineSel.includes(c.slug) && fits(c, sl)).sort((a, b) => score(b, map) - score(a, map));
+        const info = (c) => ` <span class="lab-small">${c.axes ? `${map} ${c.axes[map]}` : "sin radar"}${map === "open" && c.phosphor ? ` · Phosphor ${c.phosphor}` : ""}</span>`;
+        lists = uniq.map((sl) => [sl, rank(sl).slice(0, 4).map((c) => li(c, info(c), score(c, map) * 6))]);
+        const myTop = new Set(uniq.flatMap((sl) => rank(sl).slice(0, 4).map((c) => c.slug)));
+        bans = D.civs.filter((c) => !mineSel.includes(c.slug) && !myTop.has(c.slug)).sort((a, b) => score(b, map) - score(a, map)).slice(0, nb + 1).map((c) => li(c, info(c), score(c, map) * 6));
       }
-      $("#dr-out").innerHTML = games.join("");
-      $$("#dr-out select").forEach((s) => s.onchange = run);
-    };
-    const li = (c, m, f) => `<li>${emb(c.slug, "emb-m")}<b>${esc(c.name)}</b> <span class="lab-tag ${c.position}">${c.position}</span><span class="lab-small">${c.axes ? `${m} ${c.axes[m]}` : "sin radar"}${m === "open" && c.phosphor ? ` · Phosphor ${c.phosphor}` : ""}</span><span class="dr-bar" style="width:${Math.round(f(c, m) * 6)}px"></span></li>`;
-    const mine = civPicker($("#dr-mine"), { max: 5, key: "dr-mine", onChange: run }), opp = civPicker($("#dr-opp"), { max: 8, key: "dr-opp", onChange: run });
-    ["dr-fmt", "dr-bo", "dr-bans"].forEach((id) => $("#" + id).onchange = run); run();
-  });
+      const count = (sl) => slots.filter((x) => x === sl).length;
+      return `<div class="lab-panel calc-panel"><h3>Partida ${g + 1}</h3><div class="lab-row"><label>Mapa<select id="dr-map${g}">${MAPS.map(([k, l]) =>
+        `<option value="${k}" ${k === map ? "selected" : ""}>${l}</option>`).join("")}</select></label></div>${alert}
+        <div class="lab-grid two"><div><h4>🟢 Picks sugeridos</h4>${lists.map(([sl, rows]) => `<div class="lab-small"><b>${POS_ES[sl]}${count(sl) > 1 ? ` ×${count(sl)}` : ""}</b></div><ol class="dr-list">${rows.join("")}</ol>`).join("")}</div>
+          <div><h4>🔴 Bans sugeridos (${nb})</h4>${nb && bans.length ? `<ol class="dr-list">${bans.join("")}</ol><p class="lab-small">${rivals.length ? "Las civs del pool rival que más pelean contra tus 3 mejores picks." : "Las más fuertes del mapa que no están entre tus picks: lo que el rival querría pickear."}</p>` : `<p class="lab-small">Sin bans.</p>`}</div></div></div>`;
+    }));
+    $("#dr-out").innerHTML = panels.join("") + (rivals.length ? `<p class="lab-src">Guía basada en los radares y partidas documentadas del vault; no es un veredicto.</p>` : "");
+    $$("#dr-out select").forEach((s) => s.onchange = run);
+    $$("#dr-out [data-mu]").forEach((a) => a.onclick = (e) => { e.preventDefault(); const [me, vs] = a.dataset.mu.split("|"); Lab.matchup(me, vs); });
+    $$("#dr-out [data-lab]").forEach((a) => a.onclick = (e) => { e.preventDefault(); openTab(a.dataset.lab); });
+  };
+  const mine = civPicker($("#dr-mine"), { max: 5, key: "dr-mine", onChange: run }), opp = civPicker($("#dr-opp"), { max: 5, key: "dv-vs", onChange: run, placeholder: "Agregar civ del rival…" });
+  ["dr-fmt", "dr-bo", "dr-bans"].forEach((id) => $("#" + id).onchange = run);
+  run();
 }
 
 // ══ 6. SIMULADOR ═════════════════════════════════════════════════════════
@@ -381,7 +359,7 @@ async function sim(body) {
       <label>Arm. melee +<input type="number" min="0" max="3" value="${simDef.up[k][1]}" data-up="${k}:1" style="width:54px"></label>
       <label>Arm. perf. +<input type="number" min="0" max="3" value="${simDef.up[k][2]}" data-up="${k}:2" style="width:54px"></label></div></div>`;
   body.innerHTML = `<p class="lab-intro"><b>Simulador de combate</b> ejército vs ejército con stats y bonus del vault/árbol. <b>Es una aproximación</b>: sin hit&run ni selección de objetivo; aplica bonos de civ y de equipo (y descuentos de costo) según la edad, pero no techs únicas ni unidades únicas.
-    Útil para comparar tendencias (¿cuántos Halberdiers por Paladín?), no para predecir una pelea exacta.</p>
+    Útil para comparar tendencias (¿cuántos Halberdiers por Paladín?), no para predecir una pelea exacta. Los counters curados del vault están en <a href="#" data-goto="counters">Counters</a>.</p>
     <div class="lab-grid two">${side("a", "Ejército A")}${side("b", "Ejército B")}</div>
     <div class="lab-panel calc-panel"><div class="lab-row"><label>Edad<select id="sim-age">${["Dark", "Feudal", "Castle", "Imperial"].map((n, i) => `<option value="${i}" ${i === simDef.age ? "selected" : ""}>${n}</option>`).join("")}</select></label>
       <label>Distancia inicial (casillas)<input type="number" id="sim-gap" min="1" max="30" value="10" style="width:70px"></label>
@@ -431,30 +409,6 @@ async function sim(body) {
     $("#mx-out").innerHTML = `<table class="mx"><thead><tr><th></th>${m.names.map((n, i) => `<th class="col">${ico(m.ids[i], "ico-s")}<span class="vt">${esc(n)}</span></th>`).join("")}</tr></thead><tbody>${m.cells.map((r, i) =>
       `<tr><th>${ico(m.ids[i], "ico-s")}${esc(m.names[i])}</th>${r.map((v, j) => `<td style="background:${col(v)}" title="${esc(m.names[i])} vs ${esc(m.names[j])}">${i === j ? "·" : v.toFixed(2)}</td>`).join("")}</tr>`).join("")}</tbody></table>`;
   };
-}
-
-// ══ 7. COMPARADOR ════════════════════════════════════════════════════════
-function compare(body) {
-  body.innerHTML = `<p class="lab-intro"><b>Comparador civ vs civ:</b> perfil lado a lado y <b>solo lo que difiere</b> en sus árboles (se ignoran únicas y lo que ambas comparten).</p>
-    <div class="lab-panel calc-panel"><div class="lab-row"><label>Civ A${civSelect("cp-a", store.get("cp-a", "franks"))}</label><label>Civ B${civSelect("cp-b", store.get("cp-b", "britons"))}</label></div></div><div id="cp-out"></div>`;
-  const AX = ["Dark", "Feudal", "Castle", "Imperial", "Abierto", "Cerrado", "Agua", "Nómada"], CT = ["Infantería", "Caballería", "Arqueros", "Asedio", "Naval", "Monjes", "Defensa", "Pólvora"];
-  const run = async () => {
-    const a = $("#cp-a").value, b = $("#cp-b").value; store.set("cp-a", a); store.set("cp-b", b);
-    if (!a || !b) return;
-    const d = await api(`/api/compare?a=${a}&b=${b}`);
-    if (d.error) { $("#cp-out").innerHTML = `<div class="lab-panel calc-panel">${esc(d.error)}</div>`; return; }
-    const card = (c) => `<div class="lab-panel calc-panel"><h3 class="lab-hero"><span class="hero-emb">${emb(c.slug, "emb-xl")}</span>${esc(c.name)} <span class="lab-tag ${c.position}">${c.position}</span>${c.phosphor ? ` <span class="lab-tag ${c.phosphor}">FC ${c.phosphor}</span>` : ""}</h3>
-      <div class="lab-small">${esc(c.specialty)}</div><p>🤝 ${esc(c.teamBonus || "—")}</p>
-      <h4>Fortalezas</h4><ul>${c.strengths.map((x) => `<li>${esc(x)}</li>`).join("")}</ul><h4>Debilidades</h4><ul>${c.weaknesses.map((x) => `<li>${esc(x)}</li>`).join("")}</ul></div>`;
-    const bars = (la, lb, labels) => la && lb ? labels.map((l, i) => `<span>${l}</span><span class="b"><i style="width:${la[i] * 10}%"></i></span><span class="b r"><i style="width:${lb[i] * 10}%"></i></span>`).join("") : "<span class='lab-small'>sin radar</span>";
-    const list = (arr, n) => `<div class="lab-panel calc-panel"><h3>Solo ${esc(n)} <span class="lab-small">(${arr.length})</span></h3><div class="cmp-diff">${arr.map((x) =>
-      `<div>${ico(x.id, "ico-s") || (x.imgPath ? `<img class="ico k-${x.kind} ico-s" src="/tree/${x.imgPath}" alt="">` : "")}${esc(x.name)} <span class="lab-small">${x.kind === "tech" ? "tech" : x.kind}</span></div>`).join("") || "—"}</div></div>`;
-    $("#cp-out").innerHTML = `<div class="lab-grid two">${card(d.a)}${card(d.b)}</div>
-      <div class="lab-panel calc-panel"><h3>Radar <span class="lab-small">· <span class="cmp-key"></span>${esc(d.a.name)} <span class="cmp-key r"></span>${esc(d.b.name)}</span></h3>
-        <div class="lab-grid two"><div class="cmp-bars">${bars(d.a.phase, d.b.phase, AX)}</div><div class="cmp-bars">${bars(d.a.category, d.b.category, CT)}</div></div></div>
-      <div class="lab-grid two">${list(d.onlyA, d.a.name)}${list(d.onlyB, d.b.name)}</div><p class="lab-small">${esc(d.note)} Comparten ${d.shared} elementos.</p>`;
-  };
-  $("#cp-a").onchange = run; $("#cp-b").onchange = run; run();
 }
 
 // ══ 8. ESTUDIO (repetición espaciada, Leitner) ═══════════════════════════
@@ -545,7 +499,7 @@ async function maps(body) {
   let filter = store.get("map-filter", "all"), q = "";
   const types = [["all", "Todos"], ["abierto", "Abiertos"], ["semiabierto", "Semiabiertos"], ["cerrado", "Cerrados"], ["hibrido", "Híbridos"], ["agua", "Agua"], ["nomada", "Nómadas"], ["caotico", "Caóticos"]];
   body.innerHTML = `<p class="lab-intro"><b>Guías por mapa:</b> generación y recursos, cómo se juega, civs que destacan (de la wiki) y las civs mejor puntuadas por el radar para ese <b>tipo</b> de mapa.
-    Desde cada guía saltás al draft, al scouting o al build order recomendado.</p>
+    Desde cada guía saltás al draft, al scouting, al build order recomendado o al análisis de matchup en ese mapa.</p>
     <div id="mp-list"><div class="lab-panel calc-panel"><div class="lab-row"><label>Buscar<input id="mp-q" placeholder="Arabia, Arena, Nomad…" size="18"></label>
       <div id="mp-types" style="display:flex;flex-wrap:wrap;gap:6px">${types.map(([k, l]) => `<button class="calc-btn" data-t="${k}">${l}</button>`).join("")}</div></div>
       <div id="mp-grid" class="lab-grid"></div></div></div><div id="mp-detail"></div>`;
@@ -571,6 +525,7 @@ async function maps(body) {
       <div class="lab-row" style="margin-top:12px">
         <button class="calc-btn primary" id="mp-draft" ${m.axis ? "" : "disabled title='sin eje de radar equivalente para este tipo'"}>⚖️ Draft en este mapa</button>
         <button class="calc-btn" id="mp-scout">🔭 Scouting</button>
+        <button class="calc-btn" id="mp-mu">🆚 Matchup en este mapa</button>
         ${m.builds.map((b) => `<button class="calc-btn" data-build="${b.id}">🗒️ ${esc(b.title)}</button>`).join("")}</div>
       ${m.relatedMaps.length ? `<div class="lab-small">Relacionados: ${m.relatedMaps.map((r) => `<a href="#" data-map="${r.slug}">${esc(r.name)}</a>`).join(" · ")}</div>` : ""}</div>
       <div class="lab-grid split"><div class="mp-sections">${m.sections.map((s, i) => `<details class="lab-panel calc-panel mp-sec" ${secOpen(i, s.title) ? "open" : ""}><summary><b>${esc(s.title)}</b></summary>${mdBlock(s.md, ctx)}</details>`).join("")}</div>
@@ -584,14 +539,38 @@ async function maps(body) {
     $("#mp-back").onclick = () => { $("#mp-detail").innerHTML = ""; $("#mp-list").style.display = ""; store.set("map", ""); };
     $("#mp-draft").onclick = () => { if (m.axis) { store.set("dv-map", AXIS_DRAFT[m.axis]); openTab("draft"); } };
     $("#mp-scout").onclick = () => openTab("scouting");
+    $("#mp-mu").onclick = () => Lab.matchup(null, null, m.name);
     $$("#mp-detail [data-build]").forEach((a) => a.onclick = (e) => { e.preventDefault(); store.set("bo", a.dataset.build); openTab("builds"); });
     $$("#mp-detail [data-map]").forEach((a) => a.onclick = (e) => { e.preventDefault(); openMap(a.dataset.map); window.scrollTo(0, 0); });
-    $$("#mp-detail .mp-civ").forEach((c) => { if (c.dataset.civ) c.onclick = () => { store.set("cp-a", c.dataset.civ); openTab("compare"); }; });
+    $$("#mp-detail .mp-civ").forEach((c) => { if (c.dataset.civ) { c.title = "Analizar el matchup contra esta civ"; c.onclick = () => Lab.matchup(null, c.dataset.civ, m.name); } });
     window.scrollTo(0, 0);
   };
   drawList();
   const last = store.get("map", ""); if (last && bySlug[last]) openMap(last);
 }
+
+// ── API pública: el resto de la app (Matchups, etc.) abre el Lab y cruza datos desde acá ─────────────
+window.Lab = {
+  // Lab.open("draft", { rivals: ["mongols"], mine: [...] })  |  Lab.open("maps", { map: "arabia" })
+  open(k, opts = {}) {
+    if (opts.rivals) store.set("dv-vs", opts.rivals);
+    if (opts.mine) store.set("dr-mine", opts.mine);
+    if (opts.map) store.set("map", opts.map);
+    tab = k; store.set("tab", k);                  // initLab() (lo dispara switchView) abre esta pestaña
+    switchView("lab");
+  },
+  // Lab.matchup(me, vs, mapa): abre Matchups con esos valores y lo analiza (los que vienen null no se tocan)
+  matchup(me, vs, map) {
+    switchView("matchups");
+    const set = (id, v) => { const e = document.getElementById(id); if (e && v) e.value = v; };
+    set("mu-me", me); set("mu-vs", vs); set("mu-map", map);
+    document.getElementById("mu-run")?.click();
+  },
+};
+document.addEventListener("click", (e) => {                         // <a data-goto="matchups|counters|calc|…"> salta a otra vista
+  const a = e.target.closest?.("[data-goto]");
+  if (a) { e.preventDefault(); switchView(a.dataset.goto); }
+});
 
 // ── Ventana de overlay aparte (?lab=overlay&bo=<id>) ─────────────────────
 window.addEventListener("DOMContentLoaded", () => {

@@ -162,6 +162,12 @@ línea. Rutas: `/api/build-orders`, `/api/timings`, `/api/scouting`, `/api/team`
 `POST /api/passive` (reliquias y comercio por distancia). El simulador (`web/lib/sim.mjs`) es una
 aproximación: sin hit&run ni selección de objetivo; aplica bonos de civ/equipo y costos por edad, pero no techs ni unidades únicas.
 
+**Una sola casa para cada cosa.** El cruce civ vs civ vive en **Matchups**: además de lo que ya mostraba, suma el counter-play,
+las fortalezas y huecos, la alerta de Phosphor Rush, las partidas documentadas, el radar y las diferencias de árbol
+(`web/public/matchup-extra.js`, que usa `/api/compare`; son los datos que `/api/matchup` ya devolvía y la vista no renderizaba).
+El Lab tiene lo que no existía: build orders, timings, mapas, scouting por equipo, team lab, draft, simulador y estudio. Se cruzan
+con `Lab.open("draft", { rivals: [...] })` y `Lab.matchup(me, vs, mapa)` (API pública de `lab.js`) y con `<a data-goto="counters">`.
+
 ## GameKit: íconos y hover para toda la app
 
 `web/public/gamekit.js` + `gamekit.css` ponen **íconos y un hover con detalle** (costos, stats, efecto en español, dónde se

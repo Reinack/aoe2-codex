@@ -21,7 +21,6 @@ const TEAM = load("team-roles.json", {});
 const RADAR_ = load("radar.json", {});
 const PHOS = load("phosphor.json", {});
 const TRAITS = load("civ-traits.json", {});
-const COUNTER_PLAY_ = load("counter-play.json", {});
 const ITEMS = Object.fromEntries(load("item-costs.json", []).map((x) => [x.id, x]));
 const ICONS = load("icons.json", { items: {}, names: {}, civs: [], ages: {}, stats: {}, res: {} });
 const MAPS = load("map-guides.json", []);
@@ -97,9 +96,9 @@ export function registerLab(app, { CIV_AVAILABLE }) {
   app.get("/api/timings", (_req, res) => res.json(TIMINGS));
 
   // ---------- 5. Scouting ----------
-  // ?vs=<civ rival>&team=a,b,c → árbol + counter-play del rival + quién del equipo responde.
+  // ?team=a,b,c → árbol de señales + quién del equipo puede ejecutar cada respuesta.
+  // (La parte "contra esta civ" —counter-play, debilidades, Phosphor— vive en Matchups: /api/matchup.)
   app.get("/api/scouting", (req, res) => {
-    const vs = list(req.query.vs, 1)[0] || null;
     const team = list(req.query.team, 4);
     const stages = SCOUTING.stages.map((st) => ({
       ...st,
@@ -111,17 +110,7 @@ export function registerLab(app, { CIV_AVAILABLE }) {
         }),
       })),
     }));
-    res.json({
-      stages,
-      vs: vs ? {
-        civ: vs,
-        name: TEAM[vs]?.name || vs,
-        counterPlay: COUNTER_PLAY_[vs] || [],
-        phosphor: PHOS[vs] || null,
-        weaknesses: TRAITS[vs]?.weaknesses || [],
-        specialty: TEAM[vs]?.specialty || "",
-      } : null,
-    });
+    res.json({ stages });
   });
 
   // ---------- 9. Guías por mapa ----------
