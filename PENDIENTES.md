@@ -28,6 +28,10 @@ Todo vive en la vista **🧪 Lab** del frontend Express (`web/public/lab.js` + `
 
 **Íconos:** el Lab usa los íconos del árbol (unidades, mejoras, techs y edificios, en casillas con el pigmento de su familia) y los emblemas de las 56 civs (`web/public/img/civs`, envejecidos con sepia como los chips del árbol). `web/data/icons.json` (`npm run data:icons`) trae el catálogo por id y un índice por nombre en inglés; los textos de build orders, scouting, counter-play y mapas muestran el ícono delante de cada nombre reconocido. La Calculadora suma emblemas en los bonos de equipo e íconos de recursos y del Trade Cart.
 
+**GameKit (hover):** `web/public/gamekit.js` es el módulo compartido de íconos y hover de unidades, techs, edificios y civs (ver README). El Lab, la Calculadora (picker y filas), las fichas de civ del Explorador y las zonas `data-gk-auto` (detalle, chat, panel de counters) ya lo usan; una vista nueva solo necesita `GK.ico(...)`, `data-gk="i:id"` o `data-gk-auto`.
+
+**Layout:** las grillas del Lab (`.lab-grid`, `.two`, `.auto`, `.split`) se adaptan al ancho disponible con `auto-fit`: 1 columna en celular con pestañas deslizables, paneles lado a lado desde ~700 px, panel lateral fijo desde 1100 px, y en pantallas muy grandes más columnas (el contenedor se centra a 2800 px y el texto corrido no pasa de ~95 caracteres).
+
 Para regenerar los datos del Lab tras cambios en la wiki o en el árbol: `cd web && npm run data:lab` (build orders, roles de equipo, bonos de combate y guías por mapa).
 
 ---

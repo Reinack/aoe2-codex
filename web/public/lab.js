@@ -15,39 +15,12 @@ const get = (url) => (cache[url] ||= api(url));
 let CIVS = [];                 // [{slug,name,position,...}]
 const civName = (s) => CIVS.find((c) => c.slug === s)?.name || s;
 
-// ── Íconos: catálogo de /api/icons (árbol) + emblemas de civ ─────────────
-let ICONS = { items: {}, names: {}, civs: [], ages: {}, stats: {}, res: {} };
-const treeImg = (p) => `/tree/${p}`;
-const ico = (id, cls = "") => { const it = ICONS.items[id]; return it ? `<img class="ico k-${it.k} ${cls}" src="${treeImg(it.i)}" alt="" title="${esc(it.n)}" loading="lazy">` : ""; };
-const emb = (slug, cls = "") => (slug && ICONS.civs.includes(slug)) ? `<img class="emb ${cls}" src="/img/civs/${slug}.png" alt="" title="${esc(civName(slug))}" loading="lazy">` : "";
-const ageIco = (a) => ICONS.ages[a] ? `<img class="age-ico" src="${treeImg(ICONS.ages[a])}" alt="" title="${a}">` : "";
-const statIco = (k) => ICONS.stats[k] ? `<img class="st-ico" src="${treeImg(ICONS.stats[k])}" alt="" title="${k}">` : "";
-const resIc = (k) => ICONS.res[k] ? `<img class="st-ico" src="${treeImg(ICONS.res[k])}" alt="" title="${k}">` : "";
-// Pone el ícono delante de cada nombre de unidad/edificio/tecnología (nombres en inglés, como en el vault) dentro de HTML ya escapado.
-let NAME_RE = null;
-function iconize(html) {
-  if (!NAME_RE) {
-    const names = Object.keys(ICONS.names).sort((a, b) => b.length - a.length).map((n) => n.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"));
-    NAME_RE = names.length ? new RegExp(`(?<![\\p{L}\\p{N}_-])(${names.join("|")})(?![\\p{L}\\p{N}_])`, "giu") : false;
-  }
-  if (!NAME_RE) return html;
-  return html.split(/(<[^>]+>)/).map((seg, i) => (i % 2 ? seg : seg.replace(NAME_RE, (m) => {
-    const id = ICONS.names[m.toLowerCase()];
-    return id ? `<span class="ic-run">${ico(id, "ico-s")}${m}</span>` : m;
-  }))).join("");
-}
-// Ídem para nombres de civ (emblema + nombre).
-let CIV_RE = null;
-function civify(html) {
-  if (CIV_RE === null) CIV_RE = CIVS.length ? new RegExp(`(?<![A-Za-z])(${CIVS.map((c) => c.name).sort((a, b) => b.length - a.length).join("|")})(?![A-Za-z])`, "g") : false;
-  if (!CIV_RE) return html;
-  const bySlug = Object.fromEntries(CIVS.map((c) => [c.name, c.slug]));
-  return html.split(/(<[^>]+>)/).map((seg, i) => (i % 2 ? seg : seg.replace(CIV_RE, (m) => `<span class="ic-run">${emb(bySlug[m], "emb-s")}${m}</span>`))).join("");
-}
+// ── Íconos y hover: módulo compartido GameKit (public/gamekit.js) ─────────
+const { ico, emb, ageIco, statIco, resIc, iconize, civify } = GK;
 // Íconos de las pestañas: edificios, unidades y emblemas de edad del árbol.
 const TAB_ICON = { builds: ["i", "barracks"], timings: ["a", "imperial"], maps: ["i", "outpost"], scouting: ["i", "scout"], team: ["i", "castle"],
   draft: ["i", "tc"], sim: ["i", "knight"], compare: ["i", "blacksmith"], study: ["i", "university"] };
-const tabIcon = (k) => { const [t, id] = TAB_ICON[k] || []; return t === "a" ? ageIco(id) : t === "i" ? ico(id, "ico-s") : ""; };
+const tabIcon = (k) => { const [t, id] = TAB_ICON[k] || []; return t === "a" ? ageIco(id) : t === "i" ? ico(id, "ico-s no-gk") : ""; };
 
 const TABS = [
   ["builds", "Build orders"], ["timings", "Timings"], ["maps", "Mapas"], ["scouting", "Scouting"],
@@ -78,7 +51,7 @@ window.initLab = async function initLab() {
   const root = $("#view-lab");
   if (!root.dataset.ready) {
     root.dataset.ready = "1";
-    [ICONS, CIVS] = await Promise.all([get("/api/icons"), get("/api/team-civs")]);
+    [, CIVS] = await Promise.all([GK.ready, get("/api/team-civs")]);
     root.innerHTML = `<div class="lab-tabs" id="lab-tabs">${TABS.map(([k, l]) =>
       `<a class="lab-tab" data-tab="${k}">${tabIcon(k)}${l}</a>`).join("")}</div><div id="lab-body"></div>
       <div id="bo-overlay"></div>`;
@@ -124,7 +97,7 @@ function drawBuild() {
   const b = boState.build; if (!b) return;
   $("#bo-meta").innerHTML = `<div><b>Civs:</b> ${civify(esc(b.civs || "—"))}</div><div><b>Mapas:</b> ${esc(b.maps || "—")} &nbsp; <b>Tipo:</b> ${esc(b.type || "—")} &nbsp; <b>Dificultad:</b> ${esc(b.difficulty || "—")}</div><div><i>${esc(b.quote)}</i></div>`;
   const sec = b.sections[boState.sec];
-  $("#bo-main").innerHTML = `<div class="lab-grid two">
+  $("#bo-main").innerHTML = `<div class="lab-grid split">
     <div class="lab-panel calc-panel">
       <div class="lab-row"><label>Sección<select id="bo-sec">${b.sections.map((s, i) =>
         `<option value="${i}" ${i === boState.sec ? "selected" : ""}>${esc(s.title)}${s.variant ? " (variante)" : ""}</option>`).join("")}</select></label></div>
@@ -134,7 +107,7 @@ function drawBuild() {
         <button class="calc-btn" id="bo-reset-steps">Reiniciar pasos</button></div>
       <div class="lab-src">Fuente: <code>${esc(b.note)}</code></div>
     </div>
-    <div class="lab-panel calc-panel">
+    <div class="lab-panel calc-panel lab-aside">
       <h3>Timer</h3>
       <div><span class="bo-timer" id="bo-t">0:00</span>
         <button class="calc-btn primary" id="bo-go">▶ Iniciar</button> <button class="calc-btn" id="bo-rst">↺ Reset</button></div>
@@ -241,7 +214,7 @@ async function timings(body) {
     <div class="lab-panel calc-panel"><h3>Línea de tiempo</h3><div class="tl"><div class="tl-axis">${ticks}</div>${rows}</div>
       <div class="tl-leg"><span class="lab-tag age-1 has-ico">${ageIco("feudal")}Feudal</span> <span class="lab-tag age-2 has-ico">${ageIco("castle")}Castle</span> <span class="lab-tag age-3 has-ico">${ageIco("imperial")}Imperial</span> la barra de Castle marca un rango o un "antes de".</div>
       <p class="lab-small">${esc(T.eloSignal)}</p></div>
-    <div class="lab-grid two">
+    <div class="lab-grid auto">
       <div class="lab-panel calc-panel"><h3>Mi partida vs benchmark</h3>
         <div class="lab-row"><label>Referencia<select id="tm-ref">${T.builds.map((b, i) => `<option value="${i}">${esc(b.label)}</option>`).join("")}</select></label></div>
         <div class="lab-row"><label>Click a Feudal (m:ss)<input id="tm-f" placeholder="9:10" size="6"></label><label>Click a Castle (m:ss)<input id="tm-c" placeholder="14:30" size="6"></label>
@@ -269,12 +242,12 @@ function scouting(body) {
   const run = async () => {
     const vs = $("#sc-vs").value; store.set("sc-vs", vs);
     const d = await api(`/api/scouting?vs=${vs}&team=${tp.get().join(",")}`);
-    $("#sc-out").innerHTML = `<div class="lab-grid two"><div>${d.stages.map((st) => `<div class="lab-panel calc-panel"><h3>${esc(st.title)} <span class="lab-small">· ${esc(st.when)}</span></h3>
+    $("#sc-out").innerHTML = `<div class="lab-grid split"><div>${d.stages.map((st) => `<div class="lab-panel calc-panel"><h3>${esc(st.title)} <span class="lab-small">· ${esc(st.when)}</span></h3>
       <p class="lab-small">${esc(st.tip)}</p>${st.signals.map((s) => `<div class="sc-sig"><div class="s">👁 ${iconize(esc(s.signal))}</div><div class="m">→ ${iconize(esc(s.means))}</div>
         <div class="r"><b>Reacción:</b> ${iconize(esc(s.reaction))}</div>
         ${s.who.some((w) => w.can !== null) ? `<div>${s.who.map((w) => `<span class="lab-chip ${w.can ? "ok" : "no"}">${w.can ? "✔" : "✖"} ${emb(w.civ)}${esc(civName(w.civ))}${w.unit ? " · " + ico(w.unitId, "ico-s") + esc(w.unit) : ""}</span>`).join("")}</div>` : ""}
         <div class="lab-src">${esc(s.source)}</div></div>`).join("")}</div>`).join("")}</div>
-      <div>${d.vs ? vsPanel(d.vs) : `<div class="lab-panel calc-panel lab-small">Elegí una civ rival para ver cómo jugarle.</div>`}</div></div>`;
+      <div class="lab-aside">${d.vs ? vsPanel(d.vs) : `<div class="lab-panel calc-panel lab-small">Elegí una civ rival para ver cómo jugarle.</div>`}</div></div>`;
   };
   const tp = civPicker($("#sc-team"), { max: 4, key: "sc-teamciv", onChange: run });
   $("#sc-vs").onchange = run; run();
@@ -295,7 +268,7 @@ function team(body) {
     if (!sel.length) { $("#tm-out").innerHTML = ""; return; }
     const d = await api(`/api/team?civs=${sel.join(",")}`);
     if (d.error) { $("#tm-out").innerHTML = `<div class="lab-panel calc-panel">${esc(d.error)}</div>`; return; }
-    $("#tm-out").innerHTML = `<div class="lab-grid two"><div class="lab-panel calc-panel"><h3>Posiciones <span class="lab-small">· ajuste ${d.score}/${d.maxScore}</span></h3>
+    $("#tm-out").innerHTML = `<div class="lab-grid auto"><div class="lab-panel calc-panel"><h3>Posiciones <span class="lab-small">· ajuste ${d.score}/${d.maxScore}</span></h3>
       ${d.players.map((p) => `<div class="tm-slot"><div class="tm-pos">${p.slot === "flank" ? "Flanco" : p.slot === "pocket" ? "Pocket" : "—"}</div>
         ${emb(p.civ, "emb-l")}<div><b>${esc(p.name)}</b> <span class="lab-tag ${p.position}">${p.position}</span> <span class="lab-small">${esc(p.fit)}</span>
         <div class="lab-small">${esc(p.specialty)}</div><div>🤝 ${esc(p.teamBonus || "sin bonus de equipo registrado")}</div>
@@ -394,7 +367,7 @@ async function sim(body) {
   SIMCIVS = (await get("/api/sim/civs")).civs;
   const civOpts = (sel) => `<option value="">— sin civ —</option>${SIMCIVS.map((c) => `<option value="${c.slug}" ${c.slug === sel ? "selected" : ""}>${esc(c.name)}</option>`).join("")}`;
   const opts = (sel) => SIM.map((u) => `<option value="${u.id}" ${u.id === sel ? "selected" : ""}>${esc(u.name)}</option>`).join("");
-  const rc = (k) => (ICONS.res[k] ? resIc(k) : "");
+  const rc = (k) => resIc(k);
   const unitInfo = (id) => { const u = SIM.find((x) => x.id === id); if (!u) return "";
     return `${statIco("hp")}${u.hp} ${statIco("attack")}${u.attack} ${statIco("armor")}${u.armor[0]} ${statIco("pierce")}${u.armor[1]}${u.range ? ` ${statIco("range")}${u.range}` : ""} ${statIco("speed")}${u.speed}
       <span class="sim-cost">${["food", "wood", "gold", "stone"].filter((r) => u.cost[r]).map((r) => `${rc(r)}${u.cost[r]}`).join(" ")}</span>`; };
@@ -600,8 +573,8 @@ async function maps(body) {
         <button class="calc-btn" id="mp-scout">🔭 Scouting</button>
         ${m.builds.map((b) => `<button class="calc-btn" data-build="${b.id}">🗒️ ${esc(b.title)}</button>`).join("")}</div>
       ${m.relatedMaps.length ? `<div class="lab-small">Relacionados: ${m.relatedMaps.map((r) => `<a href="#" data-map="${r.slug}">${esc(r.name)}</a>`).join(" · ")}</div>` : ""}</div>
-      <div class="lab-grid two"><div>${m.sections.map((s, i) => `<details class="lab-panel calc-panel mp-sec" ${secOpen(i, s.title) ? "open" : ""}><summary><b>${esc(s.title)}</b></summary>${mdBlock(s.md, ctx)}</details>`).join("")}</div>
-        <div>${m.highlights.length ? `<div class="lab-panel calc-panel"><h3>Civs que destacan <span class="lab-small">(wiki)</span></h3>${m.highlights.map((h) =>
+      <div class="lab-grid split"><div class="mp-sections">${m.sections.map((s, i) => `<details class="lab-panel calc-panel mp-sec" ${secOpen(i, s.title) ? "open" : ""}><summary><b>${esc(s.title)}</b></summary>${mdBlock(s.md, ctx)}</details>`).join("")}</div>
+        <div class="lab-aside">${m.highlights.length ? `<div class="lab-panel calc-panel"><h3>Civs que destacan <span class="lab-small">(wiki)</span></h3>${m.highlights.map((h) =>
           `<div style="margin:6px 0"><span class="lab-small">${h.negative ? "⚠️ " : ""}${esc(h.profile)}</span><div>${h.civs.map((c, i) => `<span class="lab-chip ${h.negative ? "no" : ""} mp-civ" data-civ="${h.slugs[i] || ""}">${emb(h.slugs[i])}${esc(c)}</span>`).join("")}</div></div>`).join("")}</div>` : ""}
           ${m.radarTop ? `<div class="lab-panel calc-panel"><h3>Según el radar <span class="lab-small">(${esc(m.radarTop.basis)})</span></h3>
             <div class="lab-small">Mejor puntuadas para este tipo de mapa</div><div>${m.radarTop.top.map((c) => `<span class="lab-chip mp-civ" data-civ="${c.slug}">${emb(c.slug)}${esc(c.name)} ${c.score}</span>`).join("")}</div>

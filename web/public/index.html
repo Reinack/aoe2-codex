@@ -601,6 +601,7 @@
   #graph-title { color:var(--gold-text); }
   #graph-side h4 { font-family:var(--font-display); color:var(--gold-text); }
 </style>
+<link rel="stylesheet" href="/gamekit.css">
 <link rel="stylesheet" href="/lab.css">
 </head>
 <body>
@@ -697,7 +698,7 @@ import('/tree/src/data/index.js').then(() => {
     </div>
     <div class="col">
       <h2>Chat <span class="h2-sub">GraphRAG · Gemini</span></h2>
-      <div id="chatlog"></div>
+      <div id="chatlog" data-gk-auto="all"></div>
       <div class="chatrow">
         <input id="chatq" placeholder="¿Cómo juego Scout Rush con Georgianos?" autocomplete="off" />
         <button id="chatsend">Enviar</button>
@@ -709,7 +710,7 @@ import('/tree/src/data/index.js').then(() => {
         <span class="hint" data-q="¿Qué hace especial el FC con Burgundians?">FC Burgundians</span>
       </div>
       <h2 style="margin-top:20px">Detalle</h2>
-      <div id="detail"><div class="ph">Elegí una civilización o buscá una unidad/tecnología.</div></div>
+      <div id="detail" data-gk-auto="all"><div class="ph">Elegí una civilización o buscá una unidad/tecnología.</div></div>
     </div>
   </div>
 
@@ -809,7 +810,7 @@ import('/tree/src/data/index.js').then(() => {
         <div id="cg-notes"></div>
       </div>
       <div id="cy-counters"></div>
-      <aside id="cg-side"></aside>
+      <aside id="cg-side" data-gk-auto></aside>
     </div>
     <div id="cg-tip"></div>
   </div>
@@ -1009,6 +1010,7 @@ async function init() {
     const al = c.aliases?.length ? `<div class="a">${c.aliases.join(" · ")}</div>` : "";
     const el = document.createElement("div");
     el.className = "card";
+    el.dataset.gk = `c:${slugLower}`;
     el.innerHTML = `<img class="civ-img" src="/img/civs/${slugLower}.png" alt="" onerror="this.style.display='none'"><div class="t">${c.title}</div>${tier}${al}`;
     el.onclick = () => showCiv(slug);
     grid.appendChild(el);
@@ -2467,7 +2469,7 @@ function renderPicker() {
   box.innerHTML = CAT_ORDER.filter(c => groups[c]).map(cat => {
     const btns = groups[cat].sort((a,b) => a.name.localeCompare(b.name)).map(it => {
       const n = calcState.items[it.id] || 0;
-      return `<button class="pick-b ${it.variant} ${n ? 'on' : ''}" data-add="${it.id}" title="${esc(it.name)}">
+      return `<button class="pick-b ${it.variant} ${n ? 'on' : ''}" data-add="${it.id}" data-gk="i:${it.id}" title="${esc(it.name)}">
         <span class="badge"><img class="ic" src="${UIMG(it.imgPath)}" alt="" onerror="this.onerror=null;this.src=MISSING_IMG">${n ? `<span class="cnt">${n}</span>` : ''}</span>
         <span class="lb">${esc(it.name)}</span>
       </button>`;
@@ -2611,7 +2613,7 @@ function renderSelected() {
     const it = CALC._byId[id]; if (!it) return '';
     const cost = RES_ORDER.filter(r => it.cost[r]).map(r => `${it.cost[r]}${resIco(r)}`).join(' ');
     return `<div class="calc-row">
-      <img class="ic" src="${UIMG(it.imgPath)}" alt="" onerror="this.onerror=null;this.src=MISSING_IMG">
+      <img class="ic" data-gk="i:${id}" src="${UIMG(it.imgPath)}" alt="" onerror="this.onerror=null;this.src=MISSING_IMG">
       <div class="nm">${esc(it.name)} <small>${cost} · ${it.time}s · ${it.kind === 'unit' ? 'unidad' : 'edificio'}</small></div>
       <div class="calc-step">
         <button data-dec="${id}">−</button>
@@ -2694,6 +2696,7 @@ function renderResult(r) {
 // ── INIT ───────────────────────────────────────────────────────────────
 init();
 </script>
+<script src="/gamekit.js"></script>
 <script src="/lab.js"></script>
 </body>
 </html>

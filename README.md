@@ -162,6 +162,29 @@ línea. Rutas: `/api/build-orders`, `/api/timings`, `/api/scouting`, `/api/team`
 `POST /api/passive` (reliquias y comercio por distancia). El simulador (`web/lib/sim.mjs`) es una
 aproximación: sin hit&run ni selección de objetivo; aplica bonos de civ/equipo y costos por edad, pero no techs ni unidades únicas.
 
+## GameKit: íconos y hover para toda la app
+
+`web/public/gamekit.js` + `gamekit.css` ponen **íconos y un hover con detalle** (costos, stats, efecto en español, dónde se
+produce, en qué civs está) a unidades, tecnologías, edificios y civs. Los datos salen de `web/data/icons.json`
+(`npm run data:icons`, desde el árbol vendorizado) y se sirven en `GET /api/icons`. Para una vista nueva no hay que programar
+nada del hover; hay tres formas de usarlo:
+
+```js
+// 1) en plantillas JS: devuelven HTML con el hover ya conectado
+GK.ico("paladin")   GK.emb("franks")   GK.age("feudal")   GK.stat("hp")   GK.res("gold")
+GK.iconize(html)    GK.civify(html)    // ponen el ícono delante de cada nombre reconocido
+```
+
+```html
+<!-- 2) con atributos: i = unidad|tecnología|edificio (id del árbol), c = civ (slug) -->
+<div data-gk="i:paladin">…</div>   <span data-gk="c:franks">…</span>
+
+<!-- 3) automático: reconoce nombres en el texto, también el que se renderiza después -->
+<div data-gk-auto>…</div>   <div data-gk-auto="civs">…</div>   <div data-gk-auto="all">…</div>   <!-- data-gk-skip excluye una zona -->
+```
+
+En celular el hover se abre con un toque. El estilo sigue `docs/GUIA-DE-ESTILO.md` del tech tree.
+
 ## Tech-tree → grafo (Fase 6 + Fix 5)
 
 El visual del proyecto hermano **Aoe2-Tech-Tree-Advanced** está vendorizado en

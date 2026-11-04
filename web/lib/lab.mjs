@@ -87,7 +87,8 @@ const LOCALE_NAMES = (() => {
 
 export function registerLab(app, { CIV_AVAILABLE }) {
   // Catálogo de íconos del árbol (unidades, techs, edificios), emblemas de civ, edades y stats.
-  app.get("/api/icons", (_req, res) => { res.set("Cache-Control", "public, max-age=3600"); res.json(ICONS); });
+  // no-cache = revalida por ETag: barato (304) y nunca queda un catálogo viejo en el navegador.
+  app.get("/api/icons", (_req, res) => { res.set("Cache-Control", "no-cache"); res.json(ICONS); });
 
   // ---------- 1. Build orders ----------
   app.get("/api/build-orders", (_req, res) => res.json({ builds: BUILD_ORDERS }));

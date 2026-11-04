@@ -38,3 +38,24 @@ test("los ids que usa el Lab para íconos de pestañas y cobertura existen", () 
     "paladin", "halberdier", "arbalester", "eliteskirm", "heavycamel", "eliteeleph", "hcavarcher", "handcannon", "siegeonager", "bombcannon", "monk", "galleon"])
     assert.ok(icons.items[id], id);
 });
+
+test("el catálogo trae el detalle del hover: costos, stats, efecto en español, producción y disponibilidad", () => {
+  const p = icons.items.paladin, loom = icons.items.loom, castle = icons.items.castle, feit = icons.items.feitoria;
+  assert.deepEqual(p.c, { food: 60, gold: 75 });
+  assert.equal(p.st.hp, 160);
+  assert.ok(p.ef && p.es === "Paladín");
+  assert.ok(loom.ef && loom.rc.gold === 50 && loom.rt === 25);
+  assert.ok(castle.pr.includes("trebuchet") && castle.st.hp > 0);
+  assert.deepEqual(feit.av, ["portuguese"]);          // exclusivo: lista las civs
+  assert.ok(icons.items.knight.nv < icons.totalCivs);  // no está en todas
+});
+
+test("cada civ tiene ficha para su hover (nombre, especialidad y posición)", () => {
+  const sin = Object.keys(team).filter((s) => !icons.civInfo[s]?.n || !icons.civInfo[s]?.pos);
+  assert.deepEqual(sin, []);
+  assert.ok(icons.civInfo.franks.st.length > 0 && icons.civInfo.franks.tb);
+});
+
+test("las referencias de producción apuntan a ítems del catálogo", () => {
+  for (const [id, it] of Object.entries(icons.items)) for (const p of it.pr || []) assert.ok(icons.items[p], `${id} produce ${p}`);
+});
