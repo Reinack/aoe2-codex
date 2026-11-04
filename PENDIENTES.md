@@ -26,6 +26,8 @@ Todo vive en la vista **🧪 Lab** del frontend Express (`web/public/lab.js` + `
 
 **Estilo:** el Lab y el panel de comercio siguen `docs/GUIA-DE-ESTILO.md` del tech tree: pergamino para contenido, papiro para controles, negro de diálogo para el overlay, botones rojos con filete dorado, oro solo como hilo o letra, pigmentos del árbol para categorías y edades, números en Crimson Pro (no Cinzel) y registros con filetes en lugar de tarjetas. Los tokens de edad (`--age-0…3`) están en `web/public/lab.css`.
 
+**Íconos:** el Lab usa los íconos del árbol (unidades, mejoras, techs y edificios, en casillas con el pigmento de su familia) y los emblemas de las 56 civs (`web/public/img/civs`, envejecidos con sepia como los chips del árbol). `web/data/icons.json` (`npm run data:icons`) trae el catálogo por id y un índice por nombre en inglés; los textos de build orders, scouting, counter-play y mapas muestran el ícono delante de cada nombre reconocido. La Calculadora suma emblemas en los bonos de equipo e íconos de recursos y del Trade Cart.
+
 Para regenerar los datos del Lab tras cambios en la wiki o en el árbol: `cd web && npm run data:lab` (build orders, roles de equipo, bonos de combate y guías por mapa).
 
 ---

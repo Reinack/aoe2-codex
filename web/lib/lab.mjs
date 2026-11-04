@@ -23,6 +23,7 @@ const PHOS = load("phosphor.json", {});
 const TRAITS = load("civ-traits.json", {});
 const COUNTER_PLAY_ = load("counter-play.json", {});
 const ITEMS = Object.fromEntries(load("item-costs.json", []).map((x) => [x.id, x]));
+const ICONS = load("icons.json", { items: {}, names: {}, civs: [], ages: {}, stats: {}, res: {} });
 const MAPS = load("map-guides.json", []);
 const MAP_BY_SLUG = Object.fromEntries(MAPS.map((m) => [m.slug, m]));
 
@@ -85,6 +86,9 @@ const LOCALE_NAMES = (() => {
 })();
 
 export function registerLab(app, { CIV_AVAILABLE }) {
+  // Catálogo de íconos del árbol (unidades, techs, edificios), emblemas de civ, edades y stats.
+  app.get("/api/icons", (_req, res) => { res.set("Cache-Control", "public, max-age=3600"); res.json(ICONS); });
+
   // ---------- 1. Build orders ----------
   app.get("/api/build-orders", (_req, res) => res.json({ builds: BUILD_ORDERS }));
 
@@ -102,7 +106,7 @@ export function registerLab(app, { CIV_AVAILABLE }) {
         ...s,
         who: team.map((c) => {
           const id = s.answer?.length ? bestAnswer(CIV_AVAILABLE.get(c), s.answer) : null;
-          return { civ: c, unit: id ? (ITEMS[id]?.name || id) : null, can: s.answer?.length ? !!id : null };
+          return { civ: c, unit: id ? (ITEMS[id]?.name || id) : null, unitId: id, can: s.answer?.length ? !!id : null };
         }),
       })),
     }));
@@ -179,11 +183,11 @@ export function registerLab(app, { CIV_AVAILABLE }) {
     const coverage = COVERAGE.map((cv) => {
       const who = civs.map((c) => {
         const id = bestAnswer(CIV_AVAILABLE.get(c), cv.top);
-        return { civ: c, unit: id ? (ITEMS[id]?.name || id) : null, tier: id ? cv.top.indexOf(id) : null };
+        return { civ: c, unit: id ? (ITEMS[id]?.name || id) : null, unitId: id, tier: id ? cv.top.indexOf(id) : null };
       });
       const have = who.filter((w) => w.unit);
       const topCiv = have.filter((w) => w.tier === Math.min(...have.map((x) => x.tier)));
-      return { key: cv.key, label: cv.label, who, gap: have.length === 0, best: topCiv.map((w) => w.civ) };
+      return { key: cv.key, label: cv.label, icon: cv.top[0], who, gap: have.length === 0, best: topCiv.map((w) => w.civ) };
     });
     res.json({
       size: civs.length, score: best.score, maxScore: civs.length * 3, players, links, coverage,

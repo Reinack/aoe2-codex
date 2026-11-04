@@ -15,10 +15,44 @@ const get = (url) => (cache[url] ||= api(url));
 let CIVS = [];                 // [{slug,name,position,...}]
 const civName = (s) => CIVS.find((c) => c.slug === s)?.name || s;
 
+// ── Íconos: catálogo de /api/icons (árbol) + emblemas de civ ─────────────
+let ICONS = { items: {}, names: {}, civs: [], ages: {}, stats: {}, res: {} };
+const treeImg = (p) => `/tree/${p}`;
+const ico = (id, cls = "") => { const it = ICONS.items[id]; return it ? `<img class="ico k-${it.k} ${cls}" src="${treeImg(it.i)}" alt="" title="${esc(it.n)}" loading="lazy">` : ""; };
+const emb = (slug, cls = "") => (slug && ICONS.civs.includes(slug)) ? `<img class="emb ${cls}" src="/img/civs/${slug}.png" alt="" title="${esc(civName(slug))}" loading="lazy">` : "";
+const ageIco = (a) => ICONS.ages[a] ? `<img class="age-ico" src="${treeImg(ICONS.ages[a])}" alt="" title="${a}">` : "";
+const statIco = (k) => ICONS.stats[k] ? `<img class="st-ico" src="${treeImg(ICONS.stats[k])}" alt="" title="${k}">` : "";
+const resIc = (k) => ICONS.res[k] ? `<img class="st-ico" src="${treeImg(ICONS.res[k])}" alt="" title="${k}">` : "";
+// Pone el ícono delante de cada nombre de unidad/edificio/tecnología (nombres en inglés, como en el vault) dentro de HTML ya escapado.
+let NAME_RE = null;
+function iconize(html) {
+  if (!NAME_RE) {
+    const names = Object.keys(ICONS.names).sort((a, b) => b.length - a.length).map((n) => n.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"));
+    NAME_RE = names.length ? new RegExp(`(?<![\\p{L}\\p{N}_-])(${names.join("|")})(?![\\p{L}\\p{N}_])`, "giu") : false;
+  }
+  if (!NAME_RE) return html;
+  return html.split(/(<[^>]+>)/).map((seg, i) => (i % 2 ? seg : seg.replace(NAME_RE, (m) => {
+    const id = ICONS.names[m.toLowerCase()];
+    return id ? `<span class="ic-run">${ico(id, "ico-s")}${m}</span>` : m;
+  }))).join("");
+}
+// Ídem para nombres de civ (emblema + nombre).
+let CIV_RE = null;
+function civify(html) {
+  if (CIV_RE === null) CIV_RE = CIVS.length ? new RegExp(`(?<![A-Za-z])(${CIVS.map((c) => c.name).sort((a, b) => b.length - a.length).join("|")})(?![A-Za-z])`, "g") : false;
+  if (!CIV_RE) return html;
+  const bySlug = Object.fromEntries(CIVS.map((c) => [c.name, c.slug]));
+  return html.split(/(<[^>]+>)/).map((seg, i) => (i % 2 ? seg : seg.replace(CIV_RE, (m) => `<span class="ic-run">${emb(bySlug[m], "emb-s")}${m}</span>`))).join("");
+}
+// Íconos de las pestañas: edificios, unidades y emblemas de edad del árbol.
+const TAB_ICON = { builds: ["i", "barracks"], timings: ["a", "imperial"], maps: ["i", "outpost"], scouting: ["i", "scout"], team: ["i", "castle"],
+  draft: ["i", "tc"], sim: ["i", "knight"], compare: ["i", "blacksmith"], study: ["i", "university"] };
+const tabIcon = (k) => { const [t, id] = TAB_ICON[k] || []; return t === "a" ? ageIco(id) : t === "i" ? ico(id, "ico-s") : ""; };
+
 const TABS = [
-  ["builds", "🗒️ Build orders"], ["timings", "⏱️ Timings"], ["maps", "🗺️ Mapas"], ["scouting", "🔭 Scouting"],
-  ["team", "👥 Team Lab"], ["draft", "⚖️ Draft"], ["sim", "🧪 Simulador"],
-  ["compare", "🆚 Comparar civs"], ["study", "🧠 Estudio"],
+  ["builds", "Build orders"], ["timings", "Timings"], ["maps", "Mapas"], ["scouting", "Scouting"],
+  ["team", "Team Lab"], ["draft", "Draft"], ["sim", "Simulador"],
+  ["compare", "Comparar civs"], ["study", "Estudio"],
 ];
 let tab = store.get("tab", "builds");
 
@@ -26,7 +60,7 @@ let tab = store.get("tab", "builds");
 function civPicker(el, { max = 4, key, onChange, placeholder = "Agregar civ…" }) {
   let sel = key ? store.get(key, []) : [];
   const draw = () => {
-    el.innerHTML = `<div>${sel.map((s) => `<span class="lab-chip">${esc(civName(s))}<span class="x" data-x="${s}">×</span></span>`).join("")}</div>
+    el.innerHTML = `<div>${sel.map((s) => `<span class="lab-chip">${emb(s)}${esc(civName(s))}<span class="x" data-x="${s}">×</span></span>`).join("")}</div>
       ${sel.length < max ? `<select><option value="">${esc(placeholder)}</option>${CIVS.filter((c) => !sel.includes(c.slug))
         .map((c) => `<option value="${c.slug}">${esc(c.name)}</option>`).join("")}</select>` : ""}`;
     $("select", el)?.addEventListener("change", (e) => { if (e.target.value) { sel.push(e.target.value); commit(); } });
@@ -37,18 +71,24 @@ function civPicker(el, { max = 4, key, onChange, placeholder = "Agregar civ…" 
   return { get: () => sel, set: (v) => { sel = v; commit(); } };
 }
 const civSelect = (id, val = "", blank = "—") =>
-  `<select id="${id}"><option value="">${blank}</option>${CIVS.map((c) => `<option value="${c.slug}" ${c.slug === val ? "selected" : ""}>${esc(c.name)}</option>`).join("")}</select>`;
+  `<span class="sel-ico"><span class="emb-slot">${emb(val, "emb-m")}</span><select id="${id}" data-emb="civ"><option value="">${blank}</option>${CIVS.map((c) => `<option value="${c.slug}" ${c.slug === val ? "selected" : ""}>${esc(c.name)}</option>`).join("")}</select></span>`;
 
 // ── Entrada ───────────────────────────────────────────────────────────────
 window.initLab = async function initLab() {
   const root = $("#view-lab");
   if (!root.dataset.ready) {
     root.dataset.ready = "1";
+    [ICONS, CIVS] = await Promise.all([get("/api/icons"), get("/api/team-civs")]);
     root.innerHTML = `<div class="lab-tabs" id="lab-tabs">${TABS.map(([k, l]) =>
-      `<a class="lab-tab" data-tab="${k}">${l}</a>`).join("")}</div><div id="lab-body"></div>
+      `<a class="lab-tab" data-tab="${k}">${tabIcon(k)}${l}</a>`).join("")}</div><div id="lab-body"></div>
       <div id="bo-overlay"></div>`;
     $$(".lab-tab", root).forEach((t) => t.onclick = () => openTab(t.dataset.tab));
-    CIVS = await get("/api/team-civs");
+    // el emblema junto a un <select data-emb="civ"> sigue a su valor
+    root.addEventListener("change", (e) => {
+      const s = e.target.closest?.('select[data-emb="civ"]');
+      const slot = s?.previousElementSibling;
+      if (slot?.classList.contains("emb-slot")) slot.innerHTML = emb(s.value, "emb-m");
+    });
   }
   openTab(tab);
 };
@@ -82,14 +122,14 @@ function builds(body) {
 }
 function drawBuild() {
   const b = boState.build; if (!b) return;
-  $("#bo-meta").innerHTML = `<div><b>Civs:</b> ${esc(b.civs || "—")}</div><div><b>Mapas:</b> ${esc(b.maps || "—")} &nbsp; <b>Tipo:</b> ${esc(b.type || "—")} &nbsp; <b>Dificultad:</b> ${esc(b.difficulty || "—")}</div><div><i>${esc(b.quote)}</i></div>`;
+  $("#bo-meta").innerHTML = `<div><b>Civs:</b> ${civify(esc(b.civs || "—"))}</div><div><b>Mapas:</b> ${esc(b.maps || "—")} &nbsp; <b>Tipo:</b> ${esc(b.type || "—")} &nbsp; <b>Dificultad:</b> ${esc(b.difficulty || "—")}</div><div><i>${esc(b.quote)}</i></div>`;
   const sec = b.sections[boState.sec];
   $("#bo-main").innerHTML = `<div class="lab-grid two">
     <div class="lab-panel calc-panel">
       <div class="lab-row"><label>Sección<select id="bo-sec">${b.sections.map((s, i) =>
         `<option value="${i}" ${i === boState.sec ? "selected" : ""}>${esc(s.title)}${s.variant ? " (variante)" : ""}</option>`).join("")}</select></label></div>
       <table class="lab-table bo-steps"><thead><tr><th>${sec.unit === "step" ? "Paso" : sec.unit === "list" ? "" : "Pob."}</th><th>Acción</th></tr></thead>
-      <tbody>${sec.steps.map((s, i) => `<tr data-i="${i}" class="${i < boState.step ? "done" : i === boState.step ? "cur" : ""}"><td class="at">${esc(s.at)}</td><td>${md(s.do)}</td></tr>`).join("")}</tbody></table>
+      <tbody>${sec.steps.map((s, i) => `<tr data-i="${i}" class="${i < boState.step ? "done" : i === boState.step ? "cur" : ""}"><td class="at">${esc(s.at)}</td><td>${iconize(md(s.do))}</td></tr>`).join("")}</tbody></table>
       <div class="lab-row" style="margin-top:10px"><button class="calc-btn" id="bo-prev">◀ Atrás</button><button class="calc-btn primary" id="bo-next">Siguiente ▶ (Espacio)</button>
         <button class="calc-btn" id="bo-reset-steps">Reiniciar pasos</button></div>
       <div class="lab-src">Fuente: <code>${esc(b.note)}</code></div>
@@ -168,8 +208,8 @@ function paintOverlay() {
   const sec = boState.build.sections[boState.sec]; const st = sec.steps;
   o.innerHTML = `<div class="t">${mmss(boTimer.t)} <button id="bo-o-go">${boTimer.run ? "⏸" : "▶"}</button></div>
     <div class="lab-small" style="color:var(--on-dark-dim)">${esc(boState.build.title)} · ${esc(sec.title)}</div>
-    <div class="cur">${st[boState.step] ? `<b>${esc(st[boState.step].at)}</b> ${md(st[boState.step].do)}` : "✔ Sección completa"}</div>
-    ${st.slice(boState.step + 1, boState.step + 4).map((s) => `<div class="nx">${esc(s.at)} · ${md(s.do)}</div>`).join("")}
+    <div class="cur">${st[boState.step] ? `<b>${esc(st[boState.step].at)}</b> ${iconize(md(st[boState.step].do))}` : "✔ Sección completa"}</div>
+    ${st.slice(boState.step + 1, boState.step + 4).map((s) => `<div class="nx">${esc(s.at)} · ${iconize(md(s.do))}</div>`).join("")}
     <div style="margin-top:6px"><button id="bo-o-prev">◀</button> <button id="bo-o-next">▶</button></div>`;
   $("#bo-o-go").onclick = toggleTimer; $("#bo-o-next").onclick = () => nextStep(1); $("#bo-o-prev").onclick = () => nextStep(-1);
 }
@@ -186,7 +226,7 @@ async function timings(body) {
   const T = await get("/api/timings");
   const MAX = 35 * 60, pc = (t) => (t / MAX * 100).toFixed(2) + "%";
   const ticks = [0, 5, 10, 15, 20, 25, 30, 35].map((m) => `<span style="left:${pc(m * 60)}">${m}'</span>`).join("");
-  const row = (label, sub, marks) => `<div class="tl-row"><div class="tl-lbl">${esc(label)}<small>${esc(sub || "")}</small></div><div class="tl-track">${marks}</div></div>`;
+  const row = (label, sub, marks) => `<div class="tl-row"><div class="tl-lbl">${civify(esc(label))}<small>${esc(sub || "")}</small></div><div class="tl-track">${marks}</div></div>`;
   const rows = T.builds.map((b) => {
     let m = "";
     if (b.feudal) m += `<span class="tl-m f" style="left:${pc(b.feudal.t)}" title="Feudal ${mmss(b.feudal.t)}"></span>`;
@@ -199,7 +239,7 @@ async function timings(body) {
   }).join("") + T.imperial.map((i) => row(i.label, i.text, `<span class="tl-m i" style="left:${pc(i.t)}"></span>`)).join("");
   body.innerHTML = `<p class="lab-intro"><b>Benchmarks de timing</b> citados de la wiki — cada fila trae su nota de origen. ${esc(T.ageCosts.feudal)}</p>
     <div class="lab-panel calc-panel"><h3>Línea de tiempo</h3><div class="tl"><div class="tl-axis">${ticks}</div>${rows}</div>
-      <div class="tl-leg"><span class="lab-tag age-1">Feudal</span> <span class="lab-tag age-2">Castle</span> <span class="lab-tag age-3">Imperial</span> la barra de Castle marca un rango o un "antes de".</div>
+      <div class="tl-leg"><span class="lab-tag age-1 has-ico">${ageIco("feudal")}Feudal</span> <span class="lab-tag age-2 has-ico">${ageIco("castle")}Castle</span> <span class="lab-tag age-3 has-ico">${ageIco("imperial")}Imperial</span> la barra de Castle marca un rango o un "antes de".</div>
       <p class="lab-small">${esc(T.eloSignal)}</p></div>
     <div class="lab-grid two">
       <div class="lab-panel calc-panel"><h3>Mi partida vs benchmark</h3>
@@ -230,9 +270,9 @@ function scouting(body) {
     const vs = $("#sc-vs").value; store.set("sc-vs", vs);
     const d = await api(`/api/scouting?vs=${vs}&team=${tp.get().join(",")}`);
     $("#sc-out").innerHTML = `<div class="lab-grid two"><div>${d.stages.map((st) => `<div class="lab-panel calc-panel"><h3>${esc(st.title)} <span class="lab-small">· ${esc(st.when)}</span></h3>
-      <p class="lab-small">${esc(st.tip)}</p>${st.signals.map((s) => `<div class="sc-sig"><div class="s">👁 ${esc(s.signal)}</div><div class="m">→ ${esc(s.means)}</div>
-        <div class="r"><b>Reacción:</b> ${esc(s.reaction)}</div>
-        ${s.who.some((w) => w.can !== null) ? `<div>${s.who.map((w) => `<span class="lab-chip ${w.can ? "ok" : "no"}">${w.can ? "✔" : "✖"} ${esc(civName(w.civ))}${w.unit ? " · " + esc(w.unit) : ""}</span>`).join("")}</div>` : ""}
+      <p class="lab-small">${esc(st.tip)}</p>${st.signals.map((s) => `<div class="sc-sig"><div class="s">👁 ${iconize(esc(s.signal))}</div><div class="m">→ ${iconize(esc(s.means))}</div>
+        <div class="r"><b>Reacción:</b> ${iconize(esc(s.reaction))}</div>
+        ${s.who.some((w) => w.can !== null) ? `<div>${s.who.map((w) => `<span class="lab-chip ${w.can ? "ok" : "no"}">${w.can ? "✔" : "✖"} ${emb(w.civ)}${esc(civName(w.civ))}${w.unit ? " · " + ico(w.unitId, "ico-s") + esc(w.unit) : ""}</span>`).join("")}</div>` : ""}
         <div class="lab-src">${esc(s.source)}</div></div>`).join("")}</div>`).join("")}</div>
       <div>${d.vs ? vsPanel(d.vs) : `<div class="lab-panel calc-panel lab-small">Elegí una civ rival para ver cómo jugarle.</div>`}</div></div>`;
   };
@@ -240,10 +280,10 @@ function scouting(body) {
   $("#sc-vs").onchange = run; run();
 }
 function vsPanel(v) {
-  return `<div class="lab-panel calc-panel"><h3>Contra ${esc(v.name)}</h3><div class="lab-small">${esc(v.specialty)}</div>
+  return `<div class="lab-panel calc-panel"><h3>Contra ${emb(v.civ, "emb-m")}${esc(v.name)}</h3><div class="lab-small">${esc(v.specialty)}</div>
     ${v.phosphor ? `<p>🔥 Phosphor Rush (FC all-in Arabia): <span class="lab-tag ${v.phosphor.tier}">${esc(v.phosphor.tier)}</span> ${esc(v.phosphor.uu || "")} <span class="lab-small">(${esc(v.phosphor.strength || "")})</span></p>` : ""}
-    ${v.counterPlay.length ? `<h4>Cómo jugarle</h4><ul>${v.counterPlay.map((x) => `<li>${md(typeof x === "string" ? x : x.text || JSON.stringify(x))}</li>`).join("")}</ul>` : ""}
-    ${v.weaknesses.length ? `<h4>Debilidades</h4><ul>${v.weaknesses.map((x) => `<li>${esc(x)}</li>`).join("")}</ul>` : ""}</div>`;
+    ${v.counterPlay.length ? `<h4>Cómo jugarle</h4><ul>${v.counterPlay.map((x) => `<li>${iconize(md(typeof x === "string" ? x : x.text || JSON.stringify(x)))}</li>`).join("")}</ul>` : ""}
+    ${v.weaknesses.length ? `<h4>Debilidades</h4><ul>${v.weaknesses.map((x) => `<li>${iconize(esc(x))}</li>`).join("")}</ul>` : ""}</div>`;
 }
 
 // ══ 4. TEAM LAB ══════════════════════════════════════════════════════════
@@ -257,14 +297,14 @@ function team(body) {
     if (d.error) { $("#tm-out").innerHTML = `<div class="lab-panel calc-panel">${esc(d.error)}</div>`; return; }
     $("#tm-out").innerHTML = `<div class="lab-grid two"><div class="lab-panel calc-panel"><h3>Posiciones <span class="lab-small">· ajuste ${d.score}/${d.maxScore}</span></h3>
       ${d.players.map((p) => `<div class="tm-slot"><div class="tm-pos">${p.slot === "flank" ? "Flanco" : p.slot === "pocket" ? "Pocket" : "—"}</div>
-        <div><b>${esc(p.name)}</b> <span class="lab-tag ${p.position}">${p.position}</span> <span class="lab-small">${esc(p.fit)}</span>
+        ${emb(p.civ, "emb-l")}<div><b>${esc(p.name)}</b> <span class="lab-tag ${p.position}">${p.position}</span> <span class="lab-small">${esc(p.fit)}</span>
         <div class="lab-small">${esc(p.specialty)}</div><div>🤝 ${esc(p.teamBonus || "sin bonus de equipo registrado")}</div>
         ${p.notes.slice(0, 2).map((n) => `<div class="lab-small">· ${esc(n)}</div>`).join("")}</div></div>`).join("")}
       ${d.links.length ? `<h4>Sinergias entre los elegidos</h4>${d.links.map((l) => `<div class="lab-small">${l.kind === "bonus" ? "🤝" : "✨"} ${esc(l.text)}</div>`).join("")}` : `<p class="lab-small">Ninguna sinergia directa registrada entre estas civs.</p>`}</div>
       <div class="lab-panel calc-panel"><h3>Cobertura del equipo</h3>
         ${d.gaps.length ? `<p>⚠️ Huecos: <b>${esc(d.gaps.join(", "))}</b></p>` : `<p>✔ Sin huecos de unidades.</p>`}
-        <table class="lab-table"><thead><tr><th>Línea</th>${d.players.map((p) => `<th>${esc(p.name)}</th>`).join("")}</tr></thead><tbody>
-        ${d.coverage.map((c) => `<tr class="${c.gap ? "cov-gap" : ""}"><td>${esc(c.label)}</td>${c.who.map((w) => `<td class="${c.best.includes(w.civ) && w.unit ? "cov-best" : ""}">${w.unit ? esc(w.unit) : "—"}</td>`).join("")}</tr>`).join("")}</tbody></table>
+        <table class="lab-table"><thead><tr><th>Línea</th>${d.players.map((p) => `<th>${emb(p.civ)}${esc(p.name)}</th>`).join("")}</tr></thead><tbody>
+        ${d.coverage.map((c) => `<tr class="${c.gap ? "cov-gap" : ""}"><td>${ico(c.icon, "ico-s")}${esc(c.label)}</td>${c.who.map((w) => `<td class="${c.best.includes(w.civ) && w.unit ? "cov-best" : ""}">${w.unit ? ico(w.unitId, "ico-s") + esc(w.unit) : "—"}</td>`).join("")}</tr>`).join("")}</tbody></table>
         <p class="lab-small">En verde, quien tiene la mejor versión de la línea: es quien conviene que la produzca. Basado en el árbol tecnológico de cada civ.</p></div></div>`;
   };
   civPicker($("#tm-pick"), { max: 4, key: "tm-civs", onChange: run, placeholder: "Agregar civ al equipo…" });
@@ -300,12 +340,12 @@ function draft(body) {
     const d = await api(`/api/draft-vs?vs=${vs.join(",")}&map=${$("#dv-map").value}&slot=${$("#dv-slot").value}&bans=${$("#dv-bans").value}&exclude=${used.join(",")}`);
     if (d.error) { out.innerHTML = `<p class="lab-small">${esc(d.error)}</p>`; return; }
     const max = Math.max(1, ...d.candidates.map((c) => Math.abs(c.score)));
-    out.innerHTML = `${d.phosphorAlert.length ? `<p>🔥 <b>Alerta Phosphor Rush:</b> ${d.phosphorAlert.map((p) => `${esc(p.name)} (tier ${esc(p.tier)}${p.uu ? ", " + esc(p.uu) : ""})`).join(" · ")} — puede ir Fast Castle all-in en mapa abierto; mirá el scouting.</p>` : ""}
-      <div class="lab-grid two"><div><h4>🟢 Mejores picks</h4><ol class="dr-list">${d.candidates.map((c) => `<li><b>${esc(c.name)}</b> <span class="lab-tag ${c.position}">${c.position}</span>
+    out.innerHTML = `${d.phosphorAlert.length ? `<p>🔥 <b>Alerta Phosphor Rush:</b> ${d.phosphorAlert.map((p) => `${emb(p.civ)}${esc(p.name)} (tier ${esc(p.tier)}${p.uu ? ", " + esc(p.uu) : ""})`).join(" · ")} — puede ir Fast Castle all-in en mapa abierto; mirá el scouting.</p>` : ""}
+      <div class="lab-grid two"><div><h4>🟢 Mejores picks</h4><ol class="dr-list">${d.candidates.map((c) => `<li>${emb(c.civ, "emb-m")}<b>${esc(c.name)}</b> <span class="lab-tag ${c.position}">${c.position}</span>
         <span class="lab-small">puntaje ${c.score}</span><span class="dr-bar" style="width:${Math.round(Math.max(0, c.score) / max * 90)}px"></span>
         <div class="lab-small">${c.reasons.map(esc).join(" · ")}</div>
-        ${d.rivals.length > 1 ? `<div class="lab-small">${c.per.map((p) => `${esc(p.name)} ${p.total}`).join(" · ")}</div>` : ""}</li>`).join("")}</ol></div>
-        <div><h4>🔴 Bans sugeridos</h4>${d.bans.length ? `<ol class="dr-list">${d.bans.map((b) => `<li><b>${esc(b.name)}</b> <span class="lab-small">amenaza a tus mejores picks: ${b.threat}</span></li>`).join("")}</ol>
+        ${d.rivals.length > 1 ? `<div class="lab-small">${c.per.map((p) => `${emb(p.vs, "emb-s")}${esc(p.name)} ${p.total}`).join(" · ")}</div>` : ""}</li>`).join("")}</ol></div>
+        <div><h4>🔴 Bans sugeridos</h4>${d.bans.length ? `<ol class="dr-list">${d.bans.map((b) => `<li>${emb(b.civ, "emb-m")}<b>${esc(b.name)}</b> <span class="lab-small">amenaza a tus mejores picks: ${b.threat}</span></li>`).join("")}</ol>
           <p class="lab-small">Las civs del pool rival que más pelean contra tus 3 mejores picks.</p>` : `<p class="lab-small">Sin bans.</p>`}</div></div>
       <p class="lab-src">${esc(d.note)}</p>`;
   };
@@ -337,7 +377,7 @@ function draft(body) {
       $("#dr-out").innerHTML = games.join("");
       $$("#dr-out select").forEach((s) => s.onchange = run);
     };
-    const li = (c, m, f) => `<li><b>${esc(c.name)}</b> <span class="lab-tag ${c.position}">${c.position}</span><span class="lab-small">${c.axes ? `${m} ${c.axes[m]}` : "sin radar"}${m === "open" && c.phosphor ? ` · Phosphor ${c.phosphor}` : ""}</span><span class="dr-bar" style="width:${Math.round(f(c, m) * 6)}px"></span></li>`;
+    const li = (c, m, f) => `<li>${emb(c.slug, "emb-m")}<b>${esc(c.name)}</b> <span class="lab-tag ${c.position}">${c.position}</span><span class="lab-small">${c.axes ? `${m} ${c.axes[m]}` : "sin radar"}${m === "open" && c.phosphor ? ` · Phosphor ${c.phosphor}` : ""}</span><span class="dr-bar" style="width:${Math.round(f(c, m) * 6)}px"></span></li>`;
     const mine = civPicker($("#dr-mine"), { max: 5, key: "dr-mine", onChange: run }), opp = civPicker($("#dr-opp"), { max: 8, key: "dr-opp", onChange: run });
     ["dr-fmt", "dr-bo", "dr-bans"].forEach((id) => $("#" + id).onchange = run); run();
   });
@@ -354,12 +394,16 @@ async function sim(body) {
   SIMCIVS = (await get("/api/sim/civs")).civs;
   const civOpts = (sel) => `<option value="">— sin civ —</option>${SIMCIVS.map((c) => `<option value="${c.slug}" ${c.slug === sel ? "selected" : ""}>${esc(c.name)}</option>`).join("")}`;
   const opts = (sel) => SIM.map((u) => `<option value="${u.id}" ${u.id === sel ? "selected" : ""}>${esc(u.name)}</option>`).join("");
+  const rc = (k) => (ICONS.res[k] ? resIc(k) : "");
+  const unitInfo = (id) => { const u = SIM.find((x) => x.id === id); if (!u) return "";
+    return `${statIco("hp")}${u.hp} ${statIco("attack")}${u.attack} ${statIco("armor")}${u.armor[0]} ${statIco("pierce")}${u.armor[1]}${u.range ? ` ${statIco("range")}${u.range}` : ""} ${statIco("speed")}${u.speed}
+      <span class="sim-cost">${["food", "wood", "gold", "stone"].filter((r) => u.cost[r]).map((r) => `${rc(r)}${u.cost[r]}`).join(" ")}</span>`; };
   const side = (k, label) => `<div class="lab-panel calc-panel"><h3>${label}</h3><div id="sim-${k}">${simDef[k].map((r, i) =>
-    `<div class="sim-row"><select data-k="${k}" data-i="${i}">${opts(r.id)}</select><input type="number" min="1" max="500" value="${r.count}" data-k="${k}" data-i="${i}">
-    ${simDef[k].length > 1 ? `<span class="calc-x" data-del="${k}:${i}">×</span>` : ""}</div>`).join("")}</div>
+    `<div class="sim-unit"><div class="sim-row"><span class="sim-ico">${ico(r.id, "ico-m")}</span><select data-k="${k}" data-i="${i}">${opts(r.id)}</select><input type="number" min="1" max="500" value="${r.count}" data-k="${k}" data-i="${i}">
+    ${simDef[k].length > 1 ? `<span class="calc-x" data-del="${k}:${i}">×</span>` : ""}</div><div class="sim-stats">${unitInfo(r.id)}</div></div>`).join("")}</div>
     ${simDef[k].length < 4 ? `<button class="calc-btn" data-add="${k}">+ unidad</button>` : ""}
-    <div class="lab-row" style="margin-top:8px"><label>Civ<select data-civ="${k}:civ">${civOpts(simDef.civ[k])}</select></label>
-      <label>Aliado (bonus de equipo)<select data-civ="${k}:ally">${civOpts(simDef.ally[k])}</select></label></div>
+    <div class="lab-row" style="margin-top:8px"><label>Civ<span class="sel-ico"><span class="emb-slot">${emb(simDef.civ[k], "emb-m")}</span><select data-emb="civ" data-civ="${k}:civ">${civOpts(simDef.civ[k])}</select></span></label>
+      <label>Aliado (bonus de equipo)<span class="sel-ico"><span class="emb-slot">${emb(simDef.ally[k], "emb-m")}</span><select data-emb="civ" data-civ="${k}:ally">${civOpts(simDef.ally[k])}</select></span></label></div>
     <div class="lab-row" style="margin-top:8px"><label>Ataque +<input type="number" min="0" max="3" value="${simDef.up[k][0]}" data-up="${k}:0" style="width:54px"></label>
       <label>Arm. melee +<input type="number" min="0" max="3" value="${simDef.up[k][1]}" data-up="${k}:1" style="width:54px"></label>
       <label>Arm. perf. +<input type="number" min="0" max="3" value="${simDef.up[k][2]}" data-up="${k}:2" style="width:54px"></label></div></div>`;
@@ -375,7 +419,12 @@ async function sim(body) {
   $$("#view-lab [data-add]").forEach((b) => b.onclick = () => { simDef[b.dataset.add].push({ id: "knight", count: 10 }); sim(body); });
   $$("#view-lab [data-del]").forEach((b) => b.onclick = () => { const [k, i] = b.dataset.del.split(":"); simDef[k].splice(+i, 1); sim(body); });
   $$("#view-lab .sim-row select, #view-lab .sim-row input").forEach((el) => el.onchange = () => {
-    const r = simDef[el.dataset.k][+el.dataset.i]; if (el.tagName === "SELECT") r.id = el.value; else r.count = Math.max(1, +el.value || 1); });
+    const r = simDef[el.dataset.k][+el.dataset.i];
+    if (el.tagName === "SELECT") {
+      r.id = el.value;
+      const w = el.closest(".sim-unit");
+      w.querySelector(".sim-ico").innerHTML = ico(r.id, "ico-m"); w.querySelector(".sim-stats").innerHTML = unitInfo(r.id);
+    } else r.count = Math.max(1, +el.value || 1); });
   $$("#view-lab [data-up]").forEach((el) => el.onchange = () => { const [k, i] = el.dataset.up.split(":"); simDef.up[k][+i] = Math.max(0, Math.min(3, +el.value || 0)); });
   $$("#view-lab [data-civ]").forEach((el) => el.onchange = () => { const [k, f] = el.dataset.civ.split(":"); simDef[f][k] = el.value; saveSim(); });
   $("#sim-age").onchange = (e) => { simDef.age = +e.target.value; saveSim(); };
@@ -387,7 +436,7 @@ async function sim(body) {
         civA: simDef.civ.a, civB: simDef.civ.b, allyA: simDef.ally.a, allyB: simDef.ally.b, age: simDef.age }) }).then((x) => x.json());
     if (r.error) { $("#sim-out").textContent = r.error; return; }
     const tbl = (s, t) => `<table class="lab-table"><thead><tr><th>${t}</th><th>Inicio</th><th>Quedan</th></tr></thead><tbody>${s.rows.map((x) =>
-      `<tr><td>${esc(x.name)}</td><td>${x.start}</td><td><b>${x.left}</b></td></tr>`).join("")}</tbody></table><div class="lab-small">Valor perdido: ${s.lostValue} de ${s.startValue}</div>`;
+      `<tr><td>${ico(x.id, "ico-s")}${esc(x.name)}</td><td>${x.start}</td><td><b>${x.left}</b></td></tr>`).join("")}</tbody></table><div class="lab-small">Valor perdido: ${s.lostValue} de ${s.startValue}</div>`;
     $("#sim-out").innerHTML = `<p class="win">${r.winner === "draw" ? "Empate (sin ganador en 15 min)" : "Gana el ejército " + r.winner} <span class="lab-small">· ${r.seconds} s</span></p>
       <div class="lab-grid two"><div>${tbl(r.a, "A")}</div><div>${tbl(r.b, "B")}</div></div>
       <p>Eficiencia (valor enemigo destruido / valor propio perdido): A <b>${r.efficiency.a ?? "∞"}</b> · B <b>${r.efficiency.b ?? "∞"}</b></p>
@@ -396,7 +445,7 @@ async function sim(body) {
   };
   const picker = { sel: store.get("mx", ["halberdier", "paladin", "arbalester", "eliteskirm", "heavycamel", "champion"]) };
   const drawPick = () => {
-    $("#mx-pick").innerHTML = `${picker.sel.map((id) => `<span class="lab-chip">${esc(SIM.find((u) => u.id === id)?.name || id)}<span class="x" data-x="${id}">×</span></span>`).join("")}
+    $("#mx-pick").innerHTML = `${picker.sel.map((id) => `<span class="lab-chip">${ico(id, "ico-s")}${esc(SIM.find((u) => u.id === id)?.name || id)}<span class="x" data-x="${id}">×</span></span>`).join("")}
       ${picker.sel.length < 14 ? `<select id="mx-add"><option value="">+ unidad…</option>${SIM.filter((u) => !picker.sel.includes(u.id)).map((u) => `<option value="${u.id}">${esc(u.name)}</option>`).join("")}</select>` : ""}`;
     $("#mx-add")?.addEventListener("change", (e) => { if (e.target.value) { picker.sel.push(e.target.value); store.set("mx", picker.sel); drawPick(); } });
     $$("#mx-pick .x").forEach((x) => x.onclick = () => { picker.sel = picker.sel.filter((i) => i !== x.dataset.x); store.set("mx", picker.sel); drawPick(); });
@@ -406,8 +455,8 @@ async function sim(body) {
     const m = await api(`/api/sim/matrix?units=${picker.sel.join(",")}&budget=${$("#mx-bud").value}&civA=${simDef.civ.a}&civB=${simDef.civ.b}&allyA=${simDef.ally.a}&allyB=${simDef.ally.b}&age=${simDef.age}`);
     if (m.error) { $("#mx-out").textContent = m.error; return; }
     const col = (v) => v === 0 ? "transparent" : v > 0 ? `rgba(61,107,23,${0.15 + v * 0.65})` : `rgba(155,43,26,${0.15 + -v * 0.65})`;
-    $("#mx-out").innerHTML = `<table class="mx"><thead><tr><th></th>${m.names.map((n) => `<th class="col">${esc(n)}</th>`).join("")}</tr></thead><tbody>${m.cells.map((r, i) =>
-      `<tr><th>${esc(m.names[i])}</th>${r.map((v, j) => `<td style="background:${col(v)}" title="${esc(m.names[i])} vs ${esc(m.names[j])}">${i === j ? "·" : v.toFixed(2)}</td>`).join("")}</tr>`).join("")}</tbody></table>`;
+    $("#mx-out").innerHTML = `<table class="mx"><thead><tr><th></th>${m.names.map((n, i) => `<th class="col">${ico(m.ids[i], "ico-s")}<span class="vt">${esc(n)}</span></th>`).join("")}</tr></thead><tbody>${m.cells.map((r, i) =>
+      `<tr><th>${ico(m.ids[i], "ico-s")}${esc(m.names[i])}</th>${r.map((v, j) => `<td style="background:${col(v)}" title="${esc(m.names[i])} vs ${esc(m.names[j])}">${i === j ? "·" : v.toFixed(2)}</td>`).join("")}</tr>`).join("")}</tbody></table>`;
   };
 }
 
@@ -421,12 +470,12 @@ function compare(body) {
     if (!a || !b) return;
     const d = await api(`/api/compare?a=${a}&b=${b}`);
     if (d.error) { $("#cp-out").innerHTML = `<div class="lab-panel calc-panel">${esc(d.error)}</div>`; return; }
-    const card = (c) => `<div class="lab-panel calc-panel"><h3 class="lab-hero">${esc(c.name)} <span class="lab-tag ${c.position}">${c.position}</span>${c.phosphor ? ` <span class="lab-tag ${c.phosphor}">FC ${c.phosphor}</span>` : ""}</h3>
+    const card = (c) => `<div class="lab-panel calc-panel"><h3 class="lab-hero"><span class="hero-emb">${emb(c.slug, "emb-xl")}</span>${esc(c.name)} <span class="lab-tag ${c.position}">${c.position}</span>${c.phosphor ? ` <span class="lab-tag ${c.phosphor}">FC ${c.phosphor}</span>` : ""}</h3>
       <div class="lab-small">${esc(c.specialty)}</div><p>🤝 ${esc(c.teamBonus || "—")}</p>
       <h4>Fortalezas</h4><ul>${c.strengths.map((x) => `<li>${esc(x)}</li>`).join("")}</ul><h4>Debilidades</h4><ul>${c.weaknesses.map((x) => `<li>${esc(x)}</li>`).join("")}</ul></div>`;
     const bars = (la, lb, labels) => la && lb ? labels.map((l, i) => `<span>${l}</span><span class="b"><i style="width:${la[i] * 10}%"></i></span><span class="b r"><i style="width:${lb[i] * 10}%"></i></span>`).join("") : "<span class='lab-small'>sin radar</span>";
     const list = (arr, n) => `<div class="lab-panel calc-panel"><h3>Solo ${esc(n)} <span class="lab-small">(${arr.length})</span></h3><div class="cmp-diff">${arr.map((x) =>
-      `<div>${x.imgPath ? `<img src="/tree/${x.imgPath}" alt="">` : ""} ${esc(x.name)} <span class="lab-small">${x.kind === "tech" ? "tech" : x.kind}</span></div>`).join("") || "—"}</div></div>`;
+      `<div>${ico(x.id, "ico-s") || (x.imgPath ? `<img class="ico k-${x.kind} ico-s" src="/tree/${x.imgPath}" alt="">` : "")}${esc(x.name)} <span class="lab-small">${x.kind === "tech" ? "tech" : x.kind}</span></div>`).join("") || "—"}</div></div>`;
     $("#cp-out").innerHTML = `<div class="lab-grid two">${card(d.a)}${card(d.b)}</div>
       <div class="lab-panel calc-panel"><h3>Radar <span class="lab-small">· <span class="cmp-key"></span>${esc(d.a.name)} <span class="cmp-key r"></span>${esc(d.b.name)}</span></h3>
         <div class="lab-grid two"><div class="cmp-bars">${bars(d.a.phase, d.b.phase, AX)}</div><div class="cmp-bars">${bars(d.a.category, d.b.category, CT)}</div></div></div>
@@ -454,7 +503,10 @@ async function study(body) {
     if (!c) { el.innerHTML = `<p class="st-q">✔ No quedan tarjetas pendientes por hoy.</p>`; return; }
     const pool = [...new Set(cards.filter((x) => x.type === c.type && x.a !== c.a).map((x) => x.a))];
     const opts = (c.fixed || [c.a, ...pool.sort(() => Math.random() - .5).slice(0, 3)]).slice().sort(() => Math.random() - .5);
-    el.innerHTML = `<div class="st-q">${esc(c.q)}</div>${opts.map((o) => `<button class="st-opt" data-o="${esc(o)}">${esc(o)}</button>`).join("")}<div class="lab-src">${esc(c.source)}</div>`;
+    const civOf = (name) => CIVS.find((x) => x.name === name)?.slug;
+    const qCiv = ["position", "phosphor"].includes(c.type) ? c.id.split(":")[1] : null;   // en estas tarjetas la civ es parte de la pregunta
+    const withEmb = ["teambonus", "specialty"].includes(c.type);                              // en estas la civ es la respuesta
+    el.innerHTML = `<div class="st-q">${qCiv ? emb(qCiv, "emb-l") : ""}${esc(c.q)}</div>${opts.map((o) => `<button class="st-opt" data-o="${esc(o)}">${withEmb ? emb(civOf(o), "emb-m") : ""}${esc(o)}</button>`).join("")}<div class="lab-src">${esc(c.source)}</div>`;
     $$(".st-opt", el).forEach((b) => b.onclick = () => {
       const ok = b.dataset.o === c.a;
       $$(".st-opt", el).forEach((x) => { x.disabled = true; if (x.dataset.o === c.a) x.classList.add("right"); });
@@ -485,30 +537,31 @@ function mdInline(s, ctx) {
     })
     .replace(/\*\*(.+?)\*\*/g, "<b>$1</b>").replace(/(^|[^*])\*([^*\n]+)\*/g, "$1<i>$2</i>");
 }
+const mdIcons = (s, ctx) => iconize(mdInline(s, ctx));
 const slugOf = (s) => String(s).normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
 function mdBlock(md, ctx) {
   const lines = md.split("\n"), out = [];
   for (let i = 0; i < lines.length; i++) {
     const l = lines[i];
     if (!l.trim()) continue;
-    if (/^### /.test(l)) { out.push(`<h4>${mdInline(l.slice(4), ctx)}</h4>`); continue; }
+    if (/^### /.test(l)) { out.push(`<h4>${mdIcons(l.slice(4), ctx)}</h4>`); continue; }
     if (/^\|/.test(l)) {
       const rows = [];
       while (i < lines.length && /^\|/.test(lines[i])) { rows.push(lines[i]); i++; } i--;
       const cell = (r) => r.trim().replace(/^\||\|$/g, "").split(/(?<!\\)\|/);
       const [head, , ...body] = rows;
-      out.push(`<table class="lab-table"><thead><tr>${cell(head).map((c) => `<th>${mdInline(c.trim(), ctx)}</th>`).join("")}</tr></thead><tbody>${body.map((r) =>
-        `<tr>${cell(r).map((c) => `<td>${mdInline(c.trim(), ctx)}</td>`).join("")}</tr>`).join("")}</tbody></table>`);
+      out.push(`<table class="lab-table"><thead><tr>${cell(head).map((c) => `<th>${mdIcons(c.trim(), ctx)}</th>`).join("")}</tr></thead><tbody>${body.map((r) =>
+        `<tr>${cell(r).map((c) => `<td>${mdIcons(c.trim(), ctx)}</td>`).join("")}</tr>`).join("")}</tbody></table>`);
       continue;
     }
     if (/^\s*([-*]|\d+\.) /.test(l)) {
       const ordered = /^\s*\d+\. /.test(l), items = [];
       while (i < lines.length && /^\s*([-*]|\d+\.) /.test(lines[i])) { items.push(lines[i].replace(/^\s*([-*]|\d+\.) /, "")); i++; } i--;
-      out.push(`<${ordered ? "ol" : "ul"}>${items.map((x) => `<li>${mdInline(x, ctx)}</li>`).join("")}</${ordered ? "ol" : "ul"}>`);
+      out.push(`<${ordered ? "ol" : "ul"}>${items.map((x) => `<li>${mdIcons(x, ctx)}</li>`).join("")}</${ordered ? "ol" : "ul"}>`);
       continue;
     }
     const para = [l]; while (i + 1 < lines.length && lines[i + 1].trim() && !/^(###|\||\s*([-*]|\d+\.) )/.test(lines[i + 1])) para.push(lines[++i]);
-    out.push(`<p>${mdInline(para.join(" "), ctx)}</p>`);
+    out.push(`<p>${mdIcons(para.join(" "), ctx)}</p>`);
   }
   return out.join("");
 }
@@ -549,10 +602,10 @@ async function maps(body) {
       ${m.relatedMaps.length ? `<div class="lab-small">Relacionados: ${m.relatedMaps.map((r) => `<a href="#" data-map="${r.slug}">${esc(r.name)}</a>`).join(" · ")}</div>` : ""}</div>
       <div class="lab-grid two"><div>${m.sections.map((s, i) => `<details class="lab-panel calc-panel mp-sec" ${secOpen(i, s.title) ? "open" : ""}><summary><b>${esc(s.title)}</b></summary>${mdBlock(s.md, ctx)}</details>`).join("")}</div>
         <div>${m.highlights.length ? `<div class="lab-panel calc-panel"><h3>Civs que destacan <span class="lab-small">(wiki)</span></h3>${m.highlights.map((h) =>
-          `<div style="margin:6px 0"><span class="lab-small">${h.negative ? "⚠️ " : ""}${esc(h.profile)}</span><div>${h.civs.map((c, i) => `<span class="lab-chip ${h.negative ? "no" : ""} mp-civ" data-civ="${h.slugs[i] || ""}">${esc(c)}</span>`).join("")}</div></div>`).join("")}</div>` : ""}
+          `<div style="margin:6px 0"><span class="lab-small">${h.negative ? "⚠️ " : ""}${esc(h.profile)}</span><div>${h.civs.map((c, i) => `<span class="lab-chip ${h.negative ? "no" : ""} mp-civ" data-civ="${h.slugs[i] || ""}">${emb(h.slugs[i])}${esc(c)}</span>`).join("")}</div></div>`).join("")}</div>` : ""}
           ${m.radarTop ? `<div class="lab-panel calc-panel"><h3>Según el radar <span class="lab-small">(${esc(m.radarTop.basis)})</span></h3>
-            <div class="lab-small">Mejor puntuadas para este tipo de mapa</div><div>${m.radarTop.top.map((c) => `<span class="lab-chip mp-civ" data-civ="${c.slug}">${esc(c.name)} ${c.score}</span>`).join("")}</div>
-            <div class="lab-small" style="margin-top:6px">Peor puntuadas</div><div>${m.radarTop.bottom.map((c) => `<span class="lab-chip no mp-civ" data-civ="${c.slug}">${esc(c.name)} ${c.score}</span>`).join("")}</div>
+            <div class="lab-small">Mejor puntuadas para este tipo de mapa</div><div>${m.radarTop.top.map((c) => `<span class="lab-chip mp-civ" data-civ="${c.slug}">${emb(c.slug)}${esc(c.name)} ${c.score}</span>`).join("")}</div>
+            <div class="lab-small" style="margin-top:6px">Peor puntuadas</div><div>${m.radarTop.bottom.map((c) => `<span class="lab-chip no mp-civ" data-civ="${c.slug}">${emb(c.slug)}${esc(c.name)} ${c.score}</span>`).join("")}</div>
             <p class="lab-src">El radar califica por tipo de mapa, no por este mapa en particular. Clic en una civ para compararla.</p></div>` : `<div class="lab-panel calc-panel lab-small">Este tipo de mapa no tiene un eje equivalente en el radar de civs.</div>`}
           <p class="lab-src">Fuente: <code>${esc(m.note)}</code></p></div></div>`;
     $("#mp-back").onclick = () => { $("#mp-detail").innerHTML = ""; $("#mp-list").style.display = ""; store.set("map", ""); };

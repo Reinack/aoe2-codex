@@ -2413,10 +2413,11 @@ const calcState = {
   supply: { bySource: {}, techs: [], contributors: [], passive: { relics: 0, tradeCarts: 0, feitorias: 0, relicMods: [], trade: { map: 'medium', distance: 0, caravan: false, mods: [] } } },
 };
 const PASSIVE_MODS = [
-  ['aztec_team', 'Aztecs (equipo): reliquias +33% oro'], ['burgundian_team', 'Burgundians (equipo): reliquias dan comida'],
-  ['spanish_team', 'Spanish (equipo): trade +25% oro'], ['bengali_team', 'Bengalis (equipo): trade +10% comida'],
-  ['grand_trunk_road', 'Grand Trunk Road (Hindustanis): +10%'],
+  ['aztec_team', 'Aztecs (equipo): reliquias +33% oro', 'aztecs'], ['burgundian_team', 'Burgundians (equipo): reliquias dan comida', 'burgundians'],
+  ['spanish_team', 'Spanish (equipo): trade +25% oro', 'spanish'], ['bengali_team', 'Bengalis (equipo): trade +10% comida', 'bengalis'],
+  ['grand_trunk_road', 'Grand Trunk Road (Hindustanis): +10%', 'hindustanis'],
 ];
+const TRADE_CART_IMG = '/tree/img/Unit/34.png';
 
 async function initCalc() {
   if (calcInited) return;
@@ -2558,7 +2559,7 @@ function initPassiveUi() {
   sel.innerHTML = Object.entries(T.mapSizes).map(([k, v]) => `<option value="${k}" ${k === 'medium' ? 'selected' : ''}>${ES[k] || k} (${v})</option>`).join('');
   document.getElementById('calc-mods').innerHTML = PASSIVE_MODS
     .filter(([id]) => R.mods?.[id] || T.mods?.[id])
-    .map(([id, label]) => `<label><input type="checkbox" data-pmod="${id}"> ${esc(label)}</label>`).join('');
+    .map(([id, label, civ]) => `<label><input type="checkbox" data-pmod="${id}"> <img class="emblem" src="${EMB(civ)}" alt=""> ${esc(label)}</label>`).join('');
   document.querySelectorAll('[data-pmod]').forEach(c => c.onchange = readPassive);
   const size = () => T.mapSizes[sel.value];
   document.getElementById('sup-diag').onclick = () => { document.getElementById('sup-dist').value = Math.round(size() * Math.SQRT2); readPassive(); };
@@ -2588,12 +2589,13 @@ async function showPassiveDetail() {
     body: JSON.stringify({ passive: p }) }).then(x => x.json()).catch(() => null);
   const d = r && r.passiveDetail; if (!d) { box.innerHTML = ''; return; }
   const lines = [];
-  if (d.relics) lines.push(`<div>🏛️ ${d.relics.count} reliquia(s): ${d.relics.perRelicPerMin.gold} oro${d.relics.perRelicPerMin.food ? ` + ${d.relics.perRelicPerMin.food} comida` : ''}/min c/u → <b>${d.relics.total.gold} oro${d.relics.total.food ? ` + ${d.relics.total.food} comida` : ''}/min</b></div>`);
+  if (d.relics) lines.push(`<div>🏛️ ${d.relics.count} reliquia(s): ${d.relics.perRelicPerMin.gold} ${resIco('gold')}${d.relics.perRelicPerMin.food ? ` + ${d.relics.perRelicPerMin.food} ${resIco('food')}` : ''}/min c/u → <b>${d.relics.total.gold} ${resIco('gold')}${d.relics.total.food ? ` + ${d.relics.total.food} ${resIco('food')}` : ''}/min</b></div>`);
   if (d.trade) {
     const t = d.trade;
+    const tc = `<img class="ic" src="${TRADE_CART_IMG}" alt="Trade cart">`;
     lines.push(t.mode === 'distancia'
-      ? `<div>🐫 ${t.carts} carts · ${t.goldPerTrip} oro/viaje · viaje de ${t.tripSec} s → ${t.perCartPerMin.gold} oro/min c/u → <b>${t.total.gold} oro${t.total.food ? ` + ${t.total.food} comida` : ''}/min</b></div>`
-      : `<div>🐫 ${t.carts} carts a valor plano (${t.perCartPerMin.gold} oro/min c/u) → <b>${t.total.gold} oro/min</b>. Indicá la distancia entre Markets para usar la fórmula.</div>`);
+      ? `<div>${tc} ${t.carts} carts · ${t.goldPerTrip} ${resIco('gold')}/viaje · viaje de ${t.tripSec} s → ${t.perCartPerMin.gold} ${resIco('gold')}/min c/u → <b>${t.total.gold} ${resIco('gold')}${t.total.food ? ` + ${t.total.food} ${resIco('food')}` : ''}/min</b></div>`
+      : `<div>${tc} ${t.carts} carts a valor plano (${t.perCartPerMin.gold} oro/min c/u) → <b>${t.total.gold} oro/min</b>. Indicá la distancia entre Markets para usar la fórmula.</div>`);
   }
   box.innerHTML = lines.join('');
 }
@@ -2674,7 +2676,7 @@ function renderResult(r) {
   const notes = (r.heuristics || []).map(h => `<div>• ${esc(h)}</div>`).join('');
   const pd = r.passiveDetail || {};
   const passiveNote = (pd.relics || pd.trade)
-    ? `<div>💰 Ingreso pasivo: ${['gold', 'food'].filter(k => r.passiveIncome[k] > 0).map(k => `${r.passiveIncome[k]} ${RES_ES[k]}/min`).join(' + ')}${pd.trade && pd.trade.mode === 'distancia' ? ` (trade: ${pd.trade.goldPerTrip} oro/viaje)` : ''}</div>` : '';
+    ? `<div>💰 Ingreso pasivo: ${['gold', 'food'].filter(k => r.passiveIncome[k] > 0).map(k => `${r.passiveIncome[k]} ${resIco(k)}/min`).join(' + ')}${pd.trade && pd.trade.mode === 'distancia' ? ` (trade: ${pd.trade.goldPerTrip} oro/viaje)` : ''}</div>` : '';
   const ai = ({dark:0,feudal:1,castle:2,imperial:3})[calcState.age];
   const civNote = r.appliedCivMods ? `<div>Bonos aplicados: ${r.appliedCivMods.filter(m=>m.type!=='gen'||true).map(m =>
     m.type === 'cost' ? `${m.scope} ${m.resource} ×${m.valueByAge[ai]}`
