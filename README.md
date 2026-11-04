@@ -153,13 +153,13 @@ Vista **🧪 Lab** del frontend Express (`web/public/lab.js`). Todo se sirve des
 
 ```bash
 cd web
-npm run data:lab        # build-orders.json + team-roles.json
+npm run data:lab        # build-orders.json + team-roles.json + civ-combat.json
 ```
 
 `timings.json` y `scouting-tree.json` están curados a mano, con la nota de origen de cada
 línea. Rutas: `/api/build-orders`, `/api/timings`, `/api/scouting`, `/api/team`, `/api/draft-data`,
 `/api/compare`, `/api/sim`, `/api/sim/matrix`, `/api/quiz`. El simulador (`web/lib/sim.mjs`) es una
-aproximación: sin hit&run, sin selección de objetivo, sin bonos de civ.
+aproximación: sin hit&run ni selección de objetivo; aplica bonos de civ/equipo y costos por edad, pero no techs ni unidades únicas.
 
 ## Tech-tree → grafo (Fase 6 + Fix 5)
 

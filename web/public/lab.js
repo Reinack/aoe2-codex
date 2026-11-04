@@ -316,24 +316,32 @@ function draft(body) {
 }
 
 // ══ 6. SIMULADOR ═════════════════════════════════════════════════════════
-const simDef = { a: [{ id: "paladin", count: 10 }], b: [{ id: "halberdier", count: 20 }], up: { a: [0, 0, 0], b: [0, 0, 0] } };
-let SIM = null;
+const simDef = store.get("simdef", null) || { a: [{ id: "paladin", count: 10 }], b: [{ id: "halberdier", count: 20 }], up: { a: [0, 0, 0], b: [0, 0, 0] },
+  civ: { a: "", b: "" }, ally: { a: "", b: "" }, age: 3 };
+simDef.civ ||= { a: "", b: "" }; simDef.ally ||= { a: "", b: "" }; if (simDef.age === undefined) simDef.age = 3;
+const saveSim = () => store.set("simdef", simDef);
+let SIM = null, SIMCIVS = [];
 async function sim(body) {
   SIM = (await get("/api/sim/catalog")).units;
+  SIMCIVS = (await get("/api/sim/civs")).civs;
+  const civOpts = (sel) => `<option value="">— sin civ —</option>${SIMCIVS.map((c) => `<option value="${c.slug}" ${c.slug === sel ? "selected" : ""}>${esc(c.name)}</option>`).join("")}`;
   const opts = (sel) => SIM.map((u) => `<option value="${u.id}" ${u.id === sel ? "selected" : ""}>${esc(u.name)}</option>`).join("");
   const side = (k, label) => `<div class="lab-panel calc-panel"><h3>${label}</h3><div id="sim-${k}">${simDef[k].map((r, i) =>
     `<div class="sim-row"><select data-k="${k}" data-i="${i}">${opts(r.id)}</select><input type="number" min="1" max="500" value="${r.count}" data-k="${k}" data-i="${i}">
     ${simDef[k].length > 1 ? `<span class="calc-x" data-del="${k}:${i}">×</span>` : ""}</div>`).join("")}</div>
     ${simDef[k].length < 4 ? `<button class="calc-btn" data-add="${k}">+ unidad</button>` : ""}
+    <div class="lab-row" style="margin-top:8px"><label>Civ<select data-civ="${k}:civ">${civOpts(simDef.civ[k])}</select></label>
+      <label>Aliado (bonus de equipo)<select data-civ="${k}:ally">${civOpts(simDef.ally[k])}</select></label></div>
     <div class="lab-row" style="margin-top:8px"><label>Ataque +<input type="number" min="0" max="3" value="${simDef.up[k][0]}" data-up="${k}:0" style="width:54px"></label>
       <label>Arm. melee +<input type="number" min="0" max="3" value="${simDef.up[k][1]}" data-up="${k}:1" style="width:54px"></label>
       <label>Arm. perf. +<input type="number" min="0" max="3" value="${simDef.up[k][2]}" data-up="${k}:2" style="width:54px"></label></div></div>`;
-  body.innerHTML = `<p class="lab-intro"><b>Simulador de combate</b> ejército vs ejército con stats y bonus del vault/árbol. <b>Es una aproximación</b>: sin hit&run, sin selección de objetivo, sin bonos de civ ni mejoras de HP.
+  body.innerHTML = `<p class="lab-intro"><b>Simulador de combate</b> ejército vs ejército con stats y bonus del vault/árbol. <b>Es una aproximación</b>: sin hit&run ni selección de objetivo; aplica bonos de civ y de equipo (y descuentos de costo) según la edad, pero no techs únicas ni unidades únicas.
     Útil para comparar tendencias (¿cuántos Halberdiers por Paladín?), no para predecir una pelea exacta.</p>
     <div class="lab-grid two">${side("a", "Ejército A")}${side("b", "Ejército B")}</div>
-    <div class="lab-panel calc-panel"><div class="lab-row"><label>Distancia inicial (casillas)<input type="number" id="sim-gap" min="1" max="30" value="10" style="width:70px"></label>
+    <div class="lab-panel calc-panel"><div class="lab-row"><label>Edad<select id="sim-age">${["Dark", "Feudal", "Castle", "Imperial"].map((n, i) => `<option value="${i}" ${i === simDef.age ? "selected" : ""}>${n}</option>`).join("")}</select></label>
+      <label>Distancia inicial (casillas)<input type="number" id="sim-gap" min="1" max="30" value="10" style="width:70px"></label>
       <button class="calc-btn primary" id="sim-go">Simular</button></div><div id="sim-out" class="sim-res"></div></div>
-    <div class="lab-panel calc-panel"><h3>Matriz de eficiencia de costo</h3><p class="lab-small">Cada celda enfrenta a igual valor en recursos. Positivo (verde) = gana la unidad de la fila; negativo (rojo) = gana la de la columna; magnitud = valor sobrante del ganador / presupuesto.</p>
+    <div class="lab-panel calc-panel"><h3>Matriz de eficiencia de costo</h3><p class="lab-small">Usa las civs, aliados y edad elegidos arriba (fila = civ A, columna = civ B). Cada celda enfrenta a igual valor en recursos. Positivo (verde) = gana la unidad de la fila; negativo (rojo) = gana la de la columna; magnitud = valor sobrante del ganador / presupuesto.</p>
       <div class="lab-row"><label style="flex:1">Unidades<div id="mx-pick"></div></label><label>Presupuesto<input type="number" id="mx-bud" value="2000" step="500" min="500" style="width:80px"></label><button class="calc-btn primary" id="mx-go">Calcular</button></div>
       <div id="mx-out" class="mx-wrap"></div></div>`;
   $$("#view-lab [data-add]").forEach((b) => b.onclick = () => { simDef[b.dataset.add].push({ id: "knight", count: 10 }); sim(body); });
@@ -341,16 +349,21 @@ async function sim(body) {
   $$("#view-lab .sim-row select, #view-lab .sim-row input").forEach((el) => el.onchange = () => {
     const r = simDef[el.dataset.k][+el.dataset.i]; if (el.tagName === "SELECT") r.id = el.value; else r.count = Math.max(1, +el.value || 1); });
   $$("#view-lab [data-up]").forEach((el) => el.onchange = () => { const [k, i] = el.dataset.up.split(":"); simDef.up[k][+i] = Math.max(0, Math.min(3, +el.value || 0)); });
+  $$("#view-lab [data-civ]").forEach((el) => el.onchange = () => { const [k, f] = el.dataset.civ.split(":"); simDef[f][k] = el.value; saveSim(); });
+  $("#sim-age").onchange = (e) => { simDef.age = +e.target.value; saveSim(); };
   $("#sim-go").onclick = async () => {
+    saveSim();
     const u = (k) => ({ attack: simDef.up[k][0], armMelee: simDef.up[k][1], armPierce: simDef.up[k][2] });
     const r = await fetch("/api/sim", { method: "POST", headers: { "content-type": "application/json" },
-      body: JSON.stringify({ a: simDef.a, b: simDef.b, gap: +$("#sim-gap").value, upgradesA: u("a"), upgradesB: u("b") }) }).then((x) => x.json());
+      body: JSON.stringify({ a: simDef.a, b: simDef.b, gap: +$("#sim-gap").value, upgradesA: u("a"), upgradesB: u("b"),
+        civA: simDef.civ.a, civB: simDef.civ.b, allyA: simDef.ally.a, allyB: simDef.ally.b, age: simDef.age }) }).then((x) => x.json());
     if (r.error) { $("#sim-out").textContent = r.error; return; }
     const tbl = (s, t) => `<table class="lab-table"><thead><tr><th>${t}</th><th>Inicio</th><th>Quedan</th></tr></thead><tbody>${s.rows.map((x) =>
       `<tr><td>${esc(x.name)}</td><td>${x.start}</td><td><b>${x.left}</b></td></tr>`).join("")}</tbody></table><div class="lab-small">Valor perdido: ${s.lostValue} de ${s.startValue}</div>`;
     $("#sim-out").innerHTML = `<p class="win">${r.winner === "draw" ? "Empate (sin ganador en 15 min)" : "Gana el ejército " + r.winner} <span class="lab-small">· ${r.seconds} s</span></p>
       <div class="lab-grid two"><div>${tbl(r.a, "A")}</div><div>${tbl(r.b, "B")}</div></div>
       <p>Eficiencia (valor enemigo destruido / valor propio perdido): A <b>${r.efficiency.a ?? "∞"}</b> · B <b>${r.efficiency.b ?? "∞"}</b></p>
+      ${["a", "b"].map((k) => { const c = r.civs[k]; return (c.civ || c.ally) ? `<div class="lab-small"><b>Bonos aplicados ${k.toUpperCase()}</b> (${esc(civName(c.civ) || "—")}${c.ally ? " + equipo " + esc(civName(c.ally)) : ""}): ${c.applied.length ? esc(c.applied.join(" · ")) : "ninguno sobre estas unidades"}${c.warnings.length ? `<br>⚠️ ${esc(c.warnings.join(" · "))}` : ""}</div>` : ""; }).join("")}
       <p class="lab-src">Limitaciones: ${esc(r.caveats.join(" · "))}</p>`;
   };
   const picker = { sel: store.get("mx", ["halberdier", "paladin", "arbalester", "eliteskirm", "heavycamel", "champion"]) };
@@ -362,7 +375,7 @@ async function sim(body) {
   };
   drawPick();
   $("#mx-go").onclick = async () => {
-    const m = await api(`/api/sim/matrix?units=${picker.sel.join(",")}&budget=${$("#mx-bud").value}`);
+    const m = await api(`/api/sim/matrix?units=${picker.sel.join(",")}&budget=${$("#mx-bud").value}&civA=${simDef.civ.a}&civB=${simDef.civ.b}&allyA=${simDef.ally.a}&allyB=${simDef.ally.b}&age=${simDef.age}`);
     if (m.error) { $("#mx-out").textContent = m.error; return; }
     const col = (v) => v === 0 ? "transparent" : v > 0 ? `rgba(61,107,23,${0.15 + v * 0.65})` : `rgba(155,43,26,${0.15 + -v * 0.65})`;
     $("#mx-out").innerHTML = `<table class="mx"><thead><tr><th></th>${m.names.map((n) => `<th class="col">${esc(n)}</th>`).join("")}</tr></thead><tbody>${m.cells.map((r, i) =>

@@ -15,7 +15,7 @@ Todo vive en la vista **🧪 Lab** del frontend Express (`web/public/lab.js` + `
 | 3 | Draft / pick-ban | ✅ hecho (versión simple) | pestaña *Draft*; puntúa con el radar del vault + tier Phosphor, formatos 1v1–4v4, Bo1/3/5. No modela al rival concreto |
 | 4 | Team Lab | ✅ hecho | pestaña *Team Lab*; `scripts/build-team-roles.mjs` (56 civs), asignación flanco/pocket, sinergias, cobertura de líneas y huecos |
 | 5 | Árbol de scouting | ✅ hecho | pestaña *Scouting*; `data/scouting-tree.json` (16 señales) + counter-play del rival + quién del equipo ejecuta cada respuesta |
-| 6 | Simulador + matriz de costo | ✅ hecho (aproximado) | pestaña *Simulador*; `lib/sim.mjs` (35 unidades, con tests). Sin hit&run, sin bonos de civ |
+| 6 | Simulador + matriz de costo | ✅ hecho (aproximado) | pestaña *Simulador*; `lib/sim.mjs` (35 unidades, con tests). Aplica bonos de civ, bonus de equipo del aliado y descuentos de costo según la edad (`data/civ-combat.json`). Sin hit&run, techs únicas ni unidades únicas |
 | 7 | Comparador civ vs civ | ✅ hecho | pestaña *Comparar civs*; solo lo que difiere en los árboles |
 | 12 | Quiz con repetición espaciada | ✅ hecho | pestaña *Estudio*; 195 tarjetas, cajas de Leitner en `localStorage` |
 | 8 | Stats de ladder | ⏳ pendiente | requiere decidir fuente externa (API pública) y cómo mostrarla sin pisar al vault |
@@ -24,7 +24,7 @@ Todo vive en la vista **🧪 Lab** del frontend Express (`web/public/lab.js` + `
 | 11 | Tracker de parches | ⏳ pendiente | necesita dos versiones del árbol para diferenciar |
 | 13–17 | Hotkeys, replays, perfiles/torneos, constructor de civs, API alternativa | ⏳ pendiente | dependen de datos o servicios externos / fuera del núcleo |
 
-Para regenerar los datos del Lab tras cambios en la wiki: `cd web && npm run data:lab`.
+Para regenerar los datos del Lab tras cambios en la wiki o en el árbol: `cd web && npm run data:lab` (build orders, roles de equipo y bonos de combate).
 
 ---
 

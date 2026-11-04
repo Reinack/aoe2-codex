@@ -4,7 +4,7 @@
 import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { simCatalog, simulate, simMatrix } from "./sim.mjs";
+import { simCatalog, simCivs, simulate, simMatrix } from "./sim.mjs";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const DATA = join(__dirname, "..", "data");
@@ -211,18 +211,21 @@ export function registerLab(app, { CIV_AVAILABLE }) {
     try { res.json({ units: await simCatalog() }); }
     catch (e) { console.error(e); bad(res, String(e.message || e), 500); }
   });
+  app.get("/api/sim/civs", (_req, res) => res.json({ civs: simCivs().map((c) => ({ ...c, name: TEAM[c.slug]?.name || c.slug })) }));
   app.post("/api/sim", async (req, res) => {
     try {
-      const { a, b, gap, upgradesA, upgradesB } = req.body || {};
+      const { a, b, gap, upgradesA, upgradesB, civA, civB, allyA, allyB, age } = req.body || {};
       if (!Array.isArray(a) || !Array.isArray(b)) return bad(res, "a y b deben ser listas de {id, count}");
-      res.json(await simulate(a.slice(0, 6), b.slice(0, 6), { gap, upgradesA, upgradesB }));
+      res.json(await simulate(a.slice(0, 6), b.slice(0, 6), { gap, upgradesA, upgradesB, civA, civB, allyA, allyB, age }));
     } catch (e) { bad(res, String(e.message || e)); }
   });
   app.get("/api/sim/matrix", async (req, res) => {
     try {
       const ids = String(req.query.units || "").split(",").map((s) => s.trim()).filter(Boolean).slice(0, 16);
       if (ids.length < 2) return bad(res, "elegí al menos 2 unidades");
-      res.json(await simMatrix(ids, { budget: Math.max(500, Math.min(10000, +req.query.budget || 2000)), gap: +req.query.gap || 10 }));
+      const q = req.query;
+      res.json(await simMatrix(ids, { budget: Math.max(500, Math.min(10000, +q.budget || 2000)), gap: +q.gap || 10,
+        civA: q.civA, civB: q.civB, allyA: q.allyA, allyB: q.allyB, age: q.age === undefined ? undefined : +q.age }));
     } catch (e) { console.error(e); bad(res, String(e.message || e), 500); }
   });
 
