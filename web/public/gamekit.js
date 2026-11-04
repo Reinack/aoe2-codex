@@ -147,12 +147,14 @@
   addEventListener("scroll", hide, true); addEventListener("resize", hide); addEventListener("blur", hide);
 
   // ── Automático: [data-gk-auto] ────────────────────────────────────────────
-  const SKIP = new Set(["SCRIPT", "STYLE", "TEXTAREA", "INPUT", "SELECT", "OPTION", "BUTTON", "CODE", "PRE", "SVG", "IMG", "NOSCRIPT"]);
+  // Los títulos (h1–h4) y las pestañas/etiquetas no se tocan: el ícono va en el texto corrido, no en el rótulo.
+  // (se mira cualquier ancestro, no solo el padre: un <b> dentro de un <h3> también queda afuera)
+  const SKIP = "script,style,textarea,input,select,option,button,code,pre,svg,img,noscript,h1,h2,h3,h4,summary,.ic-run,[data-gk-skip],.gk-tip";
   function enhance(root, mode = "items") {
     if (D === EMPTY) return;
     const w = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, { acceptNode(n) {
       const p = n.parentElement;
-      if (!p || SKIP.has(p.tagName) || p.closest(".ic-run, [data-gk-skip], .gk-tip")) return NodeFilter.FILTER_REJECT;
+      if (!p || p.closest(SKIP)) return NodeFilter.FILTER_REJECT;
       return n.nodeValue.trim().length > 2 ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT;
     } });
     const nodes = []; while (w.nextNode()) nodes.push(w.currentNode);

@@ -1049,7 +1049,7 @@ let lastMatchup = null;
 function civBadge(civ, tiers) {
   const arabTier = tiers?.find(t => t.list.toLowerCase().includes('arabia'));
   const tierBadge = arabTier ? `<span class="mu-tier-badge">${esc(arabTier.tier)}</span>` : '';
-  return `<div class="mu-title">
+  return `<div class="mu-title" data-gk-skip>
     <img src="/img/civs/${esc(civ.slug.toLowerCase())}.png" alt="" onerror="this.style.display='none'">
     <div><b>${esc(civ.title)}</b>${tierBadge}<div class="mu-empty">${esc(civ.aliases?.join(" / ") || civ.path)}</div></div>
   </div>`;
