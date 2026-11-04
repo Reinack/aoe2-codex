@@ -1067,7 +1067,7 @@ function lineChip(line) {
   const bonus = line.bonus?.labels?.length
     ? `<span class="mu-bonus mu-bonus-${line.bonus.tag}">${line.bonus.tag === 'propio' ? '★' : '⚠'} ${esc(line.bonus.labels.join(' · '))}</span>`
     : '';
-  return `<span class="mu-line">${img}${esc(line.label)}${bonus}</span>`;
+  return `<span class="mu-line" data-gk-skip>${img}${esc(line.label)}${bonus}</span>`;
 }
 
 function edgeRows(rows, empty) {
@@ -1082,7 +1082,7 @@ function edgeRows(rows, empty) {
     const scoreClass = w >= 0.8 ? 'mu-score-strong' : w >= 0.5 ? 'mu-score-mid' : 'mu-score-weak';
     const label = w >= 0.8 ? 'fuerte' : w >= 0.5 ? 'moderado' : 'débil';
     const ctx = r.context && r.context !== '-' ? `<span class="mu-context">${esc(r.context)}</span>` : '';
-    return `<div class="mu-edge">
+    return `<div class="mu-edge" data-gk-skip>
       <span>${fromImg}${esc(r.from)}</span>
       <span class="mu-score ${scoreClass}">${w.toFixed(2)} <span class="mu-strength">${label}</span>${ctx}</span>
       <span>${toImg}${esc(r.target)}</span>
@@ -1102,7 +1102,7 @@ function exploitRows(ex) {
     const bonusBadge = (b) => b?.labels?.length
       ? `<span class="mu-bonus mu-bonus-propio">★ ${esc(b.labels.join(' · '))}</span>` : '';
     const slot = (role, line, bonus, icon) => line
-      ? `<div class="mu-comp-slot mu-comp-${role}">
+      ? `<div class="mu-comp-slot mu-comp-${role}" data-gk-skip>
            <span class="mu-comp-icon">${icon}</span>
            <b>${esc(typeof line === 'string' ? line : line.label)}</b>
            ${bonusBadge(bonus)}
@@ -1136,7 +1136,7 @@ function exploitRows(ex) {
       ? `<span class="mu-bonus mu-bonus-${l.bonus.tag}">${l.bonus.tag === 'propio' ? '★' : '⚠'} ${esc(l.bonus.labels.join(' · '))}</span>`
       : '';
     return `<div class="mu-exploit mu-exploit-${l.status}">
-      <div class="mu-exploit-head">${dot[l.status] || '⚪'} <b>${esc(l.label)}</b>${role}${bonus}</div>
+      <div class="mu-exploit-head" data-gk-skip>${dot[l.status] || '⚪'} <b>${esc(l.label)}</b>${role}${bonus}</div>
       <div class="mu-exploit-body">${gaps}${risks}</div>
     </div>`;
   }).join("");
