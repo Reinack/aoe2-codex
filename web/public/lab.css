@@ -1,0 +1,257 @@
+/* Lab — alineado con docs/GUIA-DE-ESTILO.md del tech tree (Aoe2-Tech-Tree-Advanced).
+   Superficies: madera = fondo, pergamino = contenido (.calc-panel redefine los tokens), papiro = controles,
+   negro de diálogo = overlay. Rojo = acciones y hover, oro = selección (solo hilos y letras),
+   pigmentos del árbol para categorías, Cinzel para títulos y botones, Crimson Pro para texto y números. */
+#view-lab { padding:16px 22px 80px; max-width:100%; min-width:0; }
+#lab-body { max-width:100%; min-width:0; }
+
+/* ── Pestañas: negro de diálogo, selección = filete dorado + letra (sin relleno) ── */
+.lab-tabs { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:14px; padding-bottom:10px; border-bottom:1px solid var(--gold-line); }
+.lab-tab { font-family:var(--font-display); font-weight:700; letter-spacing:.6px; font-size:13px; padding:8px 14px; cursor:pointer;
+  background:var(--dialog-black); color:var(--on-dark-dim); border:1px solid var(--hair); transition:background .12s, color .12s; }
+.lab-tab:hover { background:rgba(138,24,18,.35); color:var(--on-dark); }
+.lab-tab.active { color:var(--gold-text); border-color:var(--gold); box-shadow:inset 0 -2px 0 var(--gold); }
+.lab-tab:focus-visible { outline:2px solid var(--parch-100); outline-offset:2px; }
+
+.lab-intro { color:var(--on-dark-dim); font-size:16px; line-height:1.5; margin:0 0 14px; max-width:78ch; }
+.lab-intro b { color:var(--gold-text); font-weight:600; }
+
+/* ── Disposición responsive ───────────────────────────────────────────────────────────────
+   Las grillas se adaptan al ANCHO DISPONIBLE (no al del dispositivo): las columnas salen de auto-fit, así el mismo
+   marcado sirve en celular, tableta, escritorio y pantallas muy grandes.
+     .lab-grid          lista de tarjetas/registros     → tantas columnas de ≥300px como entren
+     .lab-grid.two      par (A | B, cartas, picks | bans) → 2 columnas desde ~700px, nunca más de las que hay
+     .lab-grid.auto     paneles independientes           → columnas de ≥460px (3 en 1500px, 4 en 2000px…)
+     .lab-grid.split    contenido + panel lateral         → lateral fijo (sticky) desde 1100px; apilado antes
+   Las pantallas enormes no estiran el texto: el contenedor se centra y las grillas suman columnas.            */
+#view-lab { max-width:2800px; margin-inline:auto; }
+.lab-grid { display:grid; gap:16px; align-items:start; grid-template-columns:repeat(auto-fit, minmax(min(300px,100%), 1fr)); }
+.lab-grid.two { grid-template-columns:repeat(auto-fit, minmax(min(340px,100%), 1fr)); }
+.lab-grid.auto { grid-template-columns:repeat(auto-fit, minmax(min(460px,100%), 1fr)); }
+.lab-grid.split { grid-template-columns:minmax(0,1fr); }
+@media (min-width:1100px) { .lab-grid.split { grid-template-columns:minmax(0,1fr) clamp(320px, 30vw, 520px); }
+  .lab-aside { position:sticky; top:12px; max-height:calc(100vh - 24px); overflow-y:auto; } }
+@media (min-width:2000px) { .mp-sections { columns:2; column-gap:16px; } .mp-sections > details { break-inside:avoid; } }
+.lab-grid > * { min-width:0; }
+.lab-panel { padding:14px 16px; margin-bottom:14px; overflow-x:auto; min-width:0; }
+@media (min-width:1600px) { #view-lab { padding:20px 36px 80px; } }
+@media (min-width:2400px) { #view-lab { padding:28px 56px 80px; } .lab-intro { font-size:17px; } }
+
+/* Celular: pestañas en una fila deslizable, campos a todo el ancho, paneles más compactos */
+@media (max-width:700px) {
+  #view-lab { padding:10px 10px 90px; }
+  .lab-tabs { flex-wrap:nowrap; overflow-x:auto; margin-inline:-10px; padding-inline:10px; scroll-snap-type:x proximity; }
+  .lab-tab { flex:0 0 auto; scroll-snap-align:start; padding:8px 12px; }
+  .lab-panel { padding:12px; }
+  .lab-row > label { flex:1 1 140px; }
+  .lab-row > label select, .lab-row > label input:not([type="checkbox"]) { width:100%; }
+  .lab-grid, .lab-grid.two, .lab-grid.auto { gap:12px; }
+  #bo-overlay { width:min(340px, calc(100vw - 20px)); right:10px; top:56px; }
+  .bo-timer { font-size:34px; }
+}
+
+/* Títulos de sección: Cinzel entre filetes que se desvanecen (como .eu-section-title) */
+.lab-panel > h3 {
+  display:flex; align-items:center; gap:9px; margin:0 0 10px;
+  font-family:var(--font-display); font-weight:700; font-size:14px; letter-spacing:1.6px; color:var(--ink-700); }
+.lab-panel > h3::before, .lab-panel > h3::after { content:''; flex:1; height:1px; background:linear-gradient(90deg,transparent,var(--rule)); }
+.lab-panel > h3::after { background:linear-gradient(90deg,var(--rule),transparent); }
+.lab-panel > h3 .lab-small { letter-spacing:0; font-weight:400; }
+/* Título de ficha (mapa, civ): nombre grande con filete engrosado y rombo (--ornament) */
+.lab-panel > h3.lab-hero { display:block; text-align:center; font-size:22px; letter-spacing:1.2px; color:var(--ink-900);
+  padding-bottom:18px; margin-bottom:10px; background:var(--ornament) center bottom / 180px 12px no-repeat; }
+.lab-panel > h3.lab-hero::before, .lab-panel > h3.lab-hero::after { display:none; }
+/* Subsecciones: versalitas de Crimson, no Cinzel */
+.lab-panel h4 { margin:14px 0 6px; font-family:var(--font-body); font-weight:700; font-size:15px; font-variant:small-caps; letter-spacing:.6px; color:var(--ink-700); }
+
+/* Etiquetas de campo en versalitas */
+.lab-row { display:flex; flex-wrap:wrap; gap:10px; align-items:flex-end; margin-bottom:10px; }
+.lab-row > label { display:flex; flex-direction:column; gap:3px; min-width:0; max-width:100%;
+  font-size:14px; font-variant:small-caps; letter-spacing:.5px; color:var(--ink-500); }
+.lab-row.inline > label { flex-direction:row; align-items:center; gap:6px; }
+.lab-small { font-size:14px; color:var(--ink-500); }
+.lab-src { font-size:13px; color:var(--ink-500); font-style:italic; margin-top:4px; }
+.bo-meta { font-size:14.5px; line-height:1.45; color:var(--ink-700); }
+.bo-meta i { color:var(--ink-500); }
+
+/* ── Controles: papiro; acentos rojos; foco rojo sobre pergamino ── */
+html body #view-lab :is(select, input:not([type="checkbox"]):not([type="radio"]):not([type="range"]), textarea) {
+  background:var(--papyrus-input); color:var(--papyrus-text); border:1px solid rgba(58,28,14,.55);
+  font-family:var(--font-body); font-weight:600; font-size:15px; padding:6px 8px; min-width:0; }
+html body #view-lab select { background:var(--papyrus); }
+#view-lab input[type="checkbox"], #view-lab input[type="radio"], #view-lab input[type="range"],
+#calc-trade-cfg input[type="checkbox"], #calc-mods input[type="checkbox"] { accent-color:var(--red-500); }
+#view-lab .calc-panel :focus-visible { outline:2px solid var(--red-500); outline-offset:2px; }
+
+/* ── Botones de acción: rojo profundo liso con filete dorado y letra crema (.aoe-btn del árbol) ── */
+html body :is(#view-lab, #calc-trade-cfg) .calc-btn, html body #bo-overlay button {
+  background:linear-gradient(180deg,#8c1a13 0%,#6a0e0a 48%,#4c0706 100%);
+  border:1px solid var(--gold); color:var(--btn-text);
+  box-shadow:0 0 0 1px #0b0503, inset 0 0 0 1px rgba(20,2,1,.6), inset 0 0 14px rgba(20,0,0,.55);
+  font-family:var(--font-display); font-weight:700; font-size:13px; letter-spacing:.5px; padding:7px 12px; cursor:pointer;
+  text-shadow:0 1px 0 #1c0302, 0 0 4px rgba(0,0,0,.7); transition:filter .12s, background .12s; }
+html body :is(#view-lab, #calc-trade-cfg) .calc-btn:hover, html body #bo-overlay button:hover {
+  background:linear-gradient(180deg,#a3241a 0%,#7b140e 48%,#5a0a08 100%); color:var(--btn-text); }
+html body :is(#view-lab, #calc-trade-cfg) .calc-btn:active, html body #bo-overlay button:active { filter:brightness(.85); }
+html body :is(#view-lab, #calc-trade-cfg) .calc-btn:disabled { opacity:.55; cursor:default; }
+/* activo / abierto: doble filete dorado interno */
+html body #view-lab .calc-btn.active { box-shadow:0 0 0 1px #0b0503, inset 0 0 0 2px #2a0403, inset 0 0 0 3px rgba(198,155,69,.6), inset 0 0 14px rgba(20,0,0,.55); }
+html body :is(#view-lab, #calc-trade-cfg) .calc-btn:focus-visible, html body #bo-overlay button:focus-visible { outline:2px solid var(--parch-100); outline-offset:2px; }
+
+/* ── Chips: entradas con filete de tinta; ✔/✖ con --good / --bad ── */
+.lab-chip { display:inline-flex; align-items:center; gap:6px; padding:2px 9px; margin:2px 4px 2px 0; font-size:14px;
+  background:rgba(255,248,228,.35); border:1px solid var(--rule); color:var(--ink-900); }
+.lab-chip .x { cursor:pointer; color:var(--red-500); font-weight:700; }
+.lab-chip.ok { border-color:var(--good); color:var(--good); }
+.lab-chip.no { border-color:var(--bad); color:var(--bad); }
+
+/* ── Insignias en versalitas con cuadrito de pigmento (.eu-age-badge) ── */
+.lab-tag { display:inline-flex; align-items:center; gap:5px; margin-right:4px; padding:0 6px 1px 4px; font-size:13.5px;
+  font-variant:small-caps; letter-spacing:.4px; color:var(--ink-700); border:1px solid var(--rule-soft); vertical-align:middle; }
+.lab-tag::before { content:''; width:7px; height:7px; background:var(--tag-c, var(--ink-500)); }
+.lab-tag.flank { --tag-c:var(--bld-c); } .lab-tag.pocket { --tag-c:var(--tech-c); } .lab-tag.flex { --tag-c:var(--unit-u); }
+.lab-tag.S { --tag-c:var(--bld-u); } .lab-tag.A { --tag-c:var(--tech-u); } .lab-tag.B { --tag-c:var(--unit-c); } .lab-tag.C, .lab-tag.D { --tag-c:var(--ink-500); }
+.lab-tag.mt-abierto { --tag-c:var(--tech-u); } .lab-tag.mt-cerrado { --tag-c:var(--unit-c); } .lab-tag.mt-agua { --tag-c:var(--tech-c); }
+.lab-tag.mt-nomada { --tag-c:var(--unit-u); }
+.lab-tag.age-0 { --tag-c:var(--age-0); } .lab-tag.age-1 { --tag-c:var(--age-1); } .lab-tag.age-2 { --tag-c:var(--age-2); } .lab-tag.age-3 { --tag-c:var(--age-3); }
+
+/* ── Tablas: libro de cuentas con filetes; texto a la izquierda, números tabulares ── */
+.lab-table { width:100%; border-collapse:collapse; font-size:15px; }
+.lab-table th { text-align:left; font-family:var(--font-body); font-weight:700; font-variant:small-caps; letter-spacing:.5px; font-size:14px;
+  padding:4px 8px; border-bottom:1px solid var(--rule); color:var(--ink-500); }
+.lab-table td { color:var(--ink-900); text-align:left; padding:5px 8px; border-bottom:1px solid var(--rule-soft); vertical-align:top; font-variant-numeric:lining-nums tabular-nums; }
+.lab-table td.at { width:70px; font-weight:700; white-space:nowrap; color:var(--ink-900); }
+.lab-table tr:last-child td { border-bottom:none; }
+.bo-steps tr { cursor:pointer; }
+.bo-steps tr:hover td { background:rgba(92,60,24,.07); }
+.bo-steps tr:hover td:first-child { box-shadow:inset 3px 0 0 var(--red-500); }             /* hover = rojo */
+.bo-steps tr.done td { opacity:.45; text-decoration:line-through; }
+.bo-steps tr.cur td { background:rgba(92,60,24,.09); }
+.bo-steps tr.cur td:first-child { box-shadow:inset 3px 0 0 var(--gold); }                   /* seleccionado = filete dorado */
+
+/* ── Build orders ── */
+.bo-timer { font-family:var(--font-body); font-weight:700; font-size:40px; line-height:1; letter-spacing:1px;
+  font-variant-numeric:lining-nums tabular-nums; color:var(--ink-900); margin-right:10px; }          /* los números no van en Cinzel */
+.lab-medal { font-size:22px; vertical-align:middle; }
+
+/* Overlay: negro de diálogo liso (sin textura), filete dorado, números en Crimson */
+#bo-overlay { position:fixed; right:14px; top:70px; width:340px; z-index:50; display:none; padding:10px 12px;
+  background:var(--dialog-black); color:var(--on-dark); font-size:15px; border:1px solid var(--gold-line); box-shadow:0 0 0 1px #0b0603, 0 10px 24px rgba(0,0,0,.5); }
+#bo-overlay.on { display:block; }
+#bo-overlay .t { font-family:var(--font-body); font-weight:700; font-size:30px; font-variant-numeric:lining-nums tabular-nums; color:var(--gold-text); }
+#bo-overlay .cur { font-size:18px; font-weight:700; color:var(--parch-50); margin:6px 0; }
+#bo-overlay .nx { color:var(--on-dark-dim); font-size:14.5px; }
+#bo-overlay .lab-small { color:var(--on-dark-dim); }
+body.lab-ovl-only #sidebar, body.lab-ovl-only #mobile-nav, body.lab-ovl-only header, body.lab-ovl-only #view-lab, body.lab-ovl-only .view { display:none !important; }
+body.lab-ovl-only #bo-overlay { display:block; position:static; width:auto; min-height:100vh; border:0; box-shadow:none; font-size:20px; }
+body.lab-ovl-only { background:#0a0603 !important; }
+
+/* ── Línea de tiempo: pigmentos de edad del árbol ── */
+.tl { position:relative; margin:10px 0 4px; }
+.tl-axis { position:relative; height:22px; margin-left:230px; border-bottom:1px solid var(--rule); }
+.tl-axis span { position:absolute; top:0; font-size:12px; color:var(--ink-500); transform:translateX(-50%); font-variant-numeric:lining-nums; }
+.tl-row { display:flex; align-items:center; margin:7px 0; min-height:26px; }
+.tl-lbl { width:230px; font-size:14px; padding-right:8px; line-height:1.2; font-weight:600; }
+.tl-lbl small { color:var(--ink-500); font-size:12.5px; font-weight:400; display:block; font-style:italic; }
+.tl-track { position:relative; flex:1; height:22px; background:repeating-linear-gradient(90deg,var(--rule-soft) 0 1px,transparent 1px 14.2857%); }
+.tl-m { position:absolute; top:3px; width:15px; height:15px; transform:translateX(-50%); border:1px solid var(--ink-900); }
+.tl-m.f { background:var(--age-1); } .tl-m.c { background:var(--age-2); transform:translateX(-50%) rotate(45deg) scale(.85); }
+.tl-m.i { background:var(--age-3); transform:translateX(-50%) rotate(45deg) scale(.85); }
+.tl-bar { position:absolute; top:8px; height:6px; background:rgba(59,85,136,.4); }
+.tl-bar.max { background:rgba(59,85,136,.16); }
+.tl-leg { font-size:13.5px; color:var(--ink-500); margin-top:8px; }
+@media(max-width:700px){ .tl-axis{margin-left:110px} .tl-lbl{width:110px;font-size:12px} .tl-lbl small{display:none} }
+
+/* ── Scouting: registros separados por filetes, no tarjetas ── */
+.sc-sig { padding:9px 6px; border-bottom:1px solid var(--rule-soft); }
+.sc-sig:last-of-type { border-bottom:none; }
+.sc-sig .s { font-weight:700; font-size:16px; color:var(--ink-900); }
+.sc-sig .m { font-style:italic; color:var(--ink-500); margin-top:1px; }
+.sc-sig .r { margin-top:4px; padding-left:7px; border-left:2px solid var(--rule); color:var(--ink-700); }     /* marca de tinta (como .eu-bonus) */
+.sc-sig .r b { font-variant:small-caps; letter-spacing:.4px; color:var(--ink-900); }
+
+/* ── Equipos / draft ── */
+.tm-slot { display:flex; gap:10px; align-items:flex-start; padding:8px 0; border-top:1px solid var(--rule-soft); }
+.tm-slot:first-of-type { border-top:0; }
+.tm-pos { min-width:68px; font-family:var(--font-display); font-weight:700; color:var(--ink-700); }
+.cov-gap td { background:rgba(155,43,26,.1); }
+.cov-best { font-weight:700; color:var(--good); }
+.dr-list { counter-reset:dr; padding:0; margin:0; list-style:none; }
+.dr-list li { counter-increment:dr; padding:6px 0; border-top:1px solid var(--rule-soft); display:flex; gap:8px; align-items:baseline; flex-wrap:wrap; }
+.dr-list li::before { content:counter(dr); font-family:var(--font-body); font-weight:700; font-variant-numeric:lining-nums; color:var(--ink-700); min-width:16px; }
+.dr-list li:first-child { border-top:none; }
+.dr-list li > div { flex-basis:100%; }
+.dr-bar { height:6px; background:var(--ink-500); display:inline-block; vertical-align:middle; margin-left:4px; }
+
+/* ── Simulador ── */
+.sim-row { display:flex; gap:6px; align-items:center; margin:5px 0; }
+.sim-row select { flex:1; min-width:0; } .sim-row input { width:64px; }
+.sim-res .win { font-family:var(--font-display); font-weight:700; font-size:20px; letter-spacing:.8px; color:var(--ink-900); }
+.mx-wrap { overflow:auto; max-width:100%; }
+.mx { border-collapse:collapse; font-size:12px; }
+.mx th { padding:3px 5px; font-weight:600; white-space:nowrap; text-align:left; }
+.mx th.col { writing-mode:vertical-rl; transform:rotate(180deg); height:110px; }
+.mx td { color:var(--ink-900); width:34px; height:26px; text-align:center; border:1px solid var(--rule-soft); font-variant-numeric:lining-nums tabular-nums; }
+
+/* ── Comparador: dos pigmentos del árbol (unidad / tecnología única) ── */
+.cmp-bars { display:grid; grid-template-columns:84px 1fr 1fr; gap:4px 8px; align-items:center; font-size:13.5px; }
+.cmp-bars .b { height:9px; background:rgba(75,51,28,.1); position:relative; }
+.cmp-bars .b i { position:absolute; left:0; top:0; bottom:0; background:var(--unit-c); }
+.cmp-bars .b.r i { background:var(--tech-u); }
+.cmp-key { display:inline-block; width:8px; height:8px; margin:0 3px 0 6px; background:var(--unit-c); } .cmp-key.r { background:var(--tech-u); }
+.cmp-diff { columns:2; column-gap:18px; font-size:15px; }
+.cmp-diff div { break-inside:avoid; padding:3px 0; border-bottom:1px solid var(--rule-soft); }
+.cmp-diff img { width:20px; height:20px; vertical-align:middle; object-fit:contain; margin-right:3px; }
+@media(max-width:700px){ .cmp-diff { columns:1; } }
+
+/* ── Mapas: lista de registros con filetes ── */
+.mp-card { display:block; padding:8px 6px; cursor:pointer; color:var(--ink-900); border-bottom:1px solid var(--rule-soft); transition:background .12s; }
+.mp-card:hover { background:rgba(92,60,24,.07); box-shadow:inset 3px 0 0 var(--red-500); }
+.mp-card b { font-size:16px; } .mp-card .lab-small { margin-top:2px; font-style:italic; }
+.mp-sec > summary { cursor:pointer; padding:2px 0; list-style:none; font-family:var(--font-display); font-weight:700; letter-spacing:1.2px; font-size:14px; color:var(--ink-700); }
+.mp-sec > summary b { font-weight:700; }
+.mp-sec > summary::-webkit-details-marker { display:none; }
+.mp-sec > summary::before { content:"▸ "; color:var(--red-500); } .mp-sec[open] > summary::before { content:"▾ "; }
+.mp-sec ul, .mp-sec ol { margin:6px 0 6px 20px; padding:0; } .mp-sec li { margin:3px 0; } .mp-sec p { margin:6px 0; }
+.mp-civ { cursor:pointer; } .mp-civ:hover { border-color:var(--red-500); }
+
+/* ── Estudio ── */
+.st-q { white-space:pre-line; font-size:20px; line-height:1.4; margin:8px 0 12px; max-width:60ch; }
+.st-opt { display:block; width:100%; text-align:left; margin:6px 0; padding:10px 12px; cursor:pointer; font-size:16px;
+  background:var(--papyrus); border:1px solid rgba(58,28,14,.55); color:var(--papyrus-text); font-family:var(--font-body); font-weight:600; }
+.st-opt:hover:not(:disabled) { border-color:var(--red-500); color:var(--red-500); }
+.st-opt.right { border-color:var(--good); box-shadow:inset 3px 0 0 var(--good); }
+.st-opt.wrong { border-color:var(--bad); box-shadow:inset 3px 0 0 var(--bad); }
+.st-opt:disabled { cursor:default; }
+
+/* Íconos y hover: ver gamekit.css (compartido). Acá solo lo propio del Lab. */
+.lab-tag .age-ico { width:16px; height:16px; margin-right:3px; }
+.lab-tag.has-ico::before { display:none; }
+.hero-emb { display:block; margin:0 auto 6px; line-height:0; }
+.lab-tab .ico, .lab-tab .age-ico { margin-right:7px; vertical-align:middle; }
+.lab-chip .emb, .lab-chip .ico { margin-right:5px; }
+
+/* selector con emblema (civ) */
+.sel-ico { display:inline-flex; align-items:center; gap:6px; }
+.emb-slot { display:inline-flex; width:28px; justify-content:center; } .emb-slot:empty { display:none; }
+
+/* simulador: casilla de unidad y sus stats */
+.sim-unit { margin:6px 0 10px; }
+.sim-row { align-items:center; }
+.sim-ico { display:inline-flex; line-height:0; } .sim-ico .ico { margin:0; }
+.sim-stats { font-size:13.5px; color:var(--ink-500); margin:2px 0 0 38px; font-variant-numeric:lining-nums tabular-nums; }
+.sim-stats .sim-cost { margin-left:8px; }
+.mx th.col { writing-mode:horizontal-tb; transform:none; height:auto; vertical-align:bottom; text-align:center; padding-bottom:4px; }
+.mx th.col .ico { display:block; margin:0 auto 3px; }
+.mx th.col .vt { display:block; writing-mode:vertical-rl; transform:rotate(180deg); height:100px; margin:0 auto; }
+.mx th:not(.col) { white-space:nowrap; } .mx th:not(.col) .ico { margin-right:4px; }
+.tm-slot .emb-l { margin-right:2px; }
+.mx { width:max-content; min-width:0; } .mx th:not(.col) { width:auto; }
+
+/* Longitud de línea: el texto corrido no pasa de ~95 caracteres aunque el panel sea enorme */
+.lab-panel p, .lab-panel > ul, .lab-panel > ol, .lab-panel .mp-sec > ul { max-width:95ch; }
+
+/* ── Secciones que Matchups toma del Lab (matchup-extra.js) ── */
+.mu-list { margin:6px 0 0; padding-left:20px; } .mu-list li { margin:4px 0; }
+.mu-list.ok li::marker { content:"✔  "; color:var(--good); } .mu-list.no li::marker { content:"✖  "; color:var(--bad); }
+.mu-doc { border-top:1px solid var(--rule-soft); padding:6px 0; } .mu-doc summary { cursor:pointer; }

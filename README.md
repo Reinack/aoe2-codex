@@ -146,6 +146,51 @@ MATCH (n:Note)<-[r:LINKS_TO]-() RETURN n.path, count(r) AS inbound
 ORDER BY inbound DESC LIMIT 10;
 ```
 
+## Lab (build orders, timings, scouting, equipos, draft, simulador)
+
+Vista **🧪 Lab** del frontend Express (`web/public/lab.js`). Todo se sirve desde `web/data/*.json`
+(sin Neo4j), generado desde la wiki pública con:
+
+```bash
+cd web
+npm run data:lab        # build-orders + team-roles + civ-combat + map-guides + icons (.json)
+```
+
+`timings.json` y `scouting-tree.json` están curados a mano, con la nota de origen de cada
+línea. Rutas: `/api/build-orders`, `/api/timings`, `/api/scouting`, `/api/team`, `/api/draft-data`,
+`/api/compare`, `/api/icons`, `/api/maps`, `/api/maps/:slug`, `/api/draft-vs`, `/api/sim`, `/api/sim/matrix`, `/api/quiz`. La Calculadora suma
+`POST /api/passive` (reliquias y comercio por distancia). El simulador (`web/lib/sim.mjs`) es una
+aproximación: sin hit&run ni selección de objetivo; aplica bonos de civ/equipo y costos por edad, pero no techs ni unidades únicas.
+
+**Una sola casa para cada cosa.** El cruce civ vs civ vive en **Matchups**: además de lo que ya mostraba, suma el counter-play,
+las fortalezas y huecos, la alerta de Phosphor Rush, las partidas documentadas, el radar y las diferencias de árbol
+(`web/public/matchup-extra.js`, que usa `/api/compare`; son los datos que `/api/matchup` ya devolvía y la vista no renderizaba).
+El Lab tiene lo que no existía: build orders, timings, mapas, scouting por equipo, team lab, draft, simulador y estudio. Se cruzan
+con `Lab.open("draft", { rivals: [...] })` y `Lab.matchup(me, vs, mapa)` (API pública de `lab.js`) y con `<a data-goto="counters">`.
+
+## GameKit: íconos y hover para toda la app
+
+`web/public/gamekit.js` + `gamekit.css` ponen **íconos y un hover con detalle** (costos, stats, efecto en español, dónde se
+produce, en qué civs está) a unidades, tecnologías, edificios y civs. Los datos salen de `web/data/icons.json`
+(`npm run data:icons`, desde el árbol vendorizado) y se sirven en `GET /api/icons`. Para una vista nueva no hay que programar
+nada del hover; hay tres formas de usarlo:
+
+```js
+// 1) en plantillas JS: devuelven HTML con el hover ya conectado
+GK.ico("paladin")   GK.emb("franks")   GK.age("feudal")   GK.stat("hp")   GK.res("gold")
+GK.iconize(html)    GK.civify(html)    // ponen el ícono delante de cada nombre reconocido
+```
+
+```html
+<!-- 2) con atributos: i = unidad|tecnología|edificio (id del árbol), c = civ (slug) -->
+<div data-gk="i:paladin">…</div>   <span data-gk="c:franks">…</span>
+
+<!-- 3) automático: reconoce nombres en el texto, también el que se renderiza después -->
+<div data-gk-auto>…</div>   <div data-gk-auto="civs">…</div>   <div data-gk-auto="all">…</div>   <!-- data-gk-skip excluye una zona -->
+```
+
+En celular el hover se abre con un toque. El estilo sigue `docs/GUIA-DE-ESTILO.md` del tech tree.
+
 ## Tech-tree → grafo (Fase 6 + Fix 5)
 
 El visual del proyecto hermano **Aoe2-Tech-Tree-Advanced** está vendorizado en

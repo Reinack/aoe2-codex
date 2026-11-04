@@ -5,10 +5,11 @@ import { readFileSync, readdirSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { run, driver } from "./db.js";
-import { solve as ecoSolve, catalog as ecoCatalog } from "./lib/eco.mjs";
+import { solve as ecoSolve, catalog as ecoCatalog, passiveSummary } from "./lib/eco.mjs";
 import { availableIds } from "./techtree/load.mjs";
 import { buildIconIndex } from "./lib/graph-icons.mjs";
 import { LINE_NOTE, inferUniqueCounters, typeLine, unitProfile } from "./lib/uu-counters.mjs";
+import { registerLab } from "./lib/lab.mjs";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const app = express();
@@ -218,6 +219,13 @@ app.get("/api/eco-catalog", (_req, res) => {
   catch (e) { console.error(e); res.status(500).json({ error: String(e.message || e) }); }
 });
 
+// Ingreso pasivo (reliquias, comercio por distancia, feitorias) sin plan de producción.
+// POST { passive: { relics, relicMods, tradeCarts, trade:{map,distance,caravan,mods}, feitorias } }
+app.post("/api/passive", (req, res) => {
+  try { res.json(passiveSummary(req.body?.passive)); }
+  catch (e) { console.error(e); res.status(500).json({ error: String(e.message || e) }); }
+});
+
 // Acepta GET (?items=<json>&age=&civ=&techs=<json>&supply=<json>) o POST (body JSON).
 app.all("/api/production", (req, res) => {
   try {
@@ -328,6 +336,9 @@ const CIV_AVAILABLE = await (async () => {
   }
   return map;
 })();
+
+// Lab: build orders, timings, scouting, equipos, draft, comparador, simulador, estudio.
+registerLab(app, { CIV_AVAILABLE });
 
 // Mapeo scope de bonus (civ JS) → line IDs del counter graph.
 // "barracks"/"stable"/"archery" mapean a las líneas que producen esos edificios.

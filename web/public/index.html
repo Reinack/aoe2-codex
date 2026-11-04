@@ -601,6 +601,8 @@
   #graph-title { color:var(--gold-text); }
   #graph-side h4 { font-family:var(--font-display); color:var(--gold-text); }
 </style>
+<link rel="stylesheet" href="/gamekit.css">
+<link rel="stylesheet" href="/lab.css">
 </head>
 <body>
 
@@ -649,6 +651,9 @@ import('/tree/src/data/index.js').then(() => {
   <a class="sb-item" data-view="calc">
     <span class="sb-icon">🧮</span><span class="sb-label">Calculadora</span>
   </a>
+  <a class="sb-item" data-view="lab">
+    <span class="sb-icon">🧪</span><span class="sb-label">Lab</span>
+  </a>
 </nav>
 
 <!-- MOBILE NAV -->
@@ -671,6 +676,9 @@ import('/tree/src/data/index.js').then(() => {
   <a class="mn-item" data-view="calc">
     <span class="mn-icon">🧮</span>Calc
   </a>
+  <a class="mn-item" data-view="lab">
+    <span class="mn-icon">🧪</span>Lab
+  </a>
 </nav>
 
 <!-- MAIN -->
@@ -690,7 +698,7 @@ import('/tree/src/data/index.js').then(() => {
     </div>
     <div class="col">
       <h2>Chat <span class="h2-sub">GraphRAG · Gemini</span></h2>
-      <div id="chatlog"></div>
+      <div id="chatlog" data-gk-auto="all"></div>
       <div class="chatrow">
         <input id="chatq" placeholder="¿Cómo juego Scout Rush con Georgianos?" autocomplete="off" />
         <button id="chatsend">Enviar</button>
@@ -702,7 +710,7 @@ import('/tree/src/data/index.js').then(() => {
         <span class="hint" data-q="¿Qué hace especial el FC con Burgundians?">FC Burgundians</span>
       </div>
       <h2 style="margin-top:20px">Detalle</h2>
-      <div id="detail"><div class="ph">Elegí una civilización o buscá una unidad/tecnología.</div></div>
+      <div id="detail" data-gk-auto="all"><div class="ph">Elegí una civilización o buscá una unidad/tecnología.</div></div>
     </div>
   </div>
 
@@ -726,7 +734,7 @@ import('/tree/src/data/index.js').then(() => {
         <button id="mu-run">Analizar matchup</button>
         <button id="mu-chat" disabled>Convertir en briefing GraphRAG</button>
       </div>
-      <div id="mu-result" class="mu-grid">
+      <div id="mu-result" class="mu-grid" data-gk-auto="all">
         <div class="mu-section wide">
           <div class="mu-empty">Elegí dos civilizaciones para cruzar tech tree, counters y notas del grafo.</div>
         </div>
@@ -802,12 +810,14 @@ import('/tree/src/data/index.js').then(() => {
         <div id="cg-notes"></div>
       </div>
       <div id="cy-counters"></div>
-      <aside id="cg-side"></aside>
+      <aside id="cg-side" data-gk-auto></aside>
     </div>
     <div id="cg-tip"></div>
   </div>
 
   <!-- VIEW: CALCULADORA DE PRODUCCIÓN ─────────────────────────────────── -->
+  <div id="view-lab" class="view" style="display:none"></div>
+
   <div id="view-calc" class="view" style="display:none">
     <style>
       #view-calc { padding:18px 24px; }
@@ -922,6 +932,16 @@ import('/tree/src/data/index.js').then(() => {
         <label>🐫 Trade carts <input type="number" min="0" id="sup-trade" value="0"></label>
         <label>🏯 Feitorias <input type="number" min="0" id="sup-feitoria" value="0"></label>
       </div>
+      <div class="sup-pass" id="calc-trade-cfg">
+        <span style="font-size:12px;color:var(--dim);flex-basis:100%">🐫 Comercio por distancia (si la distancia es 0 se usa un valor plano de ruta media)</span>
+        <label>Mapa <select id="sup-map"></select></label>
+        <label>Distancia entre Markets (casillas) <input type="number" min="0" max="700" id="sup-dist" value="0" style="width:80px"></label>
+        <button class="calc-btn" type="button" id="sup-diag">Diagonal</button>
+        <button class="calc-btn" type="button" id="sup-edge" title="Las rutas por el borde dan ≈ la mitad del oro máximo (market.md)">Por el borde</button>
+        <label><input type="checkbox" id="sup-caravan"> Caravan (+50% velocidad)</label>
+      </div>
+      <div class="sup-pass" id="calc-mods"></div>
+      <div class="calc-notes" id="calc-trade-out" style="padding:0 0 12px"></div>
     </details>
 
     <div class="calc-grid">
@@ -955,6 +975,7 @@ function switchView(name) {
     if (f.src === 'about:blank') f.src = '/tree/';
   }
   if (name === 'calc') initCalc();
+  if (name === 'lab') initLab();
   if (name === 'counters') syncCounterUrl();
   else if (new URLSearchParams(location.search).get('view') === 'counters')
     history.replaceState(null, '', location.pathname);
@@ -989,6 +1010,7 @@ async function init() {
     const al = c.aliases?.length ? `<div class="a">${c.aliases.join(" · ")}</div>` : "";
     const el = document.createElement("div");
     el.className = "card";
+    el.dataset.gk = `c:${slugLower}`;
     el.innerHTML = `<img class="civ-img" src="/img/civs/${slugLower}.png" alt="" onerror="this.style.display='none'"><div class="t">${c.title}</div>${tier}${al}`;
     el.onclick = () => showCiv(slug);
     grid.appendChild(el);
@@ -1027,7 +1049,7 @@ let lastMatchup = null;
 function civBadge(civ, tiers) {
   const arabTier = tiers?.find(t => t.list.toLowerCase().includes('arabia'));
   const tierBadge = arabTier ? `<span class="mu-tier-badge">${esc(arabTier.tier)}</span>` : '';
-  return `<div class="mu-title">
+  return `<div class="mu-title" data-gk-skip>
     <img src="/img/civs/${esc(civ.slug.toLowerCase())}.png" alt="" onerror="this.style.display='none'">
     <div><b>${esc(civ.title)}</b>${tierBadge}<div class="mu-empty">${esc(civ.aliases?.join(" / ") || civ.path)}</div></div>
   </div>`;
@@ -1045,7 +1067,7 @@ function lineChip(line) {
   const bonus = line.bonus?.labels?.length
     ? `<span class="mu-bonus mu-bonus-${line.bonus.tag}">${line.bonus.tag === 'propio' ? '★' : '⚠'} ${esc(line.bonus.labels.join(' · '))}</span>`
     : '';
-  return `<span class="mu-line">${img}${esc(line.label)}${bonus}</span>`;
+  return `<span class="mu-line" data-gk-skip>${img}${esc(line.label)}${bonus}</span>`;
 }
 
 function edgeRows(rows, empty) {
@@ -1060,7 +1082,7 @@ function edgeRows(rows, empty) {
     const scoreClass = w >= 0.8 ? 'mu-score-strong' : w >= 0.5 ? 'mu-score-mid' : 'mu-score-weak';
     const label = w >= 0.8 ? 'fuerte' : w >= 0.5 ? 'moderado' : 'débil';
     const ctx = r.context && r.context !== '-' ? `<span class="mu-context">${esc(r.context)}</span>` : '';
-    return `<div class="mu-edge">
+    return `<div class="mu-edge" data-gk-skip>
       <span>${fromImg}${esc(r.from)}</span>
       <span class="mu-score ${scoreClass}">${w.toFixed(2)} <span class="mu-strength">${label}</span>${ctx}</span>
       <span>${toImg}${esc(r.target)}</span>
@@ -1080,7 +1102,7 @@ function exploitRows(ex) {
     const bonusBadge = (b) => b?.labels?.length
       ? `<span class="mu-bonus mu-bonus-propio">★ ${esc(b.labels.join(' · '))}</span>` : '';
     const slot = (role, line, bonus, icon) => line
-      ? `<div class="mu-comp-slot mu-comp-${role}">
+      ? `<div class="mu-comp-slot mu-comp-${role}" data-gk-skip>
            <span class="mu-comp-icon">${icon}</span>
            <b>${esc(typeof line === 'string' ? line : line.label)}</b>
            ${bonusBadge(bonus)}
@@ -1114,7 +1136,7 @@ function exploitRows(ex) {
       ? `<span class="mu-bonus mu-bonus-${l.bonus.tag}">${l.bonus.tag === 'propio' ? '★' : '⚠'} ${esc(l.bonus.labels.join(' · '))}</span>`
       : '';
     return `<div class="mu-exploit mu-exploit-${l.status}">
-      <div class="mu-exploit-head">${dot[l.status] || '⚪'} <b>${esc(l.label)}</b>${role}${bonus}</div>
+      <div class="mu-exploit-head" data-gk-skip>${dot[l.status] || '⚪'} <b>${esc(l.label)}</b>${role}${bonus}</div>
       <div class="mu-exploit-body">${gaps}${risks}</div>
     </div>`;
   }).join("");
@@ -1254,6 +1276,7 @@ function renderMatchup(d) {
         </div>`).join("")
         : "<div class='mu-empty'>No encontre chunks que mencionen ambas civs juntas.</div>"}
     </div>`;
+  window.renderMatchupExtra?.(d);   // matchup-extra.js: Phosphor, counter-play, partidas documentadas, radar y árbol
 }
 
 async function runMatchup() {
@@ -2390,8 +2413,14 @@ let CALC = null;               // catálogo de /api/eco-catalog
 let calcInited = false;
 const calcState = {
   civ: '', age: 'feudal', items: {},           // items: { id: lines }
-  supply: { bySource: {}, techs: [], contributors: [], passive: { relics: 0, tradeCarts: 0, feitorias: 0 } },
+  supply: { bySource: {}, techs: [], contributors: [], passive: { relics: 0, tradeCarts: 0, feitorias: 0, relicMods: [], trade: { map: 'medium', distance: 0, caravan: false, mods: [] } } },
 };
+const PASSIVE_MODS = [
+  ['aztec_team', 'Aztecs (equipo): reliquias +33% oro', 'aztecs'], ['burgundian_team', 'Burgundians (equipo): reliquias dan comida', 'burgundians'],
+  ['spanish_team', 'Spanish (equipo): trade +25% oro', 'spanish'], ['bengali_team', 'Bengalis (equipo): trade +10% comida', 'bengalis'],
+  ['grand_trunk_road', 'Grand Trunk Road (Hindustanis): +10%', 'hindustanis'],
+];
+const TRADE_CART_IMG = '/tree/img/Unit/34.png';
 
 async function initCalc() {
   if (calcInited) return;
@@ -2418,7 +2447,9 @@ async function initCalc() {
   };
   document.getElementById('calc-age').onchange = e => { calcState.age = e.target.value; refreshSupplyDefaults(); recalc(); };
   document.getElementById('calc-reset').onclick = () => { calcState.items = {}; renderSelected(); renderPicker(); recalc(); };
-  ['sup-relics','sup-trade','sup-feitoria'].forEach(id => { document.getElementById(id).oninput = readPassive; });
+  initPassiveUi();
+  ['sup-relics','sup-trade','sup-feitoria','sup-dist'].forEach(id => { document.getElementById(id).oninput = readPassive; });
+  ['sup-map','sup-caravan'].forEach(id => { document.getElementById(id).onchange = readPassive; });
   document.getElementById('contrib-add').onclick = addContributor;
 
   renderPicker();
@@ -2439,7 +2470,7 @@ function renderPicker() {
   box.innerHTML = CAT_ORDER.filter(c => groups[c]).map(cat => {
     const btns = groups[cat].sort((a,b) => a.name.localeCompare(b.name)).map(it => {
       const n = calcState.items[it.id] || 0;
-      return `<button class="pick-b ${it.variant} ${n ? 'on' : ''}" data-add="${it.id}" title="${esc(it.name)}">
+      return `<button class="pick-b ${it.variant} ${n ? 'on' : ''}" data-add="${it.id}" data-gk="i:${it.id}" title="${esc(it.name)}">
         <span class="badge"><img class="ic" src="${UIMG(it.imgPath)}" alt="" onerror="this.onerror=null;this.src=MISSING_IMG">${n ? `<span class="cnt">${n}</span>` : ''}</span>
         <span class="lb">${esc(it.name)}</span>
       </button>`;
@@ -2524,10 +2555,52 @@ function refreshSupplyDefaults() {
   }
 }
 
+function initPassiveUi() {
+  const T = CALC.passive.trade, R = CALC.passive.relic;
+  const sel = document.getElementById('sup-map');
+  const ES = { tiny: 'Tiny', small: 'Small', medium: 'Medium', normal: 'Normal', large: 'Large', giant: 'Giant', ludicrous: 'Ludicrous' };
+  sel.innerHTML = Object.entries(T.mapSizes).map(([k, v]) => `<option value="${k}" ${k === 'medium' ? 'selected' : ''}>${ES[k] || k} (${v})</option>`).join('');
+  document.getElementById('calc-mods').innerHTML = PASSIVE_MODS
+    .filter(([id]) => R.mods?.[id] || T.mods?.[id])
+    .map(([id, label, civ]) => `<label><input type="checkbox" data-pmod="${id}"> <img class="emblem" src="${EMB(civ)}" alt=""> ${esc(label)}</label>`).join('');
+  document.querySelectorAll('[data-pmod]').forEach(c => c.onchange = readPassive);
+  const size = () => T.mapSizes[sel.value];
+  document.getElementById('sup-diag').onclick = () => { document.getElementById('sup-dist').value = Math.round(size() * Math.SQRT2); readPassive(); };
+  document.getElementById('sup-edge').onclick = () => { document.getElementById('sup-dist').value = Math.round(size() * 0.76); readPassive(); };
+}
+
 function readPassive() {
   const n = id => Math.max(0, parseInt(document.getElementById(id).value || '0', 10) || 0);
-  calcState.supply.passive = { relics: n('sup-relics'), tradeCarts: n('sup-trade'), feitorias: n('sup-feitoria') };
+  const checked = [...document.querySelectorAll('[data-pmod]:checked')].map(c => c.dataset.pmod);
+  const R = CALC.passive.relic.mods || {}, T = CALC.passive.trade.mods || {};
+  calcState.supply.passive = {
+    relics: n('sup-relics'), tradeCarts: n('sup-trade'), feitorias: n('sup-feitoria'),
+    relicMods: checked.filter(id => R[id]),
+    trade: { map: document.getElementById('sup-map').value, distance: n('sup-dist'),
+             caravan: document.getElementById('sup-caravan').checked, mods: checked.filter(id => T[id]) },
+  };
+  showPassiveDetail();
   recalc();
+}
+
+// Detalle de reliquias y comercio (se calcula aunque no haya nada para producir).
+async function showPassiveDetail() {
+  const box = document.getElementById('calc-trade-out');
+  const p = calcState.supply.passive;
+  if (!p.relics && !p.tradeCarts) { box.innerHTML = ''; return; }
+  const r = await fetch('/api/passive', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ passive: p }) }).then(x => x.json()).catch(() => null);
+  const d = r && r.passiveDetail; if (!d) { box.innerHTML = ''; return; }
+  const lines = [];
+  if (d.relics) lines.push(`<div>🏛️ ${d.relics.count} reliquia(s): ${d.relics.perRelicPerMin.gold} ${resIco('gold')}${d.relics.perRelicPerMin.food ? ` + ${d.relics.perRelicPerMin.food} ${resIco('food')}` : ''}/min c/u → <b>${d.relics.total.gold} ${resIco('gold')}${d.relics.total.food ? ` + ${d.relics.total.food} ${resIco('food')}` : ''}/min</b></div>`);
+  if (d.trade) {
+    const t = d.trade;
+    const tc = `<img class="ic" src="${TRADE_CART_IMG}" alt="Trade cart">`;
+    lines.push(t.mode === 'distancia'
+      ? `<div>${tc} ${t.carts} carts · ${t.goldPerTrip} ${resIco('gold')}/viaje · viaje de ${t.tripSec} s → ${t.perCartPerMin.gold} ${resIco('gold')}/min c/u → <b>${t.total.gold} ${resIco('gold')}${t.total.food ? ` + ${t.total.food} ${resIco('food')}` : ''}/min</b></div>`
+      : `<div>${tc} ${t.carts} carts a valor plano (${t.perCartPerMin.gold} oro/min c/u) → <b>${t.total.gold} oro/min</b>. Indicá la distancia entre Markets para usar la fórmula.</div>`);
+  }
+  box.innerHTML = lines.join('');
 }
 
 function renderSelected() {
@@ -2541,7 +2614,7 @@ function renderSelected() {
     const it = CALC._byId[id]; if (!it) return '';
     const cost = RES_ORDER.filter(r => it.cost[r]).map(r => `${it.cost[r]}${resIco(r)}`).join(' ');
     return `<div class="calc-row">
-      <img class="ic" src="${UIMG(it.imgPath)}" alt="" onerror="this.onerror=null;this.src=MISSING_IMG">
+      <img class="ic" data-gk="i:${id}" src="${UIMG(it.imgPath)}" alt="" onerror="this.onerror=null;this.src=MISSING_IMG">
       <div class="nm">${esc(it.name)} <small>${cost} · ${it.time}s · ${it.kind === 'unit' ? 'unidad' : 'edificio'}</small></div>
       <div class="calc-step">
         <button data-dec="${id}">−</button>
@@ -2604,6 +2677,9 @@ function renderResult(r) {
   const reseedNote = r.reseedWood && r.reseedWood.totalPerMin
     ? `<div>🌲 Reseed de granjas/trampas: ~${r.reseedWood.totalPerMin} madera/min (por eso suma madera).</div>` : '';
   const notes = (r.heuristics || []).map(h => `<div>• ${esc(h)}</div>`).join('');
+  const pd = r.passiveDetail || {};
+  const passiveNote = (pd.relics || pd.trade)
+    ? `<div>💰 Ingreso pasivo: ${['gold', 'food'].filter(k => r.passiveIncome[k] > 0).map(k => `${r.passiveIncome[k]} ${resIco(k)}/min`).join(' + ')}${pd.trade && pd.trade.mode === 'distancia' ? ` (trade: ${pd.trade.goldPerTrip} oro/viaje)` : ''}</div>` : '';
   const ai = ({dark:0,feudal:1,castle:2,imperial:3})[calcState.age];
   const civNote = r.appliedCivMods ? `<div>Bonos aplicados: ${r.appliedCivMods.filter(m=>m.type!=='gen'||true).map(m =>
     m.type === 'cost' ? `${m.scope} ${m.resource} ×${m.valueByAge[ai]}`
@@ -2615,11 +2691,14 @@ function renderResult(r) {
     <div class="calc-total">Total: <b>${r.total}</b> aldeanos${split}
       <span style="color:var(--dim);font-size:12px">· cuello de botella: ${RES_ES[r.bottleneck]}</span></div>
     ${rows}
-    <div class="calc-notes">${contrib}${reseedNote}${notes}${civNote}</div>`;
+    <div class="calc-notes">${contrib}${passiveNote}${reseedNote}${notes}${civNote}</div>`;
 }
 
 // ── INIT ───────────────────────────────────────────────────────────────
 init();
 </script>
+<script src="/gamekit.js"></script>
+<script src="/matchup-extra.js"></script>
+<script src="/lab.js"></script>
 </body>
 </html>

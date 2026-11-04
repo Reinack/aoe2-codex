@@ -1,0 +1,245 @@
+{
+  "_doc": "Árbol de scouting: señal → qué significa → reacción. Curado de strategies/scouting.md, counter-phosphor-rush.md, scouts-rush.md, archer-flush.md, tower-rush.md y fast-castle-boom.md. 'answer' lista ids de unidades del árbol (de mejor a peor) para calcular quién del equipo puede ejecutar la reacción.",
+  "stages": [
+    {
+      "id": "dark",
+      "title": "Dark Age · leé tu mapa y las señales de su economía",
+      "when": "0:00 – 8:30",
+      "tip": "Dark Age es el momento de menor carga mental: planear muros y futuros TCs mirando tu terreno. Ver si el mapa es amurallable decide la apertura.",
+      "source": "strategies/scouting.md",
+      "signals": [
+        {
+          "signal": "Más de 4 aldeanos en bayas (6 = Fast Castle con 23 de población) o 4 en madera en lugar de 3",
+          "means": "Economía de Fast Castle: comida estable para sostener el salto",
+          "reaction": "Presión de Feudal antes de que llegue a Castle; si ya se confirma, 'vayan para adelante y mátenlo' (Capoch). No esperes a ver el castillo.",
+          "answer": [],
+          "tags": [
+            "fc",
+            "phosphor"
+          ],
+          "source": "strategies/counter-phosphor-rush.md"
+        },
+        {
+          "signal": "Aldeanos en piedra temprano",
+          "means": "Casi nadie hace tower rush: es un castillo adelantado",
+          "reaction": "Preparar presión en Feudal y tener muros/torres propias; si es tower rush real: pelear con aldeanos contra los constructores o contratorres y Mangonels.",
+          "answer": [
+            "onager",
+            "mangonel"
+          ],
+          "tags": [
+            "fc",
+            "tower"
+          ],
+          "source": "strategies/counter-phosphor-rush.md · strategies/tower-rush.md"
+        },
+        {
+          "signal": "Sube tarde a Feudal, con 22–24 de población (minuto 10–11)",
+          "means": "Si fuera a rushear en Feudal habría subido antes: va Fast Castle",
+          "reaction": "Aprovechar la ventana: 2 aldeanos + torre o ejército de Feudal antes del minuto 13.",
+          "answer": [
+            "archer",
+            "skirmisher"
+          ],
+          "tags": [
+            "fc"
+          ],
+          "source": "strategies/counter-phosphor-rush.md"
+        },
+        {
+          "signal": "Los aldeanos de las bayas no tenían Loom y después sí",
+          "means": "El rival hizo click a Feudal con 22–23 de población (truco de Liereyy)",
+          "reaction": "Tratalo como Fast Castle.",
+          "answer": [],
+          "tags": [
+            "fc"
+          ],
+          "source": "strategies/counter-phosphor-rush.md"
+        },
+        {
+          "signal": "Amurallado completo entre los minutos 8 y 10",
+          "means": "Fast Castle sin presión",
+          "reaction": "Un muro al 99 % es lo mismo que no amurallar: sondear con clic derecho adentro de la base. Si se traban, está cerrado: jugá a otra cosa (boom propio).",
+          "answer": [],
+          "tags": [
+            "fc",
+            "boom"
+          ],
+          "source": "strategies/scouting.md · strategies/counter-phosphor-rush.md"
+        }
+      ]
+    },
+    {
+      "id": "feudal-start",
+      "title": "Inicio de Feudal · el edificio militar del rival",
+      "when": "los primeros 1–2 min de Feudal",
+      "tip": "El scout va a la base rival, no es opcional. Dá la vuelta entera: dónde está el rival, dónde están sus recursos y qué hace (su edificio militar). Regla de Hera válida a cualquier Elo.",
+      "source": "strategies/scouting.md",
+      "signals": [
+        {
+          "signal": "Stable",
+          "means": "Scout rush",
+          "reaction": "Lanceros y muros. Contra masa de scouts, Skirmishers y muros los contienen.",
+          "answer": [
+            "halberdier",
+            "pikeman",
+            "spearman",
+            "eliteskirm",
+            "skirmisher"
+          ],
+          "tags": [
+            "scouts"
+          ],
+          "source": "strategies/scouting.md · strategies/scouts-rush.md"
+        },
+        {
+          "signal": "1 Archery Range",
+          "means": "Archer flush",
+          "reaction": "Skirmishers o muros fuertes; el contraataque con lanceros/scouts divide la atención.",
+          "answer": [
+            "eliteskirm",
+            "skirmisher"
+          ],
+          "tags": [
+            "archers"
+          ],
+          "source": "strategies/scouting.md · strategies/archer-flush.md"
+        },
+        {
+          "signal": "2 Archery Ranges",
+          "means": "Doble arquería: economía comprometida",
+          "reaction": "1 Town Center y Skirmishers, o agresión.",
+          "answer": [
+            "eliteskirm",
+            "skirmisher"
+          ],
+          "tags": [
+            "archers"
+          ],
+          "source": "strategies/scouting.md"
+        },
+        {
+          "signal": "Blacksmith y Market sin edificio militar",
+          "means": "Fast Castle",
+          "reaction": "Presión en Feudal antes de que llegue a Castle. Si ya hay push de asedio con monjes o castillo adelantado, Market y Blacksmith lo delatan.",
+          "answer": [
+            "archer",
+            "skirmisher"
+          ],
+          "tags": [
+            "fc"
+          ],
+          "source": "strategies/scouting.md · strategies/counter-phosphor-rush.md"
+        }
+      ]
+    },
+    {
+      "id": "castle-transition",
+      "title": "Transición a Castle del rival · la segunda ventana",
+      "when": "mientras el rival sube a Castle",
+      "tip": "El nivel medio se la saltea: el rival puede plantar Archery Ranges o Stables durante la subida y no reacciona al scout. Cobrala con varios puntos encolados con Shift sobre el frente de su base, no con un clic suelto.",
+      "source": "strategies/scouting.md",
+      "signals": [
+        {
+          "signal": "Market y Blacksmith en Feudal, aldeanos al oro/piedra, sin ejército",
+          "means": "Push de asedio con monjes o castillo adelantado",
+          "reaction": "Tu propio ejército de Feudal gana tiempo; después Knights/Mangonels según lo que levante. Con castillo adelantado: no empujar de frente, reliquias y boom.",
+          "answer": [
+            "paladin",
+            "cavalier",
+            "knight",
+            "onager",
+            "mangonel"
+          ],
+          "tags": [
+            "castle"
+          ],
+          "source": "strategies/counter-phosphor-rush.md · strategies/archer-flush.md"
+        },
+        {
+          "signal": "Knights rivales en Castle",
+          "means": "Fast Castle → Knights",
+          "reaction": "Mangonels y Halberdiers, o Cavalry Archers si la economía da.",
+          "answer": [
+            "halberdier",
+            "pikeman",
+            "onager",
+            "hcavarcher",
+            "cavarcher"
+          ],
+          "tags": [
+            "knights"
+          ],
+          "source": "strategies/archer-flush.md"
+        },
+        {
+          "signal": "Pikemen en masa del rival",
+          "means": "Defensa contra caballería",
+          "reaction": "Pasar a arqueros o Cavalry Archers en Castle.",
+          "answer": [
+            "hcavarcher",
+            "cavarcher",
+            "arbalester",
+            "crossbow"
+          ],
+          "tags": [
+            "scouts"
+          ],
+          "source": "strategies/scouts-rush.md"
+        }
+      ]
+    },
+    {
+      "id": "free-info",
+      "title": "Información gratis · sin arriesgar el scout",
+      "when": "en cualquier momento",
+      "tip": "Casi toda la información que importa es gratis si sabés dónde mirar.",
+      "source": "strategies/scouting.md",
+      "signals": [
+        {
+          "signal": "Un clic en el Town Center rival: +1 de rango",
+          "means": "Tiene Fletching y juega arqueros",
+          "reaction": "Preparar Skirmishers. Si no tiene mejoras de rango: probablemente va a Fast Castle u otra cosa.",
+          "answer": [
+            "eliteskirm",
+            "skirmisher"
+          ],
+          "tags": [
+            "archers"
+          ],
+          "source": "strategies/scouting.md"
+        },
+        {
+          "signal": "Precios del Market: la comida está cara",
+          "means": "Alguien la está comprando",
+          "reaction": "Indica qué recurso se está consumiendo; combinalo con el puntaje (ver Score) para leer el progreso y los gastos del rival.",
+          "answer": [],
+          "tags": [
+            "info"
+          ],
+          "source": "strategies/scouting.md"
+        },
+        {
+          "signal": "El scout hace caminos raros",
+          "means": "Hay muros que todavía no se ven bloqueando su ruta",
+          "reaction": "Varios clics cortos en distintos lugares para forzar una nueva ruta sin que el rival note que conocés sus muros.",
+          "answer": [],
+          "tags": [
+            "info"
+          ],
+          "source": "strategies/scouting.md"
+        },
+        {
+          "signal": "Sin Mining Camp en Dark Age / scout rival sin Bloodlines / sin Blacksmith",
+          "means": "Scouting por ausencia: sin oro no hay unidades de oro en Feudal; sin Bloodlines no hay caballería pesada; sin Blacksmith no hay arqueros",
+          "reaction": "Descartá esas respuestas y no gastes recursos defendiendo contra lo que no viene.",
+          "answer": [],
+          "tags": [
+            "info"
+          ],
+          "source": "strategies/scouting.md"
+        }
+      ]
+    }
+  ]
+}

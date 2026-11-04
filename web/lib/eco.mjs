@@ -124,14 +124,64 @@ export function effectiveRate(sourceId, { age, techs = [] } = {}) {
   return rate;
 }
 
-// Ingreso pasivo por recurso (recursos/min) a partir de reliquias / trade / feitorias.
-function passiveIncome({ relics = 0, tradeCarts = 0, feitorias = 0 } = {}) {
+// Comercio por distancia (market.md): oro por viaje = k · d · (d / tamañoMapa + offset), con
+// d = distancia entre Markets − 5 casillas del edificio. Un viaje = ida y vuelta a la velocidad
+// del cart (Caravan +50%). Devuelve oro/viaje, segundos por viaje y ingreso por cart por minuto.
+//   cfg: { distance (casillas entre Markets), mapSize (casillas) | map ('tiny'…), caravan, mods: [ids] }
+export function tradeStats(cfg = {}) {
+  const T = ECO_MODEL.passive.trade;
+  const mods = new Set(cfg.mods || []);
+  const size = Number(cfg.mapSize) || T.mapSizes[cfg.map] || T.mapSizes.medium;
+  const D = Math.max(0, Number(cfg.distance) || 0);
+  const d = Math.max(0, D - T.formula.buildingTiles);
+  let goldPerTrip = T.formula.k * d * (d / size + T.formula.offset);
+  let goldPct = 0;
+  for (const [id, m] of Object.entries(T.mods)) if (mods.has(id) && m.goldPct) goldPct += m.goldPct;
+  goldPerTrip *= 1 + goldPct / 100;
+  const speed = T.cartSpeedTilesPerSec * (cfg.caravan ? 1 + T.caravanSpeedPct / 100 : 1);
+  const tripSec = D > 0 ? (2 * D) / speed : 0;
+  const goldPerMin = tripSec > 0 ? (goldPerTrip * 60) / tripSec : 0;
+  const foodPct = [...mods].reduce((a, id) => a + (T.mods[id]?.foodPctOfGold || 0), 0);
+  return {
+    mapSize: size, distance: D, goldPerTrip: round1(goldPerTrip), tripSec: Math.round(tripSec),
+    perCartPerMin: { gold: round1(goldPerMin), food: round1((goldPerMin * foodPct) / 100) },
+  };
+}
+
+// Ingreso pasivo por recurso (recursos/min) + detalle: reliquias (30 oro/min base + bonos de
+// equipo/tech), comercio (plano o por distancia) y feitorias.
+//   passive: { relics, relicMods:[ids], tradeCarts, trade:{distance,mapSize|map,caravan,mods}, feitorias }
+function passiveBreakdown({ relics = 0, relicMods = [], tradeCarts = 0, trade = null, feitorias = 0 } = {}) {
   const inc = zero();
-  inc.gold += relics * ECO_MODEL.passive.relic.ratePerMin;
-  inc.gold += tradeCarts * ECO_MODEL.passive.trade_cart.ratePerMin;
+  const detail = {};
+  const R = ECO_MODEL.passive.relic;
+  if (relics > 0) {
+    const per = { gold: R.ratePerMin, food: 0 };
+    for (const id of relicMods) { const m = R.mods?.[id]; if (m) { per.gold += m.gold || 0; per.food += m.food || 0; } }
+    inc.gold += relics * per.gold; inc.food += relics * per.food;
+    detail.relics = { count: relics, perRelicPerMin: per, total: { gold: round1(relics * per.gold), food: round1(relics * per.food) } };
+  }
+  if (tradeCarts > 0) {
+    if (trade && Number(trade.distance) > 0) {
+      const t = tradeStats(trade);
+      inc.gold += tradeCarts * t.perCartPerMin.gold; inc.food += tradeCarts * t.perCartPerMin.food;
+      detail.trade = { ...t, carts: tradeCarts, mode: "distancia",
+        total: { gold: round1(tradeCarts * t.perCartPerMin.gold), food: round1(tradeCarts * t.perCartPerMin.food) } };
+    } else {
+      const flat = ECO_MODEL.passive.trade_cart.ratePerMin;
+      inc.gold += tradeCarts * flat;
+      detail.trade = { carts: tradeCarts, mode: "plano", perCartPerMin: { gold: flat, food: 0 }, total: { gold: tradeCarts * flat, food: 0 } };
+    }
+  }
   const fe = ECO_MODEL.passive.feitoria.ratePerMin;
   for (const r of RESOURCES) inc[r] += feitorias * (fe[r] || 0);
-  return inc;
+  return { inc, detail };
+}
+const passiveIncome = (p) => passiveBreakdown(p).inc;
+// Ingreso pasivo y detalle sin necesidad de un plan de producción (lo usa la UI de la calculadora).
+export function passiveSummary(passive = {}) {
+  const { inc, detail } = passiveBreakdown(passive || {});
+  return { passiveIncome: rMap(inc, round1), passiveDetail: detail };
 }
 
 // ── SOLVE ────────────────────────────────────────────────────────────────────
@@ -168,7 +218,7 @@ export function solve({ items = [], age = "feudal", civ = null, techs = [], supp
   const demand = rMap(drain, (v) => v * 60);
 
   // OFERTA FIJA: pasivos + contributors. Registra la comida por fuente (para reseed).
-  const passiveInc = passiveIncome(passive);
+  const { inc: passiveInc, detail: passiveDetail } = passiveBreakdown(passive);
   const income = { ...passiveInc };
   const foodBySource = {};
   const contribList = [];
@@ -239,6 +289,7 @@ export function solve({ items = [], age = "feudal", civ = null, techs = [], supp
     bottleneck,
     reseedWood: { totalPerMin: round1(reseedWood), breakdown: reseedBreakdown },
     passiveIncome: rMap(passiveInc, round1),
+    passiveDetail,
     heuristics: heuristics(perItem),
     appliedCivMods: civ && CIV_MODS[civ] ? summarizeCivMods(CIV_MODS[civ]) : null,
   };
