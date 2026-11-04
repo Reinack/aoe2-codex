@@ -80,7 +80,7 @@ El pipeline es **agnóstico al proveedor** vía `LLM_PROVIDER` en `.env`:
 
 | `LLM_PROVIDER` | Embeddings | Chat | Uso |
 |---|---|---|---|
-| `gemini` (**default**) | `gemini-embedding-001` (768d) | `gemini-2.5-flash` | cloud — deployable sin Ollama |
+| `gemini` (**default**) | `gemini-embedding-001` (768d) | `gemini-3.5-flash-lite` | cloud — deployable sin Ollama |
 | `ollama` | `bge-m3` (1024d) | `gemma3:4b` | 100% local, sin costo, sin datos afuera |
 
 ```bash
